@@ -1,0 +1,148 @@
+name: port
+version: 1.0
+
+cabal-version: >= 1.2
+build-type:          Simple
+
+Library
+  default-language:    Haskell2010
+  build-depends: base >= 4.5 && <5,
+                 containers,
+                 old-time, unix
+  hs-source-dirs: src
+  
+  if os(windows)
+    c-sources: src/cbits/Win32/AboutDialog.c
+               src/cbits/Win32/FileDialog.c,
+               src/cbits/Win32/Label.c,
+               src/cbits/Win32/Slider.c,
+               src/cbits/Win32/Action.c,
+               src/cbits/Win32/Font.c,
+               src/cbits/Win32/Splitter.c,
+               src/cbits/Win32/Bitmap.c,
+               src/cbits/Win32/FontDialog.c,
+               src/cbits/Win32/StatusBar.c,
+               src/cbits/Win32/Button.c,
+               src/cbits/Win32/Frame.c,
+               src/cbits/Win32/ListBox.c,
+               src/cbits/Win32/Timer.c,
+               src/cbits/Win32/Canvas.c,
+               src/cbits/Win32/GroupBox.c,
+               src/cbits/Win32/Menu.c,
+               src/cbits/Win32/ToolBar.c,
+               src/cbits/Win32/CheckBox.c,
+               src/cbits/Win32/Message.c,
+               src/cbits/Win32/TrackBar.c,
+               src/cbits/Win32/ColorDialog.c,
+               src/cbits/Win32/Notebook.c,
+               src/cbits/Win32/Util.c,
+               src/cbits/Win32/ConfigKey.c,
+               src/cbits/Win32/PopUp.c,
+               src/cbits/Win32/Window.c,
+               src/cbits/Win32/DateEntry.c,
+               src/cbits/Win32/ProgressBar.c,
+               src/cbits/Win32/EditBox.c,
+               src/cbits/Win32/RadioBox.c
+               src/cbits/Win32/DockBar.c
+               src/cbits/Win32/ActionsMap.c
+    cc-options: -DWIN32_TARGET=1
+    extra-libraries: user32, comctl32, comdlg32, ole32
+  else
+    if os(darwin)
+      c-sources: src/cbits/Cocoa/AboutDialog.m,
+                 src/cbits/Cocoa/FileDialog.m,
+                 src/cbits/Cocoa/Label.m,
+                 src/cbits/Cocoa/Slider.m,
+                 src/cbits/Cocoa/Action.m,
+                 src/cbits/Cocoa/Font.m,
+                 src/cbits/Cocoa/Splitter.m,
+                 src/cbits/Cocoa/Bitmap.m,
+                 src/cbits/Cocoa/FontDialog.m,
+                 src/cbits/Cocoa/StatusBar.m,
+                 src/cbits/Cocoa/Button.m,
+                 src/cbits/Cocoa/ListBox.m,
+                 src/cbits/Cocoa/Timer.m,
+                 src/cbits/Cocoa/Canvas.m,
+                 src/cbits/Cocoa/GroupBox.m,
+                 src/cbits/Cocoa/Menu.m,
+                 src/cbits/Cocoa/ToolBar.m,
+                 src/cbits/Cocoa/CheckBox.m,
+                 src/cbits/Cocoa/Message.m,
+                 src/cbits/Cocoa/TrackBar.m,
+                 src/cbits/Cocoa/ColorDialog.m,
+                 src/cbits/Cocoa/Notebook.m,
+                 src/cbits/Cocoa/Util.m,
+                 src/cbits/Cocoa/ConfigKey.m,
+                 src/cbits/Cocoa/PopUp.m,
+                 src/cbits/Cocoa/Window.m,
+                 src/cbits/Cocoa/DateEntry.m,
+                 src/cbits/Cocoa/ProgressBar.m,
+                 src/cbits/Cocoa/EditBox.m,
+                 src/cbits/Cocoa/RadioBox.m
+      include-dirs: src/cbits/Cocoa
+      cc-options: -DCOCOA_TARGET=1
+      frameworks: cocoa
+    else
+      c-sources: src/cbits/GTK/AboutDialog.c,
+                 src/cbits/GTK/FileDialog.c,
+                 src/cbits/GTK/Label.c,
+                 src/cbits/GTK/Slider.c,
+                 src/cbits/GTK/Action.c,
+                 src/cbits/GTK/Font.c,
+                 src/cbits/GTK/Splitter.c,
+                 src/cbits/GTK/Bitmap.c,
+                 src/cbits/GTK/FontDialog.c,
+                 src/cbits/GTK/StatusBar.c,
+                 src/cbits/GTK/Button.c,
+                 src/cbits/GTK/Frame.c,
+                 src/cbits/GTK/ListBox.c,
+                 src/cbits/GTK/Timer.c,
+                 src/cbits/GTK/Canvas.c,
+                 src/cbits/GTK/GroupBox.c,
+                 src/cbits/GTK/Menu.c,
+                 src/cbits/GTK/ToolBar.c,
+                 src/cbits/GTK/CheckBox.c,
+                 src/cbits/GTK/Message.c,
+                 src/cbits/GTK/TrackBar.c,
+                 src/cbits/GTK/ColorDialog.c,
+                 src/cbits/GTK/Notebook.c,
+                 src/cbits/GTK/Util.c,
+                 src/cbits/GTK/ConfigKey.c,
+                 src/cbits/GTK/PopUp.c,
+                 src/cbits/GTK/Window.c,
+                 src/cbits/GTK/DateEntry.c,
+                 src/cbits/GTK/ProgressBar.c,
+                 src/cbits/GTK/EditBox.c,
+                 src/cbits/GTK/RadioBox.c,
+                 src/cbits/GTK/LayoutContainer.c,
+                 src/cbits/GTK/gtkdropdownbutton.c,
+                 src/cbits/GTK/gtkdropdowntoolbutton.c
+      include-dirs: src/cbits/GTK
+      pkgconfig-depends: gtk+-2.0, pango, libgnome-2.0, libgnomeui-2.0
+      cc-options: -DGTK_TARGET=1
+
+  include-dirs: src/include, src/Graphics/UI/Port/
+
+  exposed-modules: 
+    Graphics.UI.Port
+    Graphics.UI.Port.Action
+    Graphics.UI.Port.Menu
+    Graphics.UI.Port.Bitmap
+    Graphics.UI.Port.Message
+    Graphics.UI.Port.Canvas
+    Graphics.UI.Port.Process
+    Graphics.UI.Port.Colors
+    Graphics.UI.Port.CommonDialogs
+    Graphics.UI.Port.StatusBar
+    Graphics.UI.Port.ConfigKey
+    Graphics.UI.Port.Timer
+    Graphics.UI.Port.Controls
+    Graphics.UI.Port.ToolBar
+    Graphics.UI.Port.Document
+    Graphics.UI.Port.Types
+    Graphics.UI.Port.Font
+    Graphics.UI.Port.Window
+    Graphics.UI.Port.Handlers
+
+  other-modules:
+    Graphics.UI.Port.PtrMap

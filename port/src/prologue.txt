@@ -1,0 +1,8 @@
+The "Port" package is a low-level, portable Haskell library for writing graphical
+user interfaces (GUI's). It is currently implemented for Windows and GTK. Port does
+not (yet) cover all aspects of a full fledged GUI but it is fairly complete and
+offers probably enough functionality for most applications.
+
+Allthough it is possible to write GUI's directly using this package, the interface
+offers no utility functions or abstraction. Other libraries based
+on "Port" should offer a more friendly interface for writing GUI's.

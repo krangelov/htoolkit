@@ -1,0 +1,40 @@
+-------------------------------------------------------------------------
+ Port: the portable haskell GUI abstraction.
+ 
+ Krasimir Angelov & Daan Leijen
+-------------------------------------------------------------------------
+
+
+Introduction
+~~~~~~~~~~~~
+
+The "Graphics.UI.Port" library is a portable graphical user interface
+library for Haskell. It currently supports Windows and GTK. The
+Port library is designed to be a *low-level* library that only makes 
+the portable C-library available to Haskell. Other Haskell libraries
+can use Port to implement a higher level GUI interface in Haskell.
+
+Port is not yet a complete GUI library but it implements a fair amount
+of widgets and is probably "complete enough" for most applications.
+
+Requirements
+~~~~~~~~~~~~
+
+     If you want to build Port for Linux you need to have GTK 2.2 
+and GNOME 2.2 development packages. The applications built with Port
+are dependent from GTK and GNOME shared libraries. 
+     If you want to read/write/create images in formats different 
+from BMP then you need to have GdiPlus.dll in your search path. 
+GdiPlus.dll is part of GDI+ package which is 
+available from http://www.microsoft.com for platforms older that 
+Windows XP. Windows XP and Windows 2003 comes with GDI+ installed 
+by default.
+
+
+Known bugs
+~~~~~~~~~~
+
+     In Port 1.2 the toolbars for GTK are not supported. The CVS
+version of library supports toolbars but uses the new toolbar API
+implemented in GTK 2.3. The support will be enabled after 
+GTK 2.4 release.

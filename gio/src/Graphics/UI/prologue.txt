@@ -1,0 +1,21 @@
+The Grapical IO (GIO) library is a /middle-level/ Haskell library for writing 
+Graphical User Interfaces (GUI\'s). It is build upon the portable GUI 
+library "Graphics.UI.Port". 
+
+All operations are within the 'IO' monad and the library
+doesn't offer an explicit state model besides mutable variables ('Graphics.UI.GIO.Types.Var'). 
+The design of the GIO library is very much influenced by the lecture notes 
+on the Yahu library and TkGofer.
+
+The following example gives a taste of the general flavor. It is a
+GUI that displays a single, centered /Quit/ button. When clicked (or
+activated by the keyboard), it closes the window.
+
+> import Graphics.UI.GIO
+>
+> main = start demo
+> 
+> demo :: IO ()
+> demo = do w <- window [title =: "Quit demo"]
+>           q <- button [text =: "Quit", on command =: close w] w
+>           set w [layout =: pad 10 (center q)]
