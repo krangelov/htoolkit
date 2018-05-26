@@ -827,12 +827,12 @@ withCLineStyle style f
 -- | The 'HatchStyle' is applied when filling an object. 
 data HatchStyle
   = HatchSolid          -- ^ Solid pattern
-  | HatchBDiagonal     -- ^ A 45-degree upward, left-to-right hatch
-  | HatchFDiagonal     -- ^ A 45-degree downward, left-to-right hatch
-  | HatchCross         -- ^ Horizontal and vertical cross-hatch
-  | HatchDiagCross    -- ^ 45-degree crosshatch
+  | HatchBDiagonal      -- ^ A 45-degree upward, left-to-right hatch
+  | HatchFDiagonal      -- ^ A 45-degree downward, left-to-right hatch
+  | HatchCross          -- ^ Horizontal and vertical cross-hatch
+  | HatchDiagCross      -- ^ 45-degree crosshatch
   | HatchHorizontal     -- ^ Horizontal hatch 
-  | HatchVertical     -- ^ Vertical hatch
+  | HatchVertical       -- ^ Vertical hatch
   | HatchPattern Bitmap -- ^ A bitmap pattern -- 8x8 pixel bitmaps are always supported.
   deriving Eq
 
@@ -840,11 +840,11 @@ withCHatchStyle :: HatchStyle -> (CInt -> BitmapHandle -> IO a) -> IO a
 withCHatchStyle style f
   = case style of
       HatchSolid          -> f 0 nullHandle
-      HatchBDiagonal       -> f 1 nullHandle
-      HatchFDiagonal       -> f 2 nullHandle
-      HatchCross       -> f 3 nullHandle
+      HatchBDiagonal      -> f 1 nullHandle
+      HatchFDiagonal      -> f 2 nullHandle
+      HatchCross          -> f 3 nullHandle
       HatchDiagCross      -> f 4 nullHandle
-      HatchHorizontal       -> f 5 nullHandle
+      HatchHorizontal     -> f 5 nullHandle
       HatchVertical       -> f 6 nullHandle
       HatchPattern bitmap -> withCBitmap bitmap $ \handle -> f 7 handle
 

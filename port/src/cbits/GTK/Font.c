@@ -89,6 +89,7 @@ FontHandle osCreateFont(char *face, int size, int weight, int style)
 {
 	FontHandle font;
 	PangoFont *pango_font;
+	PangoContext *pango_context;
 
 	font = rmalloc(sizeof(*font));
 
@@ -98,12 +99,15 @@ FontHandle osCreateFont(char *face, int size, int weight, int style)
 	pango_font_description_set_style(font->font_descr,style & FONT_TYPE_MASK);
 	pango_font_description_set_size(font->font_descr, size*PANGO_SCALE);
 
+	pango_context = gdk_pango_context_get_for_screen(gdk_screen_get_default());
 	pango_font = pango_font_map_load_font
 			( pango_cairo_font_map_get_default()
-			, NULL
+			, pango_context
 			, font->font_descr
 			);
 	font->metrics = pango_font_get_metrics(pango_font, NULL);
+	g_object_unref(pango_font);
+    g_object_unref(pango_context);
 
 	font->style = style;
 
@@ -186,16 +190,16 @@ int osGetFontCharWidth(char ch, FontHandle font, CanvasHandle canvas)
 void osDefaultFontDef(char **face, int *size, int *weight, int *style)
 {
 	GtkStyle *gtkstyle = gtk_style_new();
-	*face    = strdup(pango_font_description_get_family (gtkstyle->font_desc));
-	*size    = pango_font_description_get_size (gtkstyle->font_desc)/PANGO_SCALE;
+	*face   = strdup(pango_font_description_get_family (gtkstyle->font_desc));
+	*size   = pango_font_description_get_size (gtkstyle->font_desc)/PANGO_SCALE;
 	*weight = pango_font_description_get_weight(gtkstyle->font_desc);
 
 	switch (pango_font_description_get_style(gtkstyle->font_desc))
 	{
-	case PANGO_STYLE_NORMAL:   *style = FONT_NORMAL; break;
-	case PANGO_STYLE_OBLIQUE:  *style = FONT_ITALIC;     break;
-	case PANGO_STYLE_ITALIC:      *style = FONT_OBLIQUE; break;
-	default:                                        *style = FONT_NORMAL; break;
+	case PANGO_STYLE_NORMAL:   *style = FONT_NORMAL;  break;
+	case PANGO_STYLE_OBLIQUE:  *style = FONT_ITALIC;  break;
+	case PANGO_STYLE_ITALIC:   *style = FONT_OBLIQUE; break;
+	default:                   *style = FONT_NORMAL;  break;
 	}
 	gtk_style_unref(gtkstyle);
 }

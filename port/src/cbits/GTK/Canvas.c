@@ -37,52 +37,9 @@ void osInitCanvas 	(int size, int function,
 {
 	GdkRectangle clip_box;
 
-	canvas->lineCustomCount = lineCustomCount;
-	canvas->lineCustomDashes = lineCustomDashes;
 	canvas->backDraw = backDraw;
 	canvas->tile = NULL;
 
-	canvas->penColor.pixel = 0;
-	canvas->penColor.red   = ((pcolor      ) & 0xFF)*257;
-	canvas->penColor.green = ((pcolor >>  8) & 0xFF)*257;
-	canvas->penColor.blue  = ((pcolor >> 16) & 0xFF)*257;
-
-	canvas->backColor.pixel = 0;
-	canvas->backColor.red   = ((bcolor      ) & 0xFF)*257;
-	canvas->backColor.green = ((bcolor >>  8) & 0xFF)*257;
-	canvas->backColor.blue  = ((bcolor >> 16) & 0xFF)*257;
-
-	if (canvas->drawable)
-	{
-		canvas->theDrawGC = gdk_gc_new(canvas->drawable);
-		gdk_gc_set_clip_origin(canvas->theDrawGC, 0, 0);
-
-		canvas->theFillGC = gdk_gc_new(canvas->drawable);
-		gdk_gc_set_clip_origin(canvas->theFillGC, 0, 0);
-
-		canvas->theEraseGC = gdk_gc_new(canvas->drawable);
-		gdk_gc_set_clip_origin(canvas->theEraseGC, 0, 0);
-
-		canvas->theTextGC = gdk_gc_new(canvas->drawable);
-		gdk_gc_set_clip_origin(canvas->theTextGC, 0, 0);
-
-		if (canvas->region)
-		{
-			gdk_gc_set_clip_region(canvas->theDrawGC, canvas->region);
-			gdk_gc_set_clip_region(canvas->theFillGC, canvas->region);
-			gdk_gc_set_clip_region(canvas->theEraseGC,canvas->region);
-			gdk_gc_set_clip_region(canvas->theTextGC, canvas->region);
-		}
-	}
-	else
-	{
-		canvas->theDrawGC = NULL;
-		canvas->theFillGC = NULL;
-		canvas->theEraseGC= NULL;
-		canvas->theTextGC = NULL;
-	}
-
-	canvas->theFont = font;
 	osChangeCanvasPen(size,function,pcolor,bcolor,joinStyle,capStyle,lineStyle,lineCustomCount,lineCustomDashes,backDraw,hatchStyle,hatchBitmap,font,canvas);
 
 	if (canvas->buffered == 0 && buffered)
@@ -114,8 +71,14 @@ void osInitCanvas 	(int size, int function,
 	if (canvas->buffered == 2)
 	{
 		gdk_region_get_clipbox (canvas->region, &clip_box);
-		gdk_draw_rectangle(canvas->drawable, canvas->theEraseGC, TRUE,
-				clip_box.x, clip_box.y, clip_box.width, clip_box.height);
+		cairo_save(canvas->cr);
+		cairo_set_source_rgba(canvas->cr, ((double) ((bcolor      ) & 0xFF))/255
+								        , ((double) ((bcolor >>  8) & 0xFF))/255
+								        , ((double) ((bcolor >> 16) & 0xFF))/255
+								        , 1.0);
+		cairo_rectangle(canvas->cr, clip_box.x, clip_box.y, clip_box.width, clip_box.height);
+		cairo_fill(canvas->cr);
+		cairo_restore(canvas->cr);
 	}
 }	/* osInitCanvas */
 
@@ -127,25 +90,11 @@ void osDoneCanvas (CanvasHandle canvas)
 		canvas->buffered = 0;
 	}
 
-	if (canvas->drawable)
-	{
-		gdk_colormap_free_colors(gdk_drawable_get_colormap(canvas->drawable), &canvas->penColor, 1);
-		gdk_colormap_free_colors(gdk_drawable_get_colormap(canvas->drawable), &canvas->backColor, 1);
-	}
-
 	if (canvas->tile)
 	{
-		gdk_pixmap_unref(canvas->tile);
+		rfree(canvas->tile);
 		canvas->tile = NULL;
 	}
-
-	if (canvas->theDrawGC)    gdk_gc_destroy(canvas->theDrawGC);
-	if (canvas->theFillGC)    gdk_gc_destroy(canvas->theFillGC);
-	if (canvas->theEraseGC)   gdk_gc_destroy(canvas->theEraseGC);
-	if (canvas->theTextGC)    gdk_gc_destroy(canvas->theTextGC);
-
-	if (canvas->lineCustomDashes)
-		free(canvas->lineCustomDashes);
 }	/* osDoneCanvas */
 
 /*	Operations to create, modify, and destroy polygon shapes.
@@ -183,17 +132,37 @@ void osDeletePolygon(PolygonHandle shape)
 |	   Interface functions			   |
 \*------------------------------------*/
 
-static gint8 dashStyles[] = {15,15};
-static gint8 dotStyles[] = {1,4};
-static gint8 dashDotStyles[] = {5,3,1,3};
-static gint8 dashDotDotStyles[] = {5,3,1,3,1,3};
+static double dashStyles[] = {15,15};
+static double dotStyles[] = {1,4};
+static double dashDotStyles[] = {5,3,1,3};
+static double dashDotDotStyles[] = {5,3,1,3,1,3};
 
-gchar bdiag_xbm[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
-gchar fdiag_xbm[] = {0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
-gchar cross_xbm[] = {0xFF,0x01,0x01,0x01,0x01,0x01,0x01,0x01};
-gchar dcross_xbm[]= {0x81,0x42,0x24,0x18,0x18,0x24,0x42,0x81};
-gchar horiz_xbm[] = {0xFF,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-gchar vert_xbm[]  = {0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01};
+static cairo_pattern_t *create_stipple(guchar stipple_data[])
+{
+	cairo_surface_t *surface;
+	cairo_pattern_t *pattern;
+
+	int stride;
+	const int width = 8;
+	const int height = 8;
+
+	stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, width);
+	g_assert (stride > 0);
+
+	surface = cairo_image_surface_create_for_data (stipple_data, CAIRO_FORMAT_ARGB32, width, height,
+	                                               stride);
+	pattern = cairo_pattern_create_for_surface (surface);
+	cairo_surface_destroy (surface);
+	cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
+
+	return pattern;
+}
+
+#define PREMULTIPLY(argb)                                                                          \
+	(((argb) & 0xFF << 24) |                                                                       \
+	 (((((argb) & 0xFF <<  0) >>  0) * (((argb) & 0xFF << 24) >> 24) / 0xFF) << 16) |              \
+	 (((((argb) & 0xFF <<  8) >>  8) * (((argb) & 0xFF << 24) >> 24) / 0xFF) <<  8) |                 \
+	 (((((argb) & 0xFF << 16) >> 16) * (((argb) & 0xFF << 24) >> 24) / 0xFF) <<  0))
 
 void osChangeCanvasPen(int size, int function,
 					 unsigned int pcolor,
@@ -210,239 +179,208 @@ void osChangeCanvasPen(int size, int function,
 					 CanvasHandle canvas
 					 )
 {
-	GdkCapStyle  gtkCapStyle;
-	GdkJoinStyle gtkJoinStyle;
-	GdkLineStyle gtkLineStyle;
-	GdkFill fill;
-	GdkColormap *colormap;
-	GdkColor blackColor, whiteColor;
-	GdkGC *gc;
+	cairo_line_cap_t  cairoCapStyle;
+	cairo_line_join_t cairoJoinStyle;
 
-	if (canvas->drawable)
+	if (canvas->cr)
 	{
-		if (canvas->lineCustomDashes)
-			free(canvas->lineCustomDashes);
-
-		canvas->lineCustomCount = lineCustomCount;
-		canvas->lineCustomDashes = lineCustomDashes;
 		canvas->backDraw = backDraw;
+
+		cairo_set_line_width (canvas->cr, size);
 
 		switch (joinStyle)
 		{
-		case 0: gtkJoinStyle = GDK_JOIN_BEVEL; break;
-		case 1: gtkJoinStyle = GDK_JOIN_MITER; break;
-		case 2: gtkJoinStyle = GDK_JOIN_ROUND; break;
+		case 0: cairoJoinStyle = CAIRO_LINE_JOIN_BEVEL; break;
+		case 1: cairoJoinStyle = CAIRO_LINE_JOIN_MITER; break;
+		case 2: cairoJoinStyle = CAIRO_LINE_JOIN_ROUND; break;
 		}
+		cairo_set_line_join (canvas->cr, cairoJoinStyle);
 
 		switch (capStyle)
 		{
-		case 0: gtkCapStyle = GDK_CAP_ROUND;  	  break;
-		case 1: gtkCapStyle = GDK_CAP_PROJECTING; break;
-		case 2: gtkCapStyle = GDK_CAP_BUTT;   	  break;
+		case 0: cairoCapStyle = CAIRO_LINE_CAP_ROUND;  	break;
+		case 1: cairoCapStyle = CAIRO_LINE_CAP_SQUARE;  break;
+		case 2: cairoCapStyle = CAIRO_LINE_CAP_BUTT;   	break;
 		}
-
-		if (lineStyle == 0)
-			gtkLineStyle = GDK_LINE_SOLID;
-		else
-			if (canvas->backDraw)
-				gtkLineStyle = GDK_LINE_DOUBLE_DASH;
-			else
-				gtkLineStyle = GDK_LINE_ON_OFF_DASH;
-
-		gdk_gc_set_line_attributes(canvas->theDrawGC,   size, gtkLineStyle, gtkCapStyle, gtkJoinStyle);
-		gdk_gc_set_line_attributes(canvas->theFillGC,   size, gtkLineStyle, gtkCapStyle, gtkJoinStyle);
-		gdk_gc_set_line_attributes(canvas->theEraseGC,  size, gtkLineStyle, gtkCapStyle, gtkJoinStyle);
+		cairo_set_line_cap (canvas->cr, cairoCapStyle);
 
 		switch (lineStyle)
 		{
 		case 1:
-			gdk_gc_set_dashes(canvas->theDrawGC, 0,dashStyles,G_N_ELEMENTS(dashStyles));
-			gdk_gc_set_dashes(canvas->theFillGC, 0,dashStyles,G_N_ELEMENTS(dashStyles));
-			gdk_gc_set_dashes(canvas->theEraseGC,0,dashStyles,G_N_ELEMENTS(dashStyles));
+			cairo_set_dash (canvas->cr, dashStyles, G_N_ELEMENTS(dashStyles), 0);
 			break;
 		case 2:
-			gdk_gc_set_dashes(canvas->theDrawGC, 0,dotStyles,G_N_ELEMENTS(dotStyles));
-			gdk_gc_set_dashes(canvas->theFillGC, 0,dotStyles,G_N_ELEMENTS(dotStyles));
-			gdk_gc_set_dashes(canvas->theEraseGC,0,dotStyles,G_N_ELEMENTS(dotStyles));
+			cairo_set_dash (canvas->cr, dotStyles, G_N_ELEMENTS(dotStyles), 0);
 			break;
 		case 3:
-			gdk_gc_set_dashes(canvas->theDrawGC, 0,dashDotStyles,G_N_ELEMENTS(dashDotStyles));
-			gdk_gc_set_dashes(canvas->theFillGC, 0,dashDotStyles,G_N_ELEMENTS(dashDotStyles));
-			gdk_gc_set_dashes(canvas->theEraseGC,0,dashDotStyles,G_N_ELEMENTS(dashDotStyles));
+			cairo_set_dash (canvas->cr, dashDotStyles, G_N_ELEMENTS(dashDotStyles), 0);
 			break;
 		case 4:
-			gdk_gc_set_dashes(canvas->theDrawGC, 0,dashDotDotStyles,G_N_ELEMENTS(dashDotDotStyles));
-			gdk_gc_set_dashes(canvas->theFillGC, 0,dashDotDotStyles,G_N_ELEMENTS(dashDotDotStyles));
-			gdk_gc_set_dashes(canvas->theEraseGC,0,dashDotDotStyles,G_N_ELEMENTS(dashDotDotStyles));
+			cairo_set_dash (canvas->cr, dashDotDotStyles, G_N_ELEMENTS(dashDotDotStyles), 0);
 			break;
-		case 5:
-			gdk_gc_set_dashes(canvas->theDrawGC, 0,canvas->lineCustomDashes,canvas->lineCustomCount);
-			gdk_gc_set_dashes(canvas->theFillGC, 0,canvas->lineCustomDashes,canvas->lineCustomCount);
-			gdk_gc_set_dashes(canvas->theEraseGC,0,canvas->lineCustomDashes,canvas->lineCustomCount);
+		case 5: {
+			int i;
+			double* dash = rmalloc(lineCustomCount*sizeof(double));
+			for (i = 0; i < lineCustomCount; i++) {
+				dash[i] = lineCustomDashes[i];
+			}
+			rfree(lineCustomDashes);
+			cairo_set_dash (canvas->cr, dash, lineCustomCount, 0);
+			rfree(dash);
 			break;
 		}
-
-		colormap = gdk_drawable_get_colormap(canvas->drawable);
-
-		if (canvas->penColor.pixel) gdk_colormap_free_colors(colormap, &canvas->penColor, 1);
-		canvas->penColor.pixel = 0;
-		canvas->penColor.red   = ((pcolor      ) & 0xFF)*257;
-		canvas->penColor.green = ((pcolor >>  8) & 0xFF)*257;
-		canvas->penColor.blue  = ((pcolor >> 16) & 0xFF)*257;
-		gdk_colormap_alloc_color(colormap, &canvas->penColor, FALSE, FALSE);
-
-		gdk_gc_set_foreground(canvas->theDrawGC, &canvas->penColor);
-		gdk_gc_set_foreground(canvas->theFillGC, &canvas->penColor);
-		gdk_gc_set_background(canvas->theEraseGC, &canvas->penColor);
-		gdk_gc_set_foreground(canvas->theTextGC, &canvas->penColor);
-
-		if (canvas->backColor.pixel) gdk_colormap_free_colors(gdk_drawable_get_colormap(canvas->drawable), &canvas->backColor, 1);
-		canvas->backColor.pixel = 0;
-		canvas->backColor.red   = ((bcolor      ) & 0xFF)*257;
-		canvas->backColor.green = ((bcolor >>  8) & 0xFF)*257;
-		canvas->backColor.blue  = ((bcolor >> 16) & 0xFF)*257;
-		gdk_colormap_alloc_color(gdk_drawable_get_colormap(canvas->drawable), &canvas->backColor, FALSE, FALSE);
-
-		gdk_gc_set_background(canvas->theDrawGC, &canvas->backColor);
-		gdk_gc_set_background(canvas->theFillGC, &canvas->backColor);
-		gdk_gc_set_foreground(canvas->theEraseGC,&canvas->backColor);
-		gdk_gc_set_background(canvas->theTextGC, &canvas->backColor);
-
-		switch (function)
-		{
-			case 0:
-				gdk_gc_set_function(canvas->theDrawGC,   GDK_COPY);
-				gdk_gc_set_function(canvas->theFillGC,   GDK_COPY);
-				gdk_gc_set_function(canvas->theEraseGC,  GDK_COPY);
-				gdk_gc_set_function(canvas->theTextGC,   GDK_COPY);
-				break;
-			case 1:
-				gdk_gc_set_function(canvas->theDrawGC,   GDK_INVERT);
-				gdk_gc_set_function(canvas->theFillGC,   GDK_INVERT);
-				gdk_gc_set_function(canvas->theEraseGC,  GDK_INVERT);
-				gdk_gc_set_function(canvas->theTextGC,   GDK_INVERT);
-				break;
-			case 2:
-				gdk_gc_set_function(canvas->theDrawGC,   GDK_XOR);
-				gdk_gc_set_function(canvas->theFillGC,   GDK_XOR);
-				gdk_gc_set_function(canvas->theEraseGC,  GDK_XOR);
-				gdk_gc_set_function(canvas->theTextGC,   GDK_XOR);
-				break;
 		}
 
 		if (canvas->tile)
 		{
-			gdk_pixmap_unref(canvas->tile);
+			rfree(canvas->tile);
 			canvas->tile = NULL;
 		}
+
+		guint32 pcolor_pre = PREMULTIPLY(0xFF000000 | pcolor);
+		guint32 bcolor_pre = canvas->backDraw ? PREMULTIPLY(0xFF000000 | bcolor) : PREMULTIPLY(0x00000000);
 
 		switch (hatchStyle)
 		{
 		case 0:
-			fill = GDK_SOLID;
+			cairo_set_source_rgba(canvas->cr, ((double) ((pcolor      ) & 0xFF))/255
+											, ((double) ((pcolor >>  8) & 0xFF))/255
+											, ((double) ((pcolor >> 16) & 0xFF))/255
+											, 1.0);
 			break;
-		case 7:
-			fill = GDK_TILED;
-			break;
-		default:
-			fill = (canvas->backDraw) ? GDK_OPAQUE_STIPPLED : GDK_STIPPLED;
+		case 1: {
+			guint32 stipple_data[8 * 8] = {
+			  pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre
+			};
+			canvas->tile = rmalloc(8*8*sizeof(guint32));
+			memcpy(canvas->tile, stipple_data, 8*8*sizeof(guint32));
+
+			cairo_pattern_t *pattern = create_stipple(canvas->tile);
+			cairo_set_source(canvas->cr, pattern);
+			cairo_pattern_destroy(pattern);
 			break;
 		}
+		case 2: {
+			guint32 stipple_data[8 * 8] = {
+			  pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre
+			};
+			canvas->tile = rmalloc(8*8*sizeof(guint32));
+			memcpy(canvas->tile, stipple_data, 8*8*sizeof(guint32));
 
-		gdk_gc_set_fill(canvas->theFillGC,   fill);
+			cairo_pattern_t *pattern = create_stipple(canvas->tile);
+			cairo_set_source(canvas->cr, pattern);
+			cairo_pattern_destroy(pattern);
+			break;
+		}
+		case 3: {
+			guint32 stipple_data[8 * 8] = {
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre
+			};
+			canvas->tile = rmalloc(8*8*sizeof(guint32));
+			memcpy(canvas->tile, stipple_data, 8*8*sizeof(guint32));
 
-		gdk_gc_set_fill(canvas->theEraseGC,
-			(fill == GDK_OPAQUE_STIPPLED) ? GDK_STIPPLED : fill);
+			cairo_pattern_t *pattern = create_stipple(canvas->tile);
+			cairo_set_source(canvas->cr, pattern);
+			cairo_pattern_destroy(pattern);
+			break;
+		}
+		case 4:  {
+			guint32 stipple_data[8 * 8] = {
+			  pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre,
+			  bcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre
+			};
+			canvas->tile = rmalloc(8*8*sizeof(guint32));
+			memcpy(canvas->tile, stipple_data, 8*8*sizeof(guint32));
 
-		if (size > 1)
-			gdk_gc_set_fill(canvas->theDrawGC,  fill);
+			cairo_pattern_t *pattern = create_stipple(canvas->tile);
+			cairo_set_source(canvas->cr, pattern);
+			cairo_pattern_destroy(pattern);
+			break;
+		}
+		case 5: {
+			guint32 stipple_data[8 * 8] = {
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre
+			};
+			canvas->tile = rmalloc(8*8*sizeof(guint32));
+			memcpy(canvas->tile, stipple_data, 8*8*sizeof(guint32));
 
-		whiteColor.pixel = 0;
-		whiteColor.red   = 65535;
-		whiteColor.green = 65535;
-		whiteColor.blue  = 65535;
-		gdk_colormap_alloc_color(colormap, &whiteColor, FALSE, FALSE);
-		blackColor.pixel = 0;
-		blackColor.red   = 0;
-		blackColor.green = 0;
-		blackColor.blue  = 0;
-		gdk_colormap_alloc_color(colormap, &blackColor, FALSE, FALSE);
+			cairo_pattern_t *pattern = create_stipple(canvas->tile);
+			cairo_set_source(canvas->cr, pattern);
+			cairo_pattern_destroy(pattern);
+			break;
+		}
+		case 6: {
+			guint32 stipple_data[8 * 8] = {
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre,
+			  pcolor_pre, pcolor_pre, pcolor_pre, pcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre, bcolor_pre
+			};
+			canvas->tile = rmalloc(8*8*sizeof(guint32));
+			memcpy(canvas->tile, stipple_data, 8*8*sizeof(guint32));
 
-		switch (hatchStyle)
+			cairo_pattern_t *pattern = create_stipple(canvas->tile);
+			cairo_set_source(canvas->cr, pattern);
+			cairo_pattern_destroy(pattern);
+			break;
+		}
+		case 7: {
+			gdk_cairo_set_source_pixbuf (canvas->cr, hatchBitmap->pixbuf, 0, 0);
+			cairo_pattern_set_extend (cairo_get_source(canvas->cr), CAIRO_EXTEND_REPEAT);
+			break;
+		}
+		}
+
+		switch (function)
 		{
-		case 1:
-			canvas->tile = gdk_pixmap_create_from_data(NULL, bdiag_xbm, 8, 8, 1, &whiteColor, &blackColor);
-			gdk_gc_set_stipple(canvas->theFillGC,   canvas->tile);
-			gdk_gc_set_stipple(canvas->theEraseGC,  canvas->tile);
-
-			if (size > 1)
-				gdk_gc_set_stipple(canvas->theDrawGC,  canvas->tile);
-			break;
-		case 2:
-			canvas->tile = gdk_pixmap_create_from_data(NULL, fdiag_xbm, 8, 8, 1, &whiteColor, &blackColor);
-			gdk_gc_set_stipple(canvas->theFillGC,   canvas->tile);
-			gdk_gc_set_stipple(canvas->theEraseGC,  canvas->tile);
-
-			if (size > 1)
-				gdk_gc_set_stipple(canvas->theDrawGC,  canvas->tile);
-			break;
-		case 3:
-			canvas->tile = gdk_pixmap_create_from_data(NULL, cross_xbm, 8, 8, 1, &whiteColor, &blackColor);
-			gdk_gc_set_stipple(canvas->theFillGC,   canvas->tile);
-			gdk_gc_set_stipple(canvas->theEraseGC,  canvas->tile);
-
-			if (size > 1)
-				gdk_gc_set_stipple(canvas->theDrawGC,  canvas->tile);
-			break;
-		case 4:
-			canvas->tile = gdk_pixmap_create_from_data(NULL, dcross_xbm, 8, 8, 1, &whiteColor, &blackColor);
-			gdk_gc_set_stipple(canvas->theFillGC,   canvas->tile);
-			gdk_gc_set_stipple(canvas->theEraseGC,  canvas->tile);
-
-			if (size > 1)
-				gdk_gc_set_stipple(canvas->theDrawGC,  canvas->tile);
-			break;
-		case 5:
-			canvas->tile = gdk_pixmap_create_from_data(NULL, horiz_xbm, 8, 8, 1, &whiteColor, &blackColor);
-			gdk_gc_set_stipple(canvas->theFillGC,   canvas->tile);
-			gdk_gc_set_stipple(canvas->theEraseGC,  canvas->tile);
-
-			if (size > 1)
-				gdk_gc_set_stipple(canvas->theDrawGC,  canvas->tile);
-			break;
-		case 6:
-			canvas->tile = gdk_pixmap_create_from_data(NULL, vert_xbm, 8, 8, 1, &whiteColor, &blackColor);
-			gdk_gc_set_stipple(canvas->theFillGC,   canvas->tile);
-			gdk_gc_set_stipple(canvas->theEraseGC,  canvas->tile);
-
-			if (size > 1)
-				gdk_gc_set_stipple(canvas->theDrawGC,  canvas->tile);
-			break;
-		case 7:
-			{
-				canvas->tile = gdk_pixmap_new(NULL, hatchBitmap->width, hatchBitmap->height, colormap->visual->depth);
-
-				gdk_drawable_set_colormap(GDK_DRAWABLE(canvas->tile), colormap);
-
-				gc = gdk_gc_new(GDK_DRAWABLE(canvas->tile));
-
-				gdk_pixbuf_render_to_drawable(hatchBitmap->pixbuf, GDK_DRAWABLE(canvas->tile), gc,
-					0, 0, 0, 0, hatchBitmap->width, hatchBitmap->height,
-		    	GDK_RGB_DITHER_NONE, 0, 0);
-
-				gdk_gc_destroy(gc);
-
-				gdk_gc_set_tile(canvas->theFillGC,  canvas->tile);
-				gdk_gc_set_tile(canvas->theEraseGC, canvas->tile);
-
-				if (size > 1)
-					gdk_gc_set_tile(canvas->theDrawGC,  canvas->tile);
-			}
-			break;
+			case 0:
+				cairo_set_operator (canvas->cr, CAIRO_OPERATOR_OVER);
+				break;
+			case 1:
+				cairo_set_operator (canvas->cr, CAIRO_OPERATOR_DIFFERENCE);				
+				break;
+			case 2:
+				cairo_set_operator (canvas->cr, CAIRO_OPERATOR_XOR);
+				break;
 		}
-
-		gdk_colormap_free_colors(colormap, &whiteColor, 1);
-		gdk_colormap_free_colors(colormap, &blackColor, 1);
 
 		canvas->theFont = font;
 		pango_layout_set_font_description(canvas->layout, font->font_descr);
@@ -451,62 +389,75 @@ void osChangeCanvasPen(int size, int function,
 
 void osRotateCanvas(double angle, CanvasHandle canvas)
 {
-	printf("osRotateCanvas -> not implemented\n");
+	if (canvas->cr)
+		cairo_rotate (canvas->cr, angle);
 };
 
 void osScaleCanvas(double dScaleX, double dScaleY, CanvasHandle canvas)
 {
-	printf("osScaleCanvas -> not implemented\n");
+	if (canvas->cr)
+		cairo_scale (canvas->cr, dScaleX, dScaleY);
 };
 
 void osShearCanvas(double dShearX, double dShearY, CanvasHandle canvas)
 {
-	printf("osShearCanvas -> not implemented\n");
+	if (canvas->cr) {
+		cairo_matrix_t matrix;
+		cairo_matrix_init (&matrix,
+		                   1.0, dShearX,
+		                   dShearY, 1.0,
+		                   0.0, 0.0);
+		cairo_transform (canvas->cr, &matrix);
+	}
 };
 
 void osTranslateCanvas(double dDeltaX, double dDeltaY, CanvasHandle canvas)
 {
-	printf("osTranslateCanvas -> not implemented\n");
+	if (canvas->cr)
+		cairo_translate (canvas->cr, dDeltaX, dDeltaY);
 };
 
 void osDrawPoint(int x, int y, CanvasHandle canvas)
 {
-	if (canvas->drawable) gdk_draw_point(canvas->drawable, canvas->theDrawGC, x, y);
+	if (canvas->cr) {
+		cairo_arc (canvas->cr, x, y, cairo_get_line_width(canvas->cr), 0, 2 * M_PI);
+		cairo_fill(canvas->cr);
+	}
 }	/* osDrawPoint */
 
 void osDrawLine(int startx, int starty, int endx, int endy, CanvasHandle canvas)
 {
-	if (canvas->drawable) gdk_draw_line(canvas->drawable, canvas->theDrawGC, startx, starty, endx, endy);
-}	/* osDrawLine */
-
-static float PI = 3.1415926535897932384626433832795;
-
-static void osGtkCurve(GdkDrawable* drawable, GdkGC* gc, gboolean fill, int x0, int y0, int x1, int y1, float from, float to, gboolean clockwise)
-{
-  if (drawable) {
-    int dist;
-
-    /* normalise angles */
-    from = fmod(from,2*PI); if (from < 0) from = 2*PI + from;
-    to   = fmod(to,2*PI);   if (to < 0)   to = 2*PI + to;
-
-    /* convert to gtk angles */
-    from = (32*360*from)/PI;
-    to   = (32*360*to)/PI;
-
-    dist = floor(clockwise ? to-from : from-to);
-    gdk_draw_arc( drawable, gc, fill, x0, y0, (x1-x0), (y1-y0), from, dist );
-  }
+	if (canvas->cr) {
+		cairo_move_to(canvas->cr, startx, starty);
+		cairo_line_to(canvas->cr, endx, endy);
+		cairo_stroke(canvas->cr);
+	}
 }
 
-void osDrawCurve(int x0, int y0, int x1, int y1, float from, float to, gboolean clockwise,CanvasHandle canvas)
+void osDrawCurve(int left, int top, int right, int bot, float from, float to, gboolean clockwise,CanvasHandle canvas)
 {
-  osGtkCurve( canvas->drawable, canvas->theDrawGC, FALSE, x0, y0, x1, y1, from, to, clockwise );
+	if (canvas->cr) {
+		cairo_save (canvas->cr);
+		cairo_translate (canvas->cr, (left + right) / 2., (top + bot) / 2.);
+		cairo_scale (canvas->cr, (right-left) / 2., (bot-top) / 2.);
+		cairo_arc (canvas->cr, 0, 0, 1, from, to);
+		cairo_restore (canvas->cr);
+		cairo_stroke(canvas->cr);
+	}
 }
 
-void osFillCurve(int x0, int y0, int x1, int y1, float from, float to, gboolean clockwise,CanvasHandle canvas)
+void osFillCurve(int left, int top, int right, int bot, float from, float to, gboolean clockwise,CanvasHandle canvas)
 {
-  osGtkCurve( canvas->drawable, canvas->theFillGC, TRUE, x0, y0, x1, y1, from, to, clockwise );
+	if (canvas->cr) {
+		cairo_save (canvas->cr);
+		cairo_translate (canvas->cr, (left + right) / 2., (top + bot) / 2.);
+		cairo_scale (canvas->cr, (right-left) / 2., (bot-top) / 2.);
+		cairo_move_to(canvas->cr, 0, 0);
+		cairo_arc (canvas->cr, 0, 0, 1, from, to);
+		cairo_close_path(canvas->cr);
+		cairo_restore (canvas->cr);
+		cairo_fill(canvas->cr);
+	}
 }
 
 static void osSetupFont(CanvasHandle canvas, int len)
@@ -546,96 +497,137 @@ static void osSetupFont(CanvasHandle canvas, int len)
 
 void osDrawChar (int x, int y, char c, CanvasHandle canvas)
 {
-	if (canvas->drawable)
+	if (canvas->cr)
 	{
-		PangoLayoutLine *layout_line;
-
-		osSetupFont(canvas, 1);
 		pango_layout_set_text(canvas->layout, &c, 1);
-		layout_line = pango_layout_get_line(canvas->layout, 0);
 
-		gdk_draw_layout_line_with_colors (canvas->drawable,
-                        canvas->theTextGC,
-                        x, y,
-                        layout_line,
-                        NULL, canvas->backDraw ? &canvas->backColor : NULL);
+		pango_cairo_update_layout (canvas->cr, canvas->layout);
+		osSetupFont(canvas, 1);
+
+        cairo_move_to (canvas->cr, x, y - ((double) pango_font_metrics_get_ascent(canvas->theFont->metrics)) / PANGO_SCALE);
+        pango_cairo_show_layout (canvas->cr, canvas->layout);
 
 		pango_layout_set_text(canvas->layout, NULL, 0);
+		
+		cairo_stroke(canvas->cr);
 	}
 }	/* osDrawChar */
 
 void osDrawString (int x, int y, char *string, CanvasHandle canvas)
 {
-	if (canvas->drawable)
+	if (canvas->cr)
 	{
-		PangoLayoutLine *layout_line;
+		pango_layout_set_text(canvas->layout, string, strlen(string));
 
+		pango_cairo_update_layout (canvas->cr, canvas->layout);
 		osSetupFont(canvas, strlen(string));
-		pango_layout_set_text(canvas->layout, string, -1);
-		layout_line = pango_layout_get_line(canvas->layout, 0);
 
-		gdk_draw_layout_line_with_colors (canvas->drawable,
-                        canvas->theTextGC,
-                        x, y,
-                        layout_line,
-                        NULL, canvas->backDraw ? &canvas->backColor : NULL);
+        cairo_move_to (canvas->cr, x, y - ((double) pango_font_metrics_get_ascent(canvas->theFont->metrics)) / PANGO_SCALE);
+        pango_cairo_show_layout (canvas->cr, canvas->layout);
 
 		pango_layout_set_text(canvas->layout, NULL, 0);
+		
+		cairo_stroke(canvas->cr);
 	}
 }	/* osDrawString */
 
 void osDrawRect(int left, int top, int right, int bot, CanvasHandle canvas)
 {
-	if (canvas->drawable)
-		gdk_draw_rectangle(canvas->drawable, canvas->theDrawGC, FALSE,
-	                   left, top,
-	                   right-left,
-	                   bot-top);
+	if (canvas->cr) {
+		cairo_rectangle(canvas->cr, left, top, right-left+1, bot-top+1);
+		cairo_stroke(canvas->cr);
+	}
 }	/* osDrawRect */
 
 void osFillRect(int left, int top, int right, int bot, CanvasHandle canvas)
 {
-	if (canvas->drawable)
-		gdk_draw_rectangle(canvas->drawable, canvas->theFillGC, TRUE,
-	                   left, top,
-	                   right-left+1,
-	                   bot-top+1);
+	if (canvas->cr) {
+		cairo_rectangle(canvas->cr, left, top, right-left+1, bot-top+1);
+		cairo_fill(canvas->cr);
+	}
 }	/* osFillRect */
 
 void osDrawOval (int left, int top, int right, int bot, CanvasHandle canvas)
 {
-	if (canvas->drawable) gdk_draw_arc(canvas->drawable,canvas->theDrawGC,FALSE,left,top,right-left,bot-top,0,64*360);
+	if (canvas->cr) {
+		cairo_save (canvas->cr);
+		cairo_translate (canvas->cr, (left + right) / 2., (top + bot) / 2.);
+		cairo_scale (canvas->cr, (right-left) / 2., (bot-top) / 2.);
+		cairo_arc (canvas->cr, 0, 0, 1, 0, 2 * M_PI);
+		cairo_restore (canvas->cr);
+		cairo_stroke(canvas->cr);
+	}
 }	/* osDrawOval */
 
 void osFillOval (int left, int top, int right, int bot, CanvasHandle canvas)
 {
-	if (canvas->drawable) gdk_draw_arc(canvas->drawable,canvas->theFillGC,TRUE,left,top,right-left,bot-top,0,64*360);
+	if (canvas->cr) {
+		cairo_save (canvas->cr);
+		cairo_translate (canvas->cr, (left + right) / 2., (top + bot) / 2.);
+		cairo_scale (canvas->cr, (right-left) / 2., (bot-top) / 2.);
+		cairo_arc (canvas->cr, 0., 0., 1., 0., 2 * M_PI);
+		cairo_restore (canvas->cr);
+		cairo_fill(canvas->cr);
+	}
 }	/* osFillOval */
 
 void osDrawPolyline(PolygonHandle arr, CanvasHandle canvas)
 {
-	if (canvas->drawable) gdk_draw_lines(canvas->drawable,canvas->theDrawGC,arr->data,arr->count);
-}	/* osDrawPolygon */
+	if (arr->count == 0)
+		return;
+
+	if (canvas->cr) {
+		int i;
+
+		cairo_move_to(canvas->cr, arr->data[0].x, arr->data[0].y);
+		for (i = 1; i < arr->count; i++) {
+			cairo_line_to(canvas->cr, arr->data[i].x, arr->data[i].y);
+		}
+		cairo_stroke(canvas->cr);
+	}
+}	/* osDrawPolyline */
 
 
 void osDrawPolygon(PolygonHandle arr, CanvasHandle canvas)
 {
-	if (canvas->drawable) gdk_draw_polygon(canvas->drawable,canvas->theDrawGC,FALSE,arr->data,arr->count);
+	if (arr->count == 0)
+		return;
+
+	if (canvas->cr) {
+		int i;
+
+		cairo_move_to(canvas->cr, arr->data[0].x, arr->data[0].y);
+		for (i = 1; i < arr->count; i++) {
+			cairo_line_to(canvas->cr, arr->data[i].x, arr->data[i].y);
+		}
+		cairo_close_path(canvas->cr);
+		cairo_stroke(canvas->cr);
+	}
 }	/* osDrawPolygon */
 
 
 void osFillPolygon (PolygonHandle arr, CanvasHandle canvas)
 {
-	if (canvas->drawable) gdk_draw_polygon(canvas->drawable,canvas->theFillGC,TRUE,arr->data,arr->count);
+	if (arr->count == 0)
+		return;
+
+	if (canvas->cr) {
+		int i;
+
+		cairo_move_to(canvas->cr, arr->data[0].x, arr->data[0].y);
+		for (i = 1; i < arr->count; i++) {
+			cairo_line_to(canvas->cr, arr->data[i].x, arr->data[i].y);
+		}
+		cairo_close_path(canvas->cr);
+		cairo_fill(canvas->cr);
+	}
 }	/* osFillPolygon */
 
 CanvasHandle osGetTemporaryCanvas()
 {
-	Display *display;
 	CanvasHandle canvas;
 	PangoContext *pango_context;
 
-	display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
 	pango_context = pango_context_new();
 
 	canvas = rmalloc(sizeof(*canvas));
@@ -654,15 +646,16 @@ void osReleaseTemporaryCanvas (CanvasHandle canvas)
 
 void osDrawBitmap (int destx, int desty, BitmapHandle bmp, CanvasHandle canvas)
 {
-	if (canvas->drawable)
+	if (canvas->cr)
     {
-		gdk_pixbuf_render_to_drawable(bmp->pixbuf, canvas->drawable, canvas->theDrawGC, 0, 0, destx, desty,
-      										bmp->width, bmp->height,
-                                 			GDK_RGB_DITHER_NONE, 0, 0);
+		cairo_save (canvas->cr);
+		gdk_cairo_set_source_pixbuf (canvas->cr, bmp->pixbuf, destx, desty);
+		cairo_paint (canvas->cr);
+		cairo_restore (canvas->cr);
     }
 }	/* osDrawBitmap */
 
-unsigned int gdk_color_to_rgb(GdkColor color)
+static unsigned int gdk_color_to_rgb(GdkColor color)
 {
 	return (color.red/257) | ((color.green/257) << 8) | ((color.blue/257)  << 16);
 }

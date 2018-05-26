@@ -89,6 +89,7 @@ typedef void *CodecsEnumeratorHandle;
 #include <libgnomeui/libgnomeui.h>
 #include <gconf/gconf.h>
 #include <gconf/gconf-client.h>
+#include <cairo.h>
 
 typedef GtkWidget   *WindowHandle;
 
@@ -130,17 +131,13 @@ typedef struct
 typedef struct
 {
 	GdkDrawable *drawable;
-	GdkGC *theDrawGC, *theFillGC, *theEraseGC, *theTextGC;
+	cairo_t *cr;
 	FontHandle theFont;
-	gint lineCustomCount;
-	gint8 *lineCustomDashes;
-	GdkColor penColor;
-	GdkColor backColor;
 	gboolean backDraw;
 	GdkRegion *region;
 	gboolean buffered;
 	GdkPixbuf *pixbuf;
-	GdkPixmap *tile;
+	guchar *tile;
 	PangoLayout *layout;
 } *CanvasHandle;
 

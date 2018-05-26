@@ -49,7 +49,8 @@ module Graphics.UI.GIO.Canvas
               , drawCurve 
               , drawArc 
               , fillPie 
-              , drawPolygon 
+              , drawPolygon
+              , fillPolygon
               , drawBitmap 
               
               -- * Transform
@@ -230,7 +231,11 @@ fillPie (Point x y) rx ry start end can = Port.fillCurve (Rect (x-rx) (y-ry) (x+
 
 -- | Draws a polygon defined by an list of points
 drawPolygon :: [Point] -> Canvas -> IO ()
-drawPolygon points can = Port.fillPolygon points (hcanvas can)
+drawPolygon points can = Port.drawPolygon points (hcanvas can)
+
+-- | Draws a polygon defined by an list of points
+fillPolygon :: [Point] -> Canvas -> IO ()
+fillPolygon points can = Port.fillPolygon points (hcanvas can)
 
 -- | Draws the specified Bitmap at the specified location.
 drawBitmap :: Point -> Bitmap -> Canvas -> IO ()

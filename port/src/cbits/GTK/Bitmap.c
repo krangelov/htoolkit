@@ -100,41 +100,40 @@ CanvasHandle osGetBitmapCanvas(BitmapHandle bitmap)
 	GdkColormap *sys_colormap;
 	PangoContext *pango_context;
 
+     /* Draw the pixbuf */
 	rectangle.x = 0;
 	rectangle.y = 0;
 	rectangle.width  = bitmap->width;
 	rectangle.height = bitmap->height;
 
 	sys_colormap = gdk_colormap_get_system();
+	
+	GdkDrawable *drawable = GDK_DRAWABLE(gdk_pixmap_new(NULL, bitmap->width, bitmap->height, sys_colormap->visual->depth));
 
-	display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
 	pango_context = pango_context_new();
 	gdk_pango_context_set_colormap(pango_context, sys_colormap);
 
 	canvas = rmalloc(sizeof(*canvas));
 	memset(canvas, 0, sizeof(*canvas));
-	canvas->drawable = GDK_DRAWABLE(gdk_pixmap_new(NULL, bitmap->width, bitmap->height, sys_colormap->visual->depth));
-	canvas->layout = pango_layout_new(pango_context);
-	canvas->region = gdk_region_rectangle(&rectangle);
-	canvas->buffered = 0;
-	canvas->pixbuf = bitmap->pixbuf;
+	canvas->drawable= drawable;
+	canvas->cr      = gdk_cairo_create (drawable);
+	canvas->layout  = pango_layout_new(pango_context);
+	canvas->region  = gdk_region_rectangle(&rectangle);
+	canvas->buffered= 0;
+	canvas->pixbuf  = bitmap->pixbuf;
 
 	gdk_drawable_set_colormap(canvas->drawable, sys_colormap);
 
-	canvas->theDrawGC = gdk_gc_new(canvas->drawable);
-
-	gdk_pixbuf_render_to_drawable(bitmap->pixbuf, canvas->drawable, canvas->theDrawGC,
-		0, 0, 0, 0, bitmap->width, bitmap->height,
-	    GDK_RGB_DITHER_NONE, 0, 0);
-
-	gdk_gc_destroy(canvas->theDrawGC);
-	canvas->theDrawGC = NULL;
+	gdk_cairo_set_source_pixbuf (canvas->cr, bitmap->pixbuf, 0, 0);
+	cairo_paint (canvas->cr);
 
 	return canvas;
 }
 
 void osReleaseBitmapCanvas(CanvasHandle canvas)
 {
+	cairo_destroy(canvas->cr);
+
 	gdk_pixbuf_get_from_drawable(canvas->pixbuf,canvas->drawable,
                                NULL,0,0,0,0,-1,-1);
 

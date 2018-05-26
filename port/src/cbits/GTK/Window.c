@@ -55,8 +55,8 @@ static gboolean window_expose_handler (GtkWidget *widget, GdkEventExpose *event,
 
 	canvas = rmalloc(sizeof(*canvas));
 	memset(canvas, 0, sizeof(*canvas));
-	canvas->drawable = GDK_DRAWABLE(event->window);
-	canvas->layout = gtk_widget_create_pango_layout(layout, NULL);
+	canvas->cr     = gdk_cairo_create(event->window);
+	canvas->layout = pango_cairo_create_layout (canvas->cr);
 	canvas->region = gdk_region_copy(event->region);
 	canvas->buffered = (GTK_WIDGET_FLAGS(widget) & GTK_DOUBLE_BUFFERED) ? 2 : 0;
 	getWindowClipRect(window, canvas->region);
@@ -66,7 +66,9 @@ static gboolean window_expose_handler (GtkWidget *widget, GdkEventExpose *event,
 
 	if (canvas->region) gdk_region_destroy(canvas->region);
 	g_object_unref(canvas->layout);
-	
+	cairo_destroy(canvas->cr);
+	free(canvas);
+
 	return gtk_false();
 }
 
@@ -755,12 +757,11 @@ CanvasHandle osGetWindowCanvas(WindowHandle window)
 
 	canvas = rmalloc(sizeof(*canvas));
 	memset(canvas, 0, sizeof(*canvas));
-	canvas->drawable = GDK_DRAWABLE(PORT_LAYOUT(layout)->bin_window);
+	canvas->cr     = gdk_cairo_create(PORT_LAYOUT(layout)->bin_window);
 	canvas->layout = gtk_widget_create_pango_layout(layout, NULL);
 	canvas->region = gdk_region_rectangle(&rectangle);
 	canvas->buffered = 0;
 
-	gdk_window_ref(canvas->drawable);
 	getWindowClipRect(window, canvas->region);
 
 	return canvas;
@@ -768,7 +769,7 @@ CanvasHandle osGetWindowCanvas(WindowHandle window)
 
 void osReleaseWindowCanvas(WindowHandle widget, CanvasHandle canvas)
 {
-	gdk_window_unref(GDK_WINDOW(canvas->drawable));
+	cairo_destroy(canvas->cr);
 	if (canvas->region) gdk_region_destroy(canvas->region);
 	g_object_unref(canvas->layout);
 	rfree(canvas);
