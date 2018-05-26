@@ -16,7 +16,9 @@ module Graphics.UI.Port.Colors
             ( -- * Color type
               Color
             , rgbColor, colorRed, colorGreen, colorBlue
-            , cmyColor, colorCyan, colorMagenta, colorYellow 
+            , cmyColor, colorCyan, colorMagenta, colorYellow
+            , alpha, colorAlpha
+
               -- * Standard colors.
             , aliceblue, antiquewhite, aqua, aquamarine, azure, beige
             , bisque, black, blanchedalmond, blue, blueviolet, brown
@@ -65,310 +67,329 @@ import System.IO.Unsafe(unsafePerformIO)
 newtype Color = Color Word deriving Eq
 
 instance Show Color where
-    showsPrec d c
-        | c == aliceblue           = showString "aliceblue"        
-        | c == antiquewhite        = showString "antiquewhite"
-        | c == aqua                = showString "aqua"
-        | c == aquamarine          = showString "aquamarine"
-        | c == azure               = showString "azure"
-        | c == beige               = showString "beige"
-        | c == bisque              = showString "bisque"
-        | c == black               = showString "black"
-        | c == blanchedalmond      = showString "blanchedalmond"
-        | c == blue                = showString "blue"
-        | c == blueviolet          = showString "blueviolet"
-        | c == brown               = showString "brown"
-        | c == burlywood           = showString "burlywood"
-        | c == cadetblue           = showString "cadetblue"
-        | c == chartreuse          = showString "chartreuse"
-        | c == chocolate           = showString "chocolate"
-        | c == coral               = showString "coral"
-        | c == cornflower          = showString "cornflower"
-        | c == cornsilk            = showString "cornsilk"
-        | c == crimson             = showString "crimson"
-        | c == cyan                = showString "cyan"
-        | c == darkblue            = showString "darkblue"
-        | c == darkcyan            = showString "darkcyan"
-        | c == darkgoldenrod       = showString "darkgoldenrod"
-        | c == darkgray            = showString "darkgray"
-        | c == darkgreen           = showString "darkgreen"
-        | c == darkkhaki           = showString "darkkhaki"
-        | c == darkmagenta         = showString "darkmagenta"
-        | c == darkolivegreen      = showString "darkolivegreen"
-        | c == darkorange          = showString "darkorange"
-        | c == darkorchid          = showString "darkorchid"
-        | c == darkred             = showString "darkred"
-        | c == darksalmon          = showString "darksalmon"
-        | c == darkseagreen        = showString "darkseagreen"
-        | c == darkslateblue       = showString "darkslateblue"
-        | c == darkslategray       = showString "darkslategray"
-        | c == darkturquoise       = showString "darkturquoise"
-        | c == darkviolet          = showString "darkviolet"
-        | c == deeppink            = showString "deeppink"
-        | c == deepskyblue         = showString "deepskyblue"
-        | c == dimgray             = showString "dimgray"
-        | c == dodgerblue          = showString "dodgerblue"
-        | c == firebrick           = showString "firebrick"
-        | c == floralwhite         = showString "floralwhite"
-        | c == forestgreen         = showString "forestgreen"
-        | c == fuchsia             = showString "fuchsia"
-        | c == gainsboro           = showString "gainsboro"
-        | c == ghostwhite          = showString "ghostwhite"
-        | c == gold                = showString "gold"
-        | c == goldenrod           = showString "goldenrod"
-        | c == gray                = showString "gray"
-        | c == green               = showString "green"
-        | c == greenyellow         = showString "greenyellow"
-        | c == honeydew            = showString "honeydew"
-        | c == hotpink             = showString "hotpink"
-        | c == indianred           = showString "indianred"
-        | c == indigo              = showString "indigo"
-        | c == ivory               = showString "ivory"
-        | c == khaki               = showString "khaki"
-        | c == lavender            = showString "lavender"
-        | c == lavenderblush       = showString "lavenderblush"
-        | c == lawngreen           = showString "lawngreen"
-        | c == lemonchiffon        = showString "lemonchiffon"
-        | c == lightblue           = showString "lightblue"
-        | c == lightcoral          = showString "lightcoral"
-        | c == lightcyan           = showString "lightcyan"
-        | c == lightgoldenrodyellow= showString "lightgoldenrodyellow"
-        | c == lightgreen          = showString "lightgreen"
-        | c == lightgray           = showString "lightgray"
-        | c == lightpink           = showString "lightpink"
-        | c == lightsalmon         = showString "lightsalmon"
-        | c == lightseagreen       = showString "lightseagreen"
-        | c == lightskyblue        = showString "lightskyblue"
-        | c == lightslategray      = showString "lightslategray"
-        | c == lightsteelblue      = showString "lightsteelblue"
-        | c == lightyellow         = showString "lightyellow"
-        | c == lime                = showString "lime"
-        | c == limegreen           = showString "limegreen"
-        | c == linen               = showString "linen"
-        | c == magenta             = showString "magenta"
-        | c == maroon              = showString "maroon"
-        | c == mediumaquamarine    = showString "mediumaquamarine"
-        | c == mediumblue          = showString "mediumblue"
-        | c == mediumorchid        = showString "mediumorchid"
-        | c == mediumpurple        = showString "mediumpurple"
-        | c == mediumseagreen      = showString "mediumseagreen"
-        | c == mediumslateblue     = showString "mediumslateblue"
-        | c == mediumspringgreen   = showString "mediumspringgreen"
-        | c == mediumturquoise     = showString "mediumturquoise"
-        | c == mediumvioletred     = showString "mediumvioletred"
-        | c == midnightblue        = showString "midnightblue"
-        | c == mintcream           = showString "mintcream"
-        | c == mistyrose           = showString "mistyrose"
-        | c == moccasin            = showString "moccasin"
-        | c == navajowhite         = showString "navajowhite"
-        | c == navy                = showString "navy"
-        | c == oldlace             = showString "oldlace"
-        | c == olive               = showString "olive"
-        | c == olivedrab           = showString "olivedrab"
-        | c == orange              = showString "orange"
-        | c == orangered           = showString "orangered"
-        | c == orchid              = showString "orchid"
-        | c == palegoldenrod       = showString "palegoldenrod"
-        | c == palegreen           = showString "palegreen"
-        | c == paleturquoise       = showString "paleturquoise"
-        | c == palevioletred       = showString "palevioletred"
-        | c == papayawhip          = showString "papayawhip"
-        | c == peachpuff           = showString "peachpuff"
-        | c == peru                = showString "peru"
-        | c == pink                = showString "pink"
-        | c == plum                = showString "plum"
-        | c == powderblue          = showString "powderblue"
-        | c == purple              = showString "purple"
-        | c == red                 = showString "red"
-        | c == rosybrown           = showString "rosybrown"
-        | c == royalblue           = showString "royalblue"
-        | c == saddlebrown         = showString "saddlebrown"
-        | c == salmon              = showString "salmon"
-        | c == sandybrown          = showString "sandybrown"
-        | c == seagreen            = showString "seagreen"
-        | c == seashell            = showString "seashell"
-        | c == sienna              = showString "sienna"
-        | c == silver              = showString "silver"
-        | c == skyblue             = showString "skyblue"
-        | c == slateblue           = showString "slateblue"
-        | c == slategray           = showString "slategray"
-        | c == snow                = showString "snow"
-        | c == springgreen         = showString "springgreen"
-        | c == steelblue           = showString "steelblue"
-        | c == teal                = showString "teal"
-        | c == thistle             = showString "thistle"
-        | c == tomato              = showString "tomato"
-        | c == turquoise           = showString "turquoise"
-        | c == violet              = showString "violet"
-        | c == wheat               = showString "wheat"
-        | c == white               = showString "white"
-        | c == whitesmoke          = showString "whitesmoke"
-        | c == yellow              = showString "yellow"
-        | c == yellowgreen         = showString "yellowgreen"
-        | otherwise               = showParen (d > 0)
-                            (showString "rgbColor " . shows (colorRed   c) .
-                             showChar   ' '        . shows (colorGreen c) . 
-                             showChar   ' '     . shows (colorBlue  c))
+    showsPrec d c0
+        | c == aliceblue           = showColor "aliceblue"        
+        | c == antiquewhite        = showColor "antiquewhite"
+        | c == aqua                = showColor "aqua"
+        | c == aquamarine          = showColor "aquamarine"
+        | c == azure               = showColor "azure"
+        | c == beige               = showColor "beige"
+        | c == bisque              = showColor "bisque"
+        | c == black               = showColor "black"
+        | c == blanchedalmond      = showColor "blanchedalmond"
+        | c == blue                = showColor "blue"
+        | c == blueviolet          = showColor "blueviolet"
+        | c == brown               = showColor "brown"
+        | c == burlywood           = showColor "burlywood"
+        | c == cadetblue           = showColor "cadetblue"
+        | c == chartreuse          = showColor "chartreuse"
+        | c == chocolate           = showColor "chocolate"
+        | c == coral               = showColor "coral"
+        | c == cornflower          = showColor "cornflower"
+        | c == cornsilk            = showColor "cornsilk"
+        | c == crimson             = showColor "crimson"
+        | c == cyan                = showColor "cyan"
+        | c == darkblue            = showColor "darkblue"
+        | c == darkcyan            = showColor "darkcyan"
+        | c == darkgoldenrod       = showColor "darkgoldenrod"
+        | c == darkgray            = showColor "darkgray"
+        | c == darkgreen           = showColor "darkgreen"
+        | c == darkkhaki           = showColor "darkkhaki"
+        | c == darkmagenta         = showColor "darkmagenta"
+        | c == darkolivegreen      = showColor "darkolivegreen"
+        | c == darkorange          = showColor "darkorange"
+        | c == darkorchid          = showColor "darkorchid"
+        | c == darkred             = showColor "darkred"
+        | c == darksalmon          = showColor "darksalmon"
+        | c == darkseagreen        = showColor "darkseagreen"
+        | c == darkslateblue       = showColor "darkslateblue"
+        | c == darkslategray       = showColor "darkslategray"
+        | c == darkturquoise       = showColor "darkturquoise"
+        | c == darkviolet          = showColor "darkviolet"
+        | c == deeppink            = showColor "deeppink"
+        | c == deepskyblue         = showColor "deepskyblue"
+        | c == dimgray             = showColor "dimgray"
+        | c == dodgerblue          = showColor "dodgerblue"
+        | c == firebrick           = showColor "firebrick"
+        | c == floralwhite         = showColor "floralwhite"
+        | c == forestgreen         = showColor "forestgreen"
+        | c == fuchsia             = showColor "fuchsia"
+        | c == gainsboro           = showColor "gainsboro"
+        | c == ghostwhite          = showColor "ghostwhite"
+        | c == gold                = showColor "gold"
+        | c == goldenrod           = showColor "goldenrod"
+        | c == gray                = showColor "gray"
+        | c == green               = showColor "green"
+        | c == greenyellow         = showColor "greenyellow"
+        | c == honeydew            = showColor "honeydew"
+        | c == hotpink             = showColor "hotpink"
+        | c == indianred           = showColor "indianred"
+        | c == indigo              = showColor "indigo"
+        | c == ivory               = showColor "ivory"
+        | c == khaki               = showColor "khaki"
+        | c == lavender            = showColor "lavender"
+        | c == lavenderblush       = showColor "lavenderblush"
+        | c == lawngreen           = showColor "lawngreen"
+        | c == lemonchiffon        = showColor "lemonchiffon"
+        | c == lightblue           = showColor "lightblue"
+        | c == lightcoral          = showColor "lightcoral"
+        | c == lightcyan           = showColor "lightcyan"
+        | c == lightgoldenrodyellow= showColor "lightgoldenrodyellow"
+        | c == lightgreen          = showColor "lightgreen"
+        | c == lightgray           = showColor "lightgray"
+        | c == lightpink           = showColor "lightpink"
+        | c == lightsalmon         = showColor "lightsalmon"
+        | c == lightseagreen       = showColor "lightseagreen"
+        | c == lightskyblue        = showColor "lightskyblue"
+        | c == lightslategray      = showColor "lightslategray"
+        | c == lightsteelblue      = showColor "lightsteelblue"
+        | c == lightyellow         = showColor "lightyellow"
+        | c == lime                = showColor "lime"
+        | c == limegreen           = showColor "limegreen"
+        | c == linen               = showColor "linen"
+        | c == magenta             = showColor "magenta"
+        | c == maroon              = showColor "maroon"
+        | c == mediumaquamarine    = showColor "mediumaquamarine"
+        | c == mediumblue          = showColor "mediumblue"
+        | c == mediumorchid        = showColor "mediumorchid"
+        | c == mediumpurple        = showColor "mediumpurple"
+        | c == mediumseagreen      = showColor "mediumseagreen"
+        | c == mediumslateblue     = showColor "mediumslateblue"
+        | c == mediumspringgreen   = showColor "mediumspringgreen"
+        | c == mediumturquoise     = showColor "mediumturquoise"
+        | c == mediumvioletred     = showColor "mediumvioletred"
+        | c == midnightblue        = showColor "midnightblue"
+        | c == mintcream           = showColor "mintcream"
+        | c == mistyrose           = showColor "mistyrose"
+        | c == moccasin            = showColor "moccasin"
+        | c == navajowhite         = showColor "navajowhite"
+        | c == navy                = showColor "navy"
+        | c == oldlace             = showColor "oldlace"
+        | c == olive               = showColor "olive"
+        | c == olivedrab           = showColor "olivedrab"
+        | c == orange              = showColor "orange"
+        | c == orangered           = showColor "orangered"
+        | c == orchid              = showColor "orchid"
+        | c == palegoldenrod       = showColor "palegoldenrod"
+        | c == palegreen           = showColor "palegreen"
+        | c == paleturquoise       = showColor "paleturquoise"
+        | c == palevioletred       = showColor "palevioletred"
+        | c == papayawhip          = showColor "papayawhip"
+        | c == peachpuff           = showColor "peachpuff"
+        | c == peru                = showColor "peru"
+        | c == pink                = showColor "pink"
+        | c == plum                = showColor "plum"
+        | c == powderblue          = showColor "powderblue"
+        | c == purple              = showColor "purple"
+        | c == red                 = showColor "red"
+        | c == rosybrown           = showColor "rosybrown"
+        | c == royalblue           = showColor "royalblue"
+        | c == saddlebrown         = showColor "saddlebrown"
+        | c == salmon              = showColor "salmon"
+        | c == sandybrown          = showColor "sandybrown"
+        | c == seagreen            = showColor "seagreen"
+        | c == seashell            = showColor "seashell"
+        | c == sienna              = showColor "sienna"
+        | c == silver              = showColor "silver"
+        | c == skyblue             = showColor "skyblue"
+        | c == slateblue           = showColor "slateblue"
+        | c == slategray           = showColor "slategray"
+        | c == snow                = showColor "snow"
+        | c == springgreen         = showColor "springgreen"
+        | c == steelblue           = showColor "steelblue"
+        | c == teal                = showColor "teal"
+        | c == thistle             = showColor "thistle"
+        | c == tomato              = showColor "tomato"
+        | c == turquoise           = showColor "turquoise"
+        | c == violet              = showColor "violet"
+        | c == wheat               = showColor "wheat"
+        | c == white               = showColor "white"
+        | c == whitesmoke          = showColor "whitesmoke"
+        | c == yellow              = showColor "yellow"
+        | c == yellowgreen         = showColor "yellowgreen"
+        | otherwise                = let showRGB = showString "rgbColor " . shows (colorRed   c) .
+                                                   showChar   ' '         . shows (colorGreen c) . 
+                                                   showChar   ' '         . shows (colorBlue  c)
+                                     in showParen (d > 0)
+                                                  (if a == 0
+                                                     then showRGB
+                                                     else showRGB . showString " `alpha` " . shows a)
+        where
+          a = colorAlpha c0
+          c = alpha c0 0
+
+          showColor name
+            | a == 0    = showString name
+            | otherwise = showParen (d > 0) (showString name . showString " `alpha` " . shows a)
 
 instance Read Color where
   readPrec =
-      do { Ident "aliceblue"              <- lexP; return aliceblue          } +++
-      do { Ident "antiquewhite"      <- lexP; return antiquewhite          } +++
-      do { Ident "aqua"              <- lexP; return aqua                  } +++
-      do { Ident "aquamarine"      <- lexP; return aquamarine          } +++
-      do { Ident "azure"              <- lexP; return azure                  } +++
-      do { Ident "beige"              <- lexP; return beige                  } +++
-      do { Ident "bisque"              <- lexP; return bisque          } +++
-      do { Ident "black"              <- lexP; return black                  } +++      
-      do { Ident "blanchedalmond"      <- lexP; return blanchedalmond      } +++
-    do { Ident "blue"              <- lexP; return blue                  } +++
-    do { Ident "blueviolet"      <- lexP; return blueviolet            } +++
-    do { Ident "brown"              <- lexP; return brown                  } +++
-    do { Ident "burlywood"              <- lexP; return burlywood          } +++
-    do { Ident "cadetblue"              <- lexP; return cadetblue          } +++
-    do { Ident "chartreuse"      <- lexP; return chartreuse          } +++
-    do { Ident "chocolate"              <- lexP; return chocolate          } +++
-    do { Ident "coral"              <- lexP; return coral                  } +++
-    do { Ident "cornflower"      <- lexP; return cornflower          } +++
-    do { Ident "cornsilk"              <- lexP; return cornsilk          } +++
-    do { Ident "crimson"              <- lexP; return crimson          } +++
-    do { Ident "cyan"              <- lexP; return cyan                  } +++
-    do { Ident "darkblue"            <- lexP; return darkblue            } +++
-    do { Ident "darkcyan"            <- lexP; return darkcyan            } +++
-    do { Ident "darkgoldenrod"       <- lexP; return darkgoldenrod       } +++
-    do { Ident "darkgray"            <- lexP; return darkgray            } +++
-    do { Ident "darkgreen"           <- lexP; return darkgreen           } +++
-    do { Ident "darkkhaki"           <- lexP; return darkkhaki           } +++
-    do { Ident "darkmagenta"         <- lexP; return darkmagenta         } +++
-    do { Ident "darkolivegreen"      <- lexP; return darkolivegreen      } +++
-    do { Ident "darkorange"          <- lexP; return darkorange          } +++
-    do { Ident "darkorchid"          <- lexP; return darkorchid          } +++
-    do { Ident "darkred"             <- lexP; return darkred             } +++
-    do { Ident "darksalmon"          <- lexP; return darksalmon          } +++
-    do { Ident "darkseagreen"        <- lexP; return darkseagreen        } +++
-    do { Ident "darkslateblue"       <- lexP; return darkslateblue       } +++
-    do { Ident "darkslategray"       <- lexP; return darkslategray       } +++
-    do { Ident "darkturquoise"       <- lexP; return darkturquoise       } +++
-    do { Ident "darkviolet"          <- lexP; return darkviolet          } +++
-    do { Ident "deeppink"            <- lexP; return deeppink            } +++
-    do { Ident "deepskyblue"         <- lexP; return deepskyblue         } +++
-    do { Ident "dimgray"             <- lexP; return dimgray             } +++
-    do { Ident "dodgerblue"          <- lexP; return dodgerblue          } +++
-    do { Ident "firebrick"           <- lexP; return firebrick           } +++
-    do { Ident "floralwhite"         <- lexP; return floralwhite         } +++
-    do { Ident "forestgreen"         <- lexP; return forestgreen         } +++
-    do { Ident "fuchsia"             <- lexP; return fuchsia             } +++
-    do { Ident "gainsboro"           <- lexP; return gainsboro           } +++
-    do { Ident "ghostwhite"          <- lexP; return ghostwhite          } +++
-    do { Ident "gold"                <- lexP; return gold                } +++
-    do { Ident "goldenrod"           <- lexP; return goldenrod           } +++
-    do { Ident "gray"              <- lexP; return gray                  } +++      
-    do { Ident "green"              <- lexP; return green                 } +++
-    do { Ident "greenyellow"         <- lexP; return greenyellow         } +++
-    do { Ident "honeydew"            <- lexP; return honeydew            } +++
-    do { Ident "hotpink"             <- lexP; return hotpink             } +++
-    do { Ident "indianred"           <- lexP; return indianred           } +++
-    do { Ident "indigo"              <- lexP; return indigo              } +++
-    do { Ident "ivory"               <- lexP; return ivory               } +++
-    do { Ident "khaki"               <- lexP; return khaki               } +++
-    do { Ident "lavender"            <- lexP; return lavender            } +++
-    do { Ident "lavenderblush"       <- lexP; return lavenderblush       } +++
-    do { Ident "lawngreen"           <- lexP; return lawngreen           } +++
-    do { Ident "lemonchiffon"        <- lexP; return lemonchiffon        } +++
-    do { Ident "lightblue"           <- lexP; return lightblue           } +++
-    do { Ident "lightcoral"          <- lexP; return lightcoral          } +++
-    do { Ident "lightcyan"           <- lexP; return lightcyan           } +++
-    do { Ident "lightgoldenrodyellow"<- lexP; return lightgoldenrodyellow} +++
-    do { Ident "lightgreen"          <- lexP; return lightgreen          } +++
-    do { Ident "lightgray"           <- lexP; return lightgray           } +++
-    do { Ident "lightpink"           <- lexP; return lightpink           } +++
-    do { Ident "lightsalmon"         <- lexP; return lightsalmon         } +++
-    do { Ident "lightseagreen"       <- lexP; return lightseagreen       } +++
-    do { Ident "lightskyblue"        <- lexP; return lightskyblue        } +++
-    do { Ident "lightslategray"      <- lexP; return lightslategray      } +++
-    do { Ident "lightsteelblue"      <- lexP; return lightsteelblue      } +++
-    do { Ident "lightyellow"         <- lexP; return lightyellow         } +++
-    do { Ident "lime"                <- lexP; return lime                } +++
-    do { Ident "limegreen"           <- lexP; return limegreen           } +++
-    do { Ident "linen"               <- lexP; return linen               } +++
-      do { Ident "magenta"              <- lexP; return magenta             } +++      
-      do { Ident "maroon"              <- lexP; return maroon              } +++
-      do { Ident "mediumaquamarine"    <- lexP; return mediumaquamarine    } +++
-      do { Ident "mediumblue"          <- lexP; return mediumblue          } +++
-      do { Ident "mediumorchid"        <- lexP; return mediumorchid        } +++
-      do { Ident "mediumpurple"        <- lexP; return mediumpurple        } +++
-      do { Ident "mediumseagreen"      <- lexP; return mediumseagreen      } +++
-      do { Ident "mediumslateblue"     <- lexP; return mediumslateblue     } +++
-      do { Ident "mediumspringgreen"   <- lexP; return mediumspringgreen   } +++
-      do { Ident "mediumturquoise"     <- lexP; return mediumturquoise     } +++
-      do { Ident "mediumvioletred"     <- lexP; return mediumvioletred     } +++
-      do { Ident "midnightblue"        <- lexP; return midnightblue        } +++
-      do { Ident "mintcream"           <- lexP; return mintcream           } +++
-      do { Ident "mistyrose"           <- lexP; return mistyrose           } +++
-      do { Ident "moccasin"            <- lexP; return moccasin            } +++
-      do { Ident "navajowhite"         <- lexP; return navajowhite         } +++
-      do { Ident "navy"                <- lexP; return navy                } +++
-      do { Ident "oldlace"             <- lexP; return oldlace             } +++
-      do { Ident "olive"               <- lexP; return olive               } +++
-      do { Ident "olivedrab"           <- lexP; return olivedrab           } +++
-      do { Ident "orange"              <- lexP; return orange              } +++
-      do { Ident "orangered"           <- lexP; return orangered           } +++
-      do { Ident "orchid"              <- lexP; return orchid              } +++
-      do { Ident "palegoldenrod"       <- lexP; return palegoldenrod       } +++
-      do { Ident "palegreen"           <- lexP; return palegreen           } +++
-      do { Ident "paleturquoise"       <- lexP; return paleturquoise       } +++
-      do { Ident "palevioletred"       <- lexP; return palevioletred       } +++
-      do { Ident "papayawhip"          <- lexP; return papayawhip          } +++
-      do { Ident "peachpuff"           <- lexP; return peachpuff           } +++
-      do { Ident "peru"                <- lexP; return peru                } +++
-      do { Ident "pink"                <- lexP; return pink                } +++
-      do { Ident "plum"                <- lexP; return plum                } +++
-      do { Ident "powderblue"          <- lexP; return powderblue          } +++
-      do { Ident "purple"              <- lexP; return purple              } +++
-      do { Ident "red"              <- lexP; return red                  } +++
-      do { Ident "rosybrown"           <- lexP; return rosybrown           } +++
-      do { Ident "royalblue"           <- lexP; return royalblue           } +++
-      do { Ident "saddlebrown"         <- lexP; return saddlebrown         } +++
-      do { Ident "salmon"              <- lexP; return salmon              } +++
-      do { Ident "sandybrown"          <- lexP; return sandybrown          } +++
-      do { Ident "seagreen"            <- lexP; return seagreen            } +++
-      do { Ident "seashell"            <- lexP; return seashell            } +++
-      do { Ident "sienna"              <- lexP; return sienna              } +++
-      do { Ident "silver"              <- lexP; return silver              } +++
-      do { Ident "skyblue"             <- lexP; return skyblue             } +++
-      do { Ident "slateblue"           <- lexP; return slateblue           } +++
-      do { Ident "slategray"           <- lexP; return slategray           } +++
-      do { Ident "snow"                <- lexP; return snow                } +++
-      do { Ident "springgreen"         <- lexP; return springgreen         } +++
-      do { Ident "steelblue"           <- lexP; return steelblue           } +++
-      do { Ident "teal"                <- lexP; return teal                } +++
-      do { Ident "thistle"             <- lexP; return thistle             } +++
-      do { Ident "tomato"              <- lexP; return tomato              } +++
-      do { Ident "turquoise"           <- lexP; return turquoise           } +++
-      do { Ident "violet"              <- lexP; return violet              } +++
-      do { Ident "wheat"               <- lexP; return wheat               } +++
-      do { Ident "white"               <- lexP; return white               } +++
-      do { Ident "whitesmoke"          <- lexP; return whitesmoke          } +++
-      do { Ident "yellow"              <- lexP; return yellow          } +++
-      do { Ident "yellowgreen"         <- lexP; return yellowgreen         } +++
+    do { Ident "aliceblue"           <- lexP; returnColor aliceblue           } +++
+    do { Ident "antiquewhite"        <- lexP; returnColor antiquewhite        } +++
+    do { Ident "aqua"                <- lexP; returnColor aqua                } +++
+    do { Ident "aquamarine"          <- lexP; returnColor aquamarine          } +++
+    do { Ident "azure"               <- lexP; returnColor azure               } +++
+    do { Ident "beige"               <- lexP; returnColor beige               } +++
+    do { Ident "bisque"              <- lexP; returnColor bisque              } +++
+    do { Ident "black"               <- lexP; returnColor black               } +++      
+    do { Ident "blanchedalmond"      <- lexP; returnColor blanchedalmond      } +++
+    do { Ident "blue"                <- lexP; returnColor blue                } +++
+    do { Ident "blueviolet"          <- lexP; returnColor blueviolet          } +++
+    do { Ident "brown"               <- lexP; returnColor brown               } +++
+    do { Ident "burlywood"           <- lexP; returnColor burlywood           } +++
+    do { Ident "cadetblue"           <- lexP; returnColor cadetblue           } +++
+    do { Ident "chartreuse"          <- lexP; returnColor chartreuse          } +++
+    do { Ident "chocolate"           <- lexP; returnColor chocolate           } +++
+    do { Ident "coral"               <- lexP; returnColor coral               } +++
+    do { Ident "cornflower"          <- lexP; returnColor cornflower          } +++
+    do { Ident "cornsilk"            <- lexP; returnColor cornsilk            } +++
+    do { Ident "crimson"             <- lexP; returnColor crimson             } +++
+    do { Ident "cyan"                <- lexP; returnColor cyan                } +++
+    do { Ident "darkblue"            <- lexP; returnColor darkblue            } +++
+    do { Ident "darkcyan"            <- lexP; returnColor darkcyan            } +++
+    do { Ident "darkgoldenrod"       <- lexP; returnColor darkgoldenrod       } +++
+    do { Ident "darkgray"            <- lexP; returnColor darkgray            } +++
+    do { Ident "darkgreen"           <- lexP; returnColor darkgreen           } +++
+    do { Ident "darkkhaki"           <- lexP; returnColor darkkhaki           } +++
+    do { Ident "darkmagenta"         <- lexP; returnColor darkmagenta         } +++
+    do { Ident "darkolivegreen"      <- lexP; returnColor darkolivegreen      } +++
+    do { Ident "darkorange"          <- lexP; returnColor darkorange          } +++
+    do { Ident "darkorchid"          <- lexP; returnColor darkorchid          } +++
+    do { Ident "darkred"             <- lexP; returnColor darkred             } +++
+    do { Ident "darksalmon"          <- lexP; returnColor darksalmon          } +++
+    do { Ident "darkseagreen"        <- lexP; returnColor darkseagreen        } +++
+    do { Ident "darkslateblue"       <- lexP; returnColor darkslateblue       } +++
+    do { Ident "darkslategray"       <- lexP; returnColor darkslategray       } +++
+    do { Ident "darkturquoise"       <- lexP; returnColor darkturquoise       } +++
+    do { Ident "darkviolet"          <- lexP; returnColor darkviolet          } +++
+    do { Ident "deeppink"            <- lexP; returnColor deeppink            } +++
+    do { Ident "deepskyblue"         <- lexP; returnColor deepskyblue         } +++
+    do { Ident "dimgray"             <- lexP; returnColor dimgray             } +++
+    do { Ident "dodgerblue"          <- lexP; returnColor dodgerblue          } +++
+    do { Ident "firebrick"           <- lexP; returnColor firebrick           } +++
+    do { Ident "floralwhite"         <- lexP; returnColor floralwhite         } +++
+    do { Ident "forestgreen"         <- lexP; returnColor forestgreen         } +++
+    do { Ident "fuchsia"             <- lexP; returnColor fuchsia             } +++
+    do { Ident "gainsboro"           <- lexP; returnColor gainsboro           } +++
+    do { Ident "ghostwhite"          <- lexP; returnColor ghostwhite          } +++
+    do { Ident "gold"                <- lexP; returnColor gold                } +++
+    do { Ident "goldenrod"           <- lexP; returnColor goldenrod           } +++
+    do { Ident "gray"                <- lexP; returnColor gray                } +++      
+    do { Ident "green"               <- lexP; returnColor green               } +++
+    do { Ident "greenyellow"         <- lexP; returnColor greenyellow         } +++
+    do { Ident "honeydew"            <- lexP; returnColor honeydew            } +++
+    do { Ident "hotpink"             <- lexP; returnColor hotpink             } +++
+    do { Ident "indianred"           <- lexP; returnColor indianred           } +++
+    do { Ident "indigo"              <- lexP; returnColor indigo              } +++
+    do { Ident "ivory"               <- lexP; returnColor ivory               } +++
+    do { Ident "khaki"               <- lexP; returnColor khaki               } +++
+    do { Ident "lavender"            <- lexP; returnColor lavender            } +++
+    do { Ident "lavenderblush"       <- lexP; returnColor lavenderblush       } +++
+    do { Ident "lawngreen"           <- lexP; returnColor lawngreen           } +++
+    do { Ident "lemonchiffon"        <- lexP; returnColor lemonchiffon        } +++
+    do { Ident "lightblue"           <- lexP; returnColor lightblue           } +++
+    do { Ident "lightcoral"          <- lexP; returnColor lightcoral          } +++
+    do { Ident "lightcyan"           <- lexP; returnColor lightcyan           } +++
+    do { Ident "lightgoldenrodyellow"<- lexP; returnColor lightgoldenrodyellow} +++
+    do { Ident "lightgreen"          <- lexP; returnColor lightgreen          } +++
+    do { Ident "lightgray"           <- lexP; returnColor lightgray           } +++
+    do { Ident "lightpink"           <- lexP; returnColor lightpink           } +++
+    do { Ident "lightsalmon"         <- lexP; returnColor lightsalmon         } +++
+    do { Ident "lightseagreen"       <- lexP; returnColor lightseagreen       } +++
+    do { Ident "lightskyblue"        <- lexP; returnColor lightskyblue        } +++
+    do { Ident "lightslategray"      <- lexP; returnColor lightslategray      } +++
+    do { Ident "lightsteelblue"      <- lexP; returnColor lightsteelblue      } +++
+    do { Ident "lightyellow"         <- lexP; returnColor lightyellow         } +++
+    do { Ident "lime"                <- lexP; returnColor lime                } +++
+    do { Ident "limegreen"           <- lexP; returnColor limegreen           } +++
+    do { Ident "linen"               <- lexP; returnColor linen               } +++
+    do { Ident "magenta"             <- lexP; returnColor magenta             } +++      
+    do { Ident "maroon"              <- lexP; returnColor maroon              } +++
+    do { Ident "mediumaquamarine"    <- lexP; returnColor mediumaquamarine    } +++
+    do { Ident "mediumblue"          <- lexP; returnColor mediumblue          } +++
+    do { Ident "mediumorchid"        <- lexP; returnColor mediumorchid        } +++
+    do { Ident "mediumpurple"        <- lexP; returnColor mediumpurple        } +++
+    do { Ident "mediumseagreen"      <- lexP; returnColor mediumseagreen      } +++
+    do { Ident "mediumslateblue"     <- lexP; returnColor mediumslateblue     } +++
+    do { Ident "mediumspringgreen"   <- lexP; returnColor mediumspringgreen   } +++
+    do { Ident "mediumturquoise"     <- lexP; returnColor mediumturquoise     } +++
+    do { Ident "mediumvioletred"     <- lexP; returnColor mediumvioletred     } +++
+    do { Ident "midnightblue"        <- lexP; returnColor midnightblue        } +++
+    do { Ident "mintcream"           <- lexP; returnColor mintcream           } +++
+    do { Ident "mistyrose"           <- lexP; returnColor mistyrose           } +++
+    do { Ident "moccasin"            <- lexP; returnColor moccasin            } +++
+    do { Ident "navajowhite"         <- lexP; returnColor navajowhite         } +++
+    do { Ident "navy"                <- lexP; returnColor navy                } +++
+    do { Ident "oldlace"             <- lexP; returnColor oldlace             } +++
+    do { Ident "olive"               <- lexP; returnColor olive               } +++
+    do { Ident "olivedrab"           <- lexP; returnColor olivedrab           } +++
+    do { Ident "orange"              <- lexP; returnColor orange              } +++
+    do { Ident "orangered"           <- lexP; returnColor orangered           } +++
+    do { Ident "orchid"              <- lexP; returnColor orchid              } +++
+    do { Ident "palegoldenrod"       <- lexP; returnColor palegoldenrod       } +++
+    do { Ident "palegreen"           <- lexP; returnColor palegreen           } +++
+    do { Ident "paleturquoise"       <- lexP; returnColor paleturquoise       } +++
+    do { Ident "palevioletred"       <- lexP; returnColor palevioletred       } +++
+    do { Ident "papayawhip"          <- lexP; returnColor papayawhip          } +++
+    do { Ident "peachpuff"           <- lexP; returnColor peachpuff           } +++
+    do { Ident "peru"                <- lexP; returnColor peru                } +++
+    do { Ident "pink"                <- lexP; returnColor pink                } +++
+    do { Ident "plum"                <- lexP; returnColor plum                } +++
+    do { Ident "powderblue"          <- lexP; returnColor powderblue          } +++
+    do { Ident "purple"              <- lexP; returnColor purple              } +++
+    do { Ident "red"                 <- lexP; returnColor red                 } +++
+    do { Ident "rosybrown"           <- lexP; returnColor rosybrown           } +++
+    do { Ident "royalblue"           <- lexP; returnColor royalblue           } +++
+    do { Ident "saddlebrown"         <- lexP; returnColor saddlebrown         } +++
+    do { Ident "salmon"              <- lexP; returnColor salmon              } +++
+    do { Ident "sandybrown"          <- lexP; returnColor sandybrown          } +++
+    do { Ident "seagreen"            <- lexP; returnColor seagreen            } +++
+    do { Ident "seashell"            <- lexP; returnColor seashell            } +++
+    do { Ident "sienna"              <- lexP; returnColor sienna              } +++
+    do { Ident "silver"              <- lexP; returnColor silver              } +++
+    do { Ident "skyblue"             <- lexP; returnColor skyblue             } +++
+    do { Ident "slateblue"           <- lexP; returnColor slateblue           } +++
+    do { Ident "slategray"           <- lexP; returnColor slategray           } +++
+    do { Ident "snow"                <- lexP; returnColor snow                } +++
+    do { Ident "springgreen"         <- lexP; returnColor springgreen         } +++
+    do { Ident "steelblue"           <- lexP; returnColor steelblue           } +++
+    do { Ident "teal"                <- lexP; returnColor teal                } +++
+    do { Ident "thistle"             <- lexP; returnColor thistle             } +++
+    do { Ident "tomato"              <- lexP; returnColor tomato              } +++
+    do { Ident "turquoise"           <- lexP; returnColor turquoise           } +++
+    do { Ident "violet"              <- lexP; returnColor violet              } +++
+    do { Ident "wheat"               <- lexP; returnColor wheat               } +++
+    do { Ident "white"               <- lexP; returnColor white               } +++
+    do { Ident "whitesmoke"          <- lexP; returnColor whitesmoke          } +++
+    do { Ident "yellow"              <- lexP; returnColor yellow              } +++
+    do { Ident "yellowgreen"         <- lexP; returnColor yellowgreen         } +++
     parens
         ( prec 10
           ( do Ident "rgbColor" <- lexP
-               r               <- step readPrec
-               g               <- step readPrec
-               b               <- step readPrec
-               return (rgbColor r g b)
+               r                <- step readPrec
+               g                <- step readPrec
+               b                <- step readPrec
+               returnColor (rgbColor r g b)
           )
         ) +++
     parens
         ( prec 10
           ( do Ident "cmyColor" <- lexP
-               r               <- step readPrec
-               g               <- step readPrec
-               b               <- step readPrec
-               return (cmyColor r g b)
+               r                <- step readPrec
+               g                <- step readPrec
+               b                <- step readPrec
+               returnColor (cmyColor r g b)
            )
          )
+    where
+      returnColor col =
+        do Punc "`"      <- lexP
+           Ident "alpha" <- lexP
+           Punc "`"      <- lexP
+           a             <- step readPrec
+           return (col `alpha` a)
+        +++
+        do return col
 
 
 -- | Create a color from a red\/green\/blue triple.
@@ -402,6 +423,12 @@ colorMagenta (Color c) = fromIntegral ((c `div` 0x100  ) .&. 0xFF) `xor` 0xFF
 -- | Returns a yellow color component
 colorYellow :: Color -> Word8
 colorYellow (Color c) = fromIntegral ((c `div` 0x10000) .&. 0xFF) `xor` 0xFF
+
+alpha :: Color -> Word8 -> Color
+alpha (Color c) a = Color (((fromIntegral a) * 0x1000000) .|. (c .&. 0xFFFFFF))
+
+colorAlpha :: Color -> Word8
+colorAlpha (Color c) = fromIntegral ((c `div` 0x1000000) .&. 0xFF)
 
 -- Default colors.
 aliceblue, antiquewhite, aqua, aquamarine, azure, beige,

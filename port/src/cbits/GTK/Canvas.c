@@ -159,10 +159,10 @@ static cairo_pattern_t *create_stipple(guchar stipple_data[])
 }
 
 #define PREMULTIPLY(argb)                                                                          \
-	(((argb) & 0xFF << 24) |                                                                       \
-	 (((((argb) & 0xFF <<  0) >>  0) * (((argb) & 0xFF << 24) >> 24) / 0xFF) << 16) |              \
-	 (((((argb) & 0xFF <<  8) >>  8) * (((argb) & 0xFF << 24) >> 24) / 0xFF) <<  8) |                 \
-	 (((((argb) & 0xFF << 16) >> 16) * (((argb) & 0xFF << 24) >> 24) / 0xFF) <<  0))
+	((255 - ((argb) >> 24) & 0xFF) |                                                                       \
+	 (((((argb) & 0xFF <<  0) >>  0) * ((255 - ((argb) >> 24) & 0xFF)) / 0xFF) << 16) |              \
+	 (((((argb) & 0xFF <<  8) >>  8) * ((255 - ((argb) >> 24) & 0xFF)) / 0xFF) <<  8) |                 \
+	 (((((argb) & 0xFF << 16) >> 16) * ((255 - ((argb) >> 24) & 0xFF)) / 0xFF) <<  0))
 
 void osChangeCanvasPen(int size, int function,
 					 unsigned int pcolor,
@@ -237,8 +237,8 @@ void osChangeCanvasPen(int size, int function,
 			canvas->tile = NULL;
 		}
 
-		guint32 pcolor_pre = PREMULTIPLY(0xFF000000 | pcolor);
-		guint32 bcolor_pre = canvas->backDraw ? PREMULTIPLY(0xFF000000 | bcolor) : PREMULTIPLY(0x00000000);
+		guint32 pcolor_pre = PREMULTIPLY(pcolor);
+		guint32 bcolor_pre = canvas->backDraw ? PREMULTIPLY(bcolor) : PREMULTIPLY(0x00000000);
 
 		switch (hatchStyle)
 		{
@@ -246,7 +246,7 @@ void osChangeCanvasPen(int size, int function,
 			cairo_set_source_rgba(canvas->cr, ((double) ((pcolor      ) & 0xFF))/255
 											, ((double) ((pcolor >>  8) & 0xFF))/255
 											, ((double) ((pcolor >> 16) & 0xFF))/255
-											, 1.0);
+											, ((double) ((255 - (pcolor >> 24)) & 0xFF))/255);
 			break;
 		case 1: {
 			guint32 stipple_data[8 * 8] = {
