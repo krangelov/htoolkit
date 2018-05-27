@@ -51,8 +51,8 @@ void osInitCanvas (int size, int function,
 					 int stylesCount,
 					 unsigned char *stylesPtr,
 					 BOOL bkMode,
-					 int hatchStyle,
-					 BitmapHandle patBmp,
+					 int fillStyle,
+					 void* fill_info,
 					 FontHandle font,
 					 CanvasHandle canvas,
 					 BOOL bDoubleBuffered
@@ -100,7 +100,7 @@ void osInitCanvas (int size, int function,
 	SetTextAlign (canvas->hDC, TA_LEFT | TA_BASELINE);
 	SetStretchBltMode (canvas->hDC,COLORONCOLOR);
 
-	osChangeCanvasPen(size,function,pcolor,bcolor,joinStyle,capStyle,lineStyle,stylesCount,stylesPtr,bkMode,hatchStyle,patBmp,font,canvas);
+	osChangeCanvasPen(size,function,pcolor,bcolor,joinStyle,capStyle,lineStyle,stylesCount,stylesPtr,bkMode,fillStyle,fill_info,font,canvas);
 
 	if (canvas->bInvalidated)
 	{
@@ -108,7 +108,7 @@ void osInitCanvas (int size, int function,
 		LOGBRUSH lb;
 
 		lb.lbColor = bcolor;
-		SetupLogBrush(&lb, FALSE, hatchStyle, patBmp);
+		SetupLogBrush(&lb, FALSE, fillStyle, fill_info);
 		hb = CreateBrushIndirect(&lb);
 
 		SetBkMode(canvas->hDC, OPAQUE);
@@ -190,7 +190,7 @@ void osDeletePolygon(PolygonHandle polygon)
 	rfree (polygon);
 }	/* osDeletePolygon */
 
-void SetupLogBrush(LOGBRUSH *plb, BOOL bSetSolid, int hatchStyle, BitmapHandle patBmp)
+void SetupLogBrush(LOGBRUSH *plb, BOOL bSetSolid, int hatchStyle, void* fill_info)
 {
 	switch (bSetSolid ? 0 : hatchStyle)
 	{
@@ -222,9 +222,9 @@ void SetupLogBrush(LOGBRUSH *plb, BOOL bSetSolid, int hatchStyle, BitmapHandle p
 		plb->lbStyle = BS_HATCHED;
 		plb->lbHatch = HS_VERTICAL;
 		break;
-	case 7:
+	case 9:
 		plb->lbStyle = BS_PATTERN;
-		plb->lbHatch = (LONG_PTR) patBmp->hBitmap;
+		plb->lbHatch = (LONG_PTR) ((BitmapHandle) fill_info)->hBitmap;
 		break;
 	}
 }
@@ -243,8 +243,8 @@ void osChangeCanvasPen(int size, int function,
 					 int stylesCount,
 					 unsigned char *stylesPtr,
 					 BOOL bkMode,
-					 int hatchStyle,
-					 BitmapHandle patBmp,
+					 int fillStyle,
+					 void* fill_info,
 					 FontHandle font,
 					 CanvasHandle canvas
 					 )
@@ -304,7 +304,7 @@ void osChangeCanvasPen(int size, int function,
 	}
 
 	lb.lbColor = pcolor;
-	SetupLogBrush(&lb, size == 1, hatchStyle, patBmp);
+	SetupLogBrush(&lb, size == 1, fillStyle, fill_info);
 	hp = ExtCreatePen (penstyle, size, &lb, canvas->stylesCount, canvas->stylesPtr);
 
 	SelectObject (canvas->hDC, hp);
@@ -313,7 +313,7 @@ void osChangeCanvasPen(int size, int function,
 	canvas->thePen = hp;
 
 	lb.lbColor = pcolor;
-	SetupLogBrush(&lb, FALSE, hatchStyle, patBmp);
+	SetupLogBrush(&lb, FALSE, fillStyle, fill_info);
 	hb = CreateBrushIndirect(&lb);
 
 	SelectObject (canvas->hDC, hb);

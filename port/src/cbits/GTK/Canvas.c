@@ -28,8 +28,8 @@ void osInitCanvas 	(int size, int function,
 					 int lineCustomCount,
 					 unsigned char* lineCustomDashes,
 					 BOOL backDraw,
-					 int hatchStyle,
-					 BitmapHandle hatchBitmap,
+					 int fillStyle,
+					 void *fill_info,
 					 FontHandle font,
 					 CanvasHandle canvas,
 					 BOOL buffered
@@ -40,7 +40,7 @@ void osInitCanvas 	(int size, int function,
 	canvas->backDraw = backDraw;
 	canvas->tile = NULL;
 
-	osChangeCanvasPen(size,function,pcolor,bcolor,joinStyle,capStyle,lineStyle,lineCustomCount,lineCustomDashes,backDraw,hatchStyle,hatchBitmap,font,canvas);
+	osChangeCanvasPen(size,function,pcolor,bcolor,joinStyle,capStyle,lineStyle,lineCustomCount,lineCustomDashes,backDraw,fillStyle,fill_info,font,canvas);
 
 	if (canvas->buffered == 0 && buffered)
 	{
@@ -173,8 +173,8 @@ void osChangeCanvasPen(int size, int function,
 					 int lineCustomCount,
 					 unsigned char *lineCustomDashes,
 					 BOOL backDraw,
-					 int hatchStyle,
-					 BitmapHandle hatchBitmap,
+					 int fillStyle,
+					 void *fill_info,
 					 FontHandle font,
 					 CanvasHandle canvas
 					 )
@@ -240,7 +240,7 @@ void osChangeCanvasPen(int size, int function,
 		guint32 pcolor_pre = PREMULTIPLY(pcolor);
 		guint32 bcolor_pre = canvas->backDraw ? PREMULTIPLY(bcolor) : PREMULTIPLY(0x00000000);
 
-		switch (hatchStyle)
+		switch (fillStyle)
 		{
 		case 0:
 			cairo_set_source_rgba(canvas->cr, ((double) ((pcolor      ) & 0xFF))/255
@@ -362,8 +362,15 @@ void osChangeCanvasPen(int size, int function,
 			cairo_pattern_destroy(pattern);
 			break;
 		}
-		case 7: {
-			gdk_cairo_set_source_pixbuf (canvas->cr, hatchBitmap->pixbuf, 0, 0);
+		case 7:
+		case 8: {
+			cairo_set_source(canvas->cr, (cairo_pattern_t *) fill_info);
+			cairo_pattern_set_extend (cairo_get_source(canvas->cr), CAIRO_EXTEND_REPEAT);
+			cairo_pattern_destroy((cairo_pattern_t *) fill_info);
+			break;
+		}
+		case 9: {
+			gdk_cairo_set_source_pixbuf (canvas->cr, ((BitmapHandle) fill_info)->pixbuf, 0, 0);
 			cairo_pattern_set_extend (cairo_get_source(canvas->cr), CAIRO_EXTEND_REPEAT);
 			break;
 		}
@@ -385,6 +392,25 @@ void osChangeCanvasPen(int size, int function,
 		canvas->theFont = font;
 		pango_layout_set_font_description(canvas->layout, font->font_descr);
 	}
+}
+
+GradientHandle osNewLinearGradient(int x1, int y1, int x2, int y2)
+{
+	return cairo_pattern_create_linear (x1, y1, x2, y2);
+}
+
+GradientHandle osNewRadialGradient(int x1, int y1, int radius1, int x2, int y2, int radius2)
+{
+	return cairo_pattern_create_radial (x1, y1, radius1, x2, y2, radius2);
+}
+
+void osAddGradientStop(GradientHandle gradient, double offset, unsigned int color) {
+	cairo_pattern_add_color_stop_rgba (gradient,
+                                       offset,
+                                       ((double) ((color      ) & 0xFF))/255,
+                                       ((double) ((color >>  8) & 0xFF))/255,
+                                       ((double) ((color >> 16) & 0xFF))/255,
+                                       ((double) ((255 - (color >> 24)) & 0xFF))/255);
 }
 
 void osRotateCanvas(double angle, CanvasHandle canvas)

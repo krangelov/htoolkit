@@ -6,10 +6,10 @@
 extern int osMMtoVPixels(double);
 extern int osMMtoHPixels(double);
 
-extern void osInitCanvas (int,int,unsigned int,unsigned int,int,int,int,int,unsigned char *,BOOL,int,BitmapHandle,FontHandle,CanvasHandle,BOOL);
+extern void osInitCanvas (int,int,unsigned int,unsigned int,int,int,int,int,unsigned char *,BOOL,int,void*,FontHandle,CanvasHandle,BOOL);
 extern void osDoneCanvas (CanvasHandle);
 
-extern void osChangeCanvasPen(int,int,unsigned int,unsigned int,int,int,int,int,unsigned char *,BOOL,int,BitmapHandle,FontHandle,CanvasHandle);
+extern void osChangeCanvasPen(int,int,unsigned int,unsigned int,int,int,int,int,unsigned char *,BOOL,int,void*,FontHandle,CanvasHandle);
 
 /*	Operations to create, modify, and destroy polygon shapes.
 */

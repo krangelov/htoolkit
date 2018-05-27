@@ -86,7 +86,7 @@ module Graphics.UI.GIO.Types
             , JoinStyle(..)
             , CapStyle(..)
             , LineStyle(..)
-            , HatchStyle(..)
+            , FillStyle(..)
             , Pen(..), windowPen, dialogPen
 
             -- ** Fonts
@@ -110,8 +110,8 @@ module Graphics.UI.GIO.Types
             , CanvasHandle
             , MenuHandle
             , ToolHandle
-	    , ActionHandle
-	    , IndicatorHandle
+	        , ActionHandle
+	        , IndicatorHandle
             , FontHandle
             , BitmapHandle
             , TimerHandle

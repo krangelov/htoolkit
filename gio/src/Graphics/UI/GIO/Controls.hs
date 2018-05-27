@@ -830,8 +830,8 @@ recolorCompound :: CompoundControl -> IO ()
 recolorCompound c
   = do col   <- get c color
        bgcol <- get c bgcolor
-       hat   <- get c hatch
-       Port.setWindowColor (cchandle c) col bgcol hat
+       fill  <- get c fillStyle
+       Port.setWindowColor (cchandle c) col bgcol fill
        repaint c
        relayoutCompound c
 

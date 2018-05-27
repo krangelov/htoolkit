@@ -74,7 +74,7 @@ data Pen = Pen
             , penJoinStyle  :: !JoinStyle
             , penCapStyle   :: !CapStyle
             , penLineStyle  :: !LineStyle
-            , penHatchStyle :: !HatchStyle
+            , penFillStyle  :: !FillStyle
             }
             deriving Eq
 
@@ -83,14 +83,14 @@ data Pen = Pen
 -- @'Pen'@ 1 @'DrawCopy'@ @'textColor'@ @'windowColor'@ @'False'@ @'windowColor'@ @'JoinMiter'@ @'CapFlat'@ @'LineSolid'@ @'HatchSolid'@
 windowPen :: Pen
 windowPen
-  = Pen 1 DrawCopy textColor windowColor False defaultFont JoinMiter CapFlat LineSolid HatchSolid
+  = Pen 1 DrawCopy textColor windowColor False defaultFont JoinMiter CapFlat LineSolid FillSolid
 
 -- | Create a pen with default drawing values for dialogs. That is:
 --
 -- @'Pen'@ 1 @'DrawCopy'@ @'textColor'@ @'dialogColor'@ @'False'@ @'dialogFont'@ @'JoinMiter'@ @'CapFlat'@ @'LineSolid'@ @'HatchSolid'@
 dialogPen :: Pen
 dialogPen
-  = Pen 1 DrawCopy textColor dialogColor False defaultFont JoinMiter CapFlat LineSolid HatchSolid
+  = Pen 1 DrawCopy textColor dialogColor False defaultFont JoinMiter CapFlat LineSolid FillSolid
 
 
 
@@ -100,7 +100,7 @@ withCanvas :: Pen -> BufferMode -> CanvasHandle -> IO a -> IO a
 withCanvas pen buffermode canvas action = do
     (withCFont (penFont pen) $ \cfont ->
      withCLineStyle (penLineStyle pen) $ \cline clinecount clinestyles ->
-     withCHatchStyle (penHatchStyle pen) $ \chatch chatchbmp ->
+     withCFillStyle (penFillStyle pen) $ \cfill cfill_info ->
      osInitCanvas  (toCInt (penSize pen))
                   (toCDrawMode (penMode pen)) 
                   (toCColor (penColor pen)) 
@@ -109,7 +109,7 @@ withCanvas pen buffermode canvas action = do
                   (toCCapStyle (penCapStyle pen))
                   cline clinecount clinestyles
                   (toCBool (penBkDrawMode pen))
-                  chatch chatchbmp
+                  cfill cfill_info
                   cfont
                   canvas 
                   (toCBufferMode buffermode))
@@ -121,7 +121,7 @@ foreign import ccall osInitCanvas :: CInt -> CInt -> CColor -> CColor
                                   -> CInt -> CInt 
                                   -> CInt -> CInt -> Ptr CUChar
                                   -> CBool 
-                                  -> CInt -> BitmapHandle 
+                                  -> CInt -> Ptr a
                                   -> FontHandle 
                                   -> CanvasHandle -> CBool -> IO ()
 
@@ -138,7 +138,7 @@ changeCanvasPen :: Pen -> CanvasHandle -> IO ()
 changeCanvasPen pen canvas =
     withCFont (penFont pen) $ \cfont ->
     withCLineStyle (penLineStyle pen) $ \cline clinecount clinestyles ->
-    withCHatchStyle (penHatchStyle pen) $ \chatch chatchbmp ->
+    withCFillStyle (penFillStyle pen) $ \cfill cfill_info ->
     osChangeCanvasPen (toCInt (penSize pen))
                   (toCDrawMode (penMode pen)) 
                   (toCColor (penColor pen))
@@ -147,16 +147,16 @@ changeCanvasPen pen canvas =
                   (toCCapStyle (penCapStyle pen))
                   cline clinecount clinestyles
                   (toCBool (penBkDrawMode pen))
-                  chatch chatchbmp
+                  cfill cfill_info
                   cfont
                   canvas
 foreign import ccall osChangeCanvasPen :: CInt -> CInt -> CColor -> CColor
-                                  -> CInt -> CInt
-                                  -> CInt -> CInt -> Ptr CUChar
-                                  -> CBool
-                                  -> CInt -> BitmapHandle
-                                  -> FontHandle
-                                  -> CanvasHandle -> IO ()
+                                       -> CInt -> CInt
+                                       -> CInt -> CInt -> Ptr CUChar
+                                       -> CBool
+                                       -> CInt -> Ptr a
+                                       -> FontHandle
+                                       -> CanvasHandle -> IO ()
 
 
 {-----------------------------------------------------------------------------------------

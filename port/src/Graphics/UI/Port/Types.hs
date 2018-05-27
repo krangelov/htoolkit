@@ -1,3 +1,5 @@
+{-# LANGUAGE RankNTypes #-}
+
 -- #hide
 -----------------------------------------------------------------------------------------
 {-| Module      :  Types
@@ -42,7 +44,7 @@ module Graphics.UI.Port.Types
             , JoinStyle(..)
             , CapStyle(..)
             , LineStyle(..)
-            , HatchStyle(..)
+            , FillStyle(..)
 
             -- ** Fonts
             , Font
@@ -72,8 +74,8 @@ module Graphics.UI.Port.Types
             -- * PositionType
             , PositionType(..)
 
-        -- * Window position
-        , WindowPosition(..)
+            -- * Window position
+            , WindowPosition(..)
 
             -- * Primitive Handles
             , WindowHandle
@@ -83,14 +85,14 @@ module Graphics.UI.Port.Types
             , BitmapHandle
             , TimerHandle
             , ToolHandle
-        , ActionHandle
+            , ActionHandle
             , IndicatorHandle
             , nullHandle
 
             -- * Marshalling to C
             , toCDrawMode, toCBufferMode
             , toCJoinStyle, toCCapStyle
-            , withCLineStyle, withCHatchStyle
+            , withCLineStyle, withCFillStyle
 
             , withCBitmap, fromCBitmap
 
@@ -145,6 +147,9 @@ data MH = MH
 -- | Abstract handle to a font
 type FontHandle   = Ptr FH
 data FH = FH
+
+type GradientHandle = Ptr GH
+data GH = GH
 
 -- | Abstract handle to a bitmap
 type BitmapHandle = Ptr BH
@@ -824,29 +829,47 @@ withCLineStyle style f
               f 5 (toCInt n) pstyles           -- freed by library
 
 
--- | The 'HatchStyle' is applied when filling an object. 
-data HatchStyle
-  = HatchSolid          -- ^ Solid pattern
+-- | The 'FillStyle' is applied when filling an object. 
+data FillStyle
+  = FillSolid           -- ^ Solid pattern
   | HatchBDiagonal      -- ^ A 45-degree upward, left-to-right hatch
   | HatchFDiagonal      -- ^ A 45-degree downward, left-to-right hatch
   | HatchCross          -- ^ Horizontal and vertical cross-hatch
   | HatchDiagCross      -- ^ 45-degree crosshatch
   | HatchHorizontal     -- ^ Horizontal hatch 
   | HatchVertical       -- ^ Vertical hatch
-  | HatchPattern Bitmap -- ^ A bitmap pattern -- 8x8 pixel bitmaps are always supported.
+  | GradientLinear Point Point             [(Double,Color)]  -- ^ Linear gradient between two points and with color stops defined with the list
+  | GradientRadial (Point,Int) (Point,Int) [(Double,Color)]  -- ^ Radial gradient between two circles and with color stops defined with the list
+  | FillBitmap Bitmap   -- ^ A bitmap pattern -- 8x8 pixel bitmaps are always supported.
   deriving Eq
 
-withCHatchStyle :: HatchStyle -> (CInt -> BitmapHandle -> IO a) -> IO a
-withCHatchStyle style f
+withCFillStyle :: FillStyle -> (forall b . CInt -> Ptr b -> IO a) -> IO a
+withCFillStyle style f
   = case style of
-      HatchSolid          -> f 0 nullHandle
+      FillSolid           -> f 0 nullHandle
       HatchBDiagonal      -> f 1 nullHandle
       HatchFDiagonal      -> f 2 nullHandle
       HatchCross          -> f 3 nullHandle
       HatchDiagCross      -> f 4 nullHandle
       HatchHorizontal     -> f 5 nullHandle
       HatchVertical       -> f 6 nullHandle
-      HatchPattern bitmap -> withCBitmap bitmap $ \handle -> f 7 handle
+      GradientLinear p1 p2 stops  -> newLinearGradient p1 p2 stops >>= f 7
+      GradientRadial c1 c2 stops  -> newRadialGradient c1 c2 stops >>= f 8
+      FillBitmap bitmap   -> withCBitmap bitmap $ \handle -> f 9 handle
+
+newLinearGradient (Point x1 y1) (Point x2 y2) stops = do
+  g <- osNewLinearGradient (fromIntegral x1) (fromIntegral y1) (fromIntegral x2) (fromIntegral y2)
+  mapM_ (\(offset,color) -> osAddGradientStop g (realToFrac offset) (toCColor color)) stops
+  return g
+foreign import ccall osNewLinearGradient :: CInt -> CInt -> CInt -> CInt -> IO GradientHandle
+
+newRadialGradient (Point x1 y1, radius1) (Point x2 y2, radius2) stops = do
+  g <- osNewRadialGradient (fromIntegral radius1) (fromIntegral x1) (fromIntegral y1) (fromIntegral radius2) (fromIntegral x2) (fromIntegral y2)
+  mapM_ (\(offset,color) -> osAddGradientStop g (realToFrac offset) (toCColor color)) stops
+  return g
+foreign import ccall osNewRadialGradient :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO GradientHandle
+
+foreign import ccall osAddGradientStop :: GradientHandle -> CDouble -> CColor -> IO ()
 
 {-----------------------------------------------------------------------------------------
   Bitmaps

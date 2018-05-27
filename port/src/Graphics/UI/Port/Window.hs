@@ -109,11 +109,11 @@ createDialog hparent = do
 foreign import ccall osCreateDialog :: WindowHandle -> IO WindowHandle
 
 -- | Set the default foreground color, background color and hatch style.
-setWindowColor :: WindowHandle -> Color -> Color -> HatchStyle -> IO ()
-setWindowColor hwnd foreColor backColor hatch
-  = withCHatchStyle hatch $ \chatch chbitmap ->
-    osSetWindowColor hwnd (fromIntegral (toCColor foreColor)) (fromIntegral (toCColor backColor)) chatch chbitmap
-foreign import ccall osSetWindowColor :: WindowHandle -> CInt -> CInt -> CInt -> BitmapHandle -> IO ()
+setWindowColor :: WindowHandle -> Color -> Color -> FillStyle -> IO ()
+setWindowColor hwnd foreColor backColor fill
+  = withCFillStyle fill $ \cfill cfill_info ->
+    osSetWindowColor hwnd (fromIntegral (toCColor foreColor)) (fromIntegral (toCColor backColor)) cfill cfill_info
+foreign import ccall osSetWindowColor :: WindowHandle -> CInt -> CInt -> CInt -> Ptr a -> IO ()
 
 -- | Get the text of the title bar.
 getWindowTitle :: WindowHandle -> IO String

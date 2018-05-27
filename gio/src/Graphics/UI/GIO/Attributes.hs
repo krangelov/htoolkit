@@ -64,7 +64,7 @@ module Graphics.UI.GIO.Attributes
 
              -- ** Drawn
              , Drawn, bufferMode, pen
-             , color, bgcolor, hatch
+             , color, bgcolor, fillStyle
              , thickness, capstyle, linestyle, joinstyle
              , drawMode, bkDrawMode
 
@@ -265,8 +265,8 @@ class HasFont w => Drawn w where
   bgcolor = mapAttr penBackColor (\pen c -> pen{penBackColor=c}) pen
 
   -- | The hatch style.
-  hatch :: Attr w HatchStyle
-  hatch = mapAttr penHatchStyle (\pen h -> pen{penHatchStyle=h}) pen
+  fillStyle :: Attr w FillStyle
+  fillStyle = mapAttr penFillStyle (\pen f -> pen{penFillStyle=f}) pen
 
   -- | The thickness of the drawing pencil.
   thickness :: Attr w Int

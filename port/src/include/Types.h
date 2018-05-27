@@ -107,6 +107,8 @@ typedef struct
 	int height;
 } *BitmapHandle;
 
+typedef cairo_pattern_t *GradientHandle;
+
 typedef struct
 {
 	PangoFontDescription *font_descr;

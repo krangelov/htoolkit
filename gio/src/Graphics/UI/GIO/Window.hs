@@ -101,8 +101,8 @@ relayoutWindow w
 recolorWindow w
   = do col   <- get w color
        bgcol <- get w bgcolor
-       hat   <- get w hatch
-       Lib.setWindowColor (hwindow w) col bgcol hat
+       fill  <- get w fillStyle
+       Lib.setWindowColor (hwindow w) col bgcol fill
        repaint w
        relayoutWindow w
 
