@@ -37,7 +37,6 @@ void osInitCanvas 	(int size, int function,
 {
 	GdkRectangle clip_box;
 
-	canvas->backDraw = backDraw;
 	canvas->tile = NULL;
 
 	osChangeCanvasPen(size,function,pcolor,bcolor,joinStyle,capStyle,lineStyle,lineCustomCount,lineCustomDashes,backDraw,fillStyle,fill_info,font,canvas);
@@ -185,6 +184,8 @@ void osChangeCanvasPen(int size, int function,
 	if (canvas->cr)
 	{
 		canvas->backDraw = backDraw;
+		canvas->pcolor = pcolor;
+		canvas->bcolor = bcolor;
 
 		cairo_set_line_width (canvas->cr, size);
 
@@ -499,6 +500,27 @@ static void osSetupFont(CanvasHandle canvas, int len)
 		{
 			attr_list = pango_attr_list_new();
 			pango_layout_set_attributes(canvas->layout, attr_list);
+			pango_attr_list_unref(attr_list);
+			
+			attr_list = pango_layout_get_attributes(canvas->layout);
+		}
+
+		if (canvas->backDraw) {
+			attr = pango_attr_background_new(((canvas->bcolor      ) & 0xFF)*257,
+			                                 ((canvas->bcolor >>  8) & 0xFF)*257,
+			                                 ((canvas->bcolor >> 16) & 0xFF)*257);
+			attr->start_index = 0;
+			attr->end_index = len;
+
+			pango_attr_list_change(attr_list, attr);
+			pango_attribute_destroy(attr);
+
+			/*attr = pango_attr_background_alpha_new(((255 - (canvas->bcolor >> 24)) & 0xFF)*257);
+			attr->start_index = 0;
+			attr->end_index = len;
+
+			pango_attr_list_change(attr_list, attr);
+			pango_attribute_destroy(attr);*/
 		}
 
 		if (canvas->theFont->style & FONT_UNDERLINED)
@@ -508,6 +530,7 @@ static void osSetupFont(CanvasHandle canvas, int len)
 			attr->end_index = len;
 
 			pango_attr_list_change(attr_list, attr);
+			pango_attribute_destroy(attr);
 		}
 
 		if (canvas->theFont->style & FONT_STRIKED)
@@ -517,6 +540,7 @@ static void osSetupFont(CanvasHandle canvas, int len)
 			attr->end_index = len;
 
 			pango_attr_list_change(attr_list, attr);
+			pango_attribute_destroy(attr);
 		}
 	}
 }

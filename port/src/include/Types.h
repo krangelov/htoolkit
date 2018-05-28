@@ -136,6 +136,8 @@ typedef struct
 	cairo_t *cr;
 	FontHandle theFont;
 	gboolean backDraw;
+	unsigned int pcolor;
+	unsigned int bcolor;
 	GdkRegion *region;
 	gboolean buffered;
 	GdkPixbuf *pixbuf;
