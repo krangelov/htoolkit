@@ -74,7 +74,7 @@ void osInitCanvas 	(int size, int function,
 		cairo_set_source_rgba(canvas->cr, ((double) ((bcolor      ) & 0xFF))/255
 								        , ((double) ((bcolor >>  8) & 0xFF))/255
 								        , ((double) ((bcolor >> 16) & 0xFF))/255
-								        , 1.0);
+								        , ((double) ((255 - (bcolor >> 24)) & 0xFF))/255);
 		cairo_rectangle(canvas->cr, clip_box.x, clip_box.y, clip_box.width, clip_box.height);
 		cairo_fill(canvas->cr);
 		cairo_restore(canvas->cr);
@@ -549,10 +549,10 @@ void osDrawChar (int x, int y, char c, CanvasHandle canvas)
 {
 	if (canvas->cr)
 	{
+		osSetupFont(canvas, 1);
 		pango_layout_set_text(canvas->layout, &c, 1);
 
 		pango_cairo_update_layout (canvas->cr, canvas->layout);
-		osSetupFont(canvas, 1);
 
         cairo_move_to (canvas->cr, x, y - ((double) pango_font_metrics_get_ascent(canvas->theFont->metrics)) / PANGO_SCALE);
         pango_cairo_show_layout (canvas->cr, canvas->layout);
@@ -567,10 +567,10 @@ void osDrawString (int x, int y, char *string, CanvasHandle canvas)
 {
 	if (canvas->cr)
 	{
+		osSetupFont(canvas, strlen(string));
 		pango_layout_set_text(canvas->layout, string, strlen(string));
 
 		pango_cairo_update_layout (canvas->cr, canvas->layout);
-		osSetupFont(canvas, strlen(string));
 
         cairo_move_to (canvas->cr, x, y - ((double) pango_font_metrics_get_ascent(canvas->theFont->metrics)) / PANGO_SCALE);
         pango_cairo_show_layout (canvas->cr, canvas->layout);
