@@ -264,7 +264,10 @@ instance Control Entry where
   
 instance Valued Entry String where
   value = title
-    
+
+instance Commanding Entry where
+  command = newStdEvent ehandle Port.getControlCommandHandler Port.setControlCommandHandler Port.setControlCommandDefHandler
+
 -- | Determines if the user can edit the text in the editable widget or not. 
 readOnly :: Attr Entry Bool    
 readOnly = newStdAttr ehandle Port.getEditReadOnly Port.setEditReadOnly

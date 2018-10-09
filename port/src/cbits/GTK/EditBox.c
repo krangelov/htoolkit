@@ -2,12 +2,16 @@
 #include "Internals.h"
 #include "Handlers_stub.h"
 
+
 WindowHandle osCreateEdit(WindowHandle window)
 {
 	GtkWidget *entry;
 
 	entry = gtk_entry_new();
 	GTK_ENTRY(entry)->is_cell_renderer = TRUE;
+	gtk_signal_connect (GTK_OBJECT(entry), "activate",
+			GTK_SIGNAL_FUNC(handleControlCommand),
+			NULL);
 	port_layout_put(PORT_LAYOUT(GTK_BIN(window)->child), entry);
 
 	return entry;
