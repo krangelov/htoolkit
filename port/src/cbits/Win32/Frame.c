@@ -542,9 +542,9 @@ LRESULT CALLBACK HFrameSharedFunction(int DocumentInterface, HWND hWnd, UINT uMs
 	}
 
 	if (DocumentInterface == 1)
-		return DefWindowProc (hWnd, uMsg, wParam, lParam);
+		return DefWindowProcW (hWnd, uMsg, wParam, lParam);
 	else
-		return DefFrameProc (hWnd, pData ? pData->hClientWnd : NULL, uMsg, wParam, lParam);
+		return DefFrameProcW (hWnd, pData ? pData->hClientWnd : NULL, uMsg, wParam, lParam);
 };
 
 LRESULT CALLBACK HMDIFrameFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

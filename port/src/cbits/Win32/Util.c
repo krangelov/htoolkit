@@ -39,42 +39,44 @@ extern LRESULT CALLBACK HNotebookPageFunction(HWND hWnd, UINT uMsg, WPARAM wPara
 extern LRESULT CALLBACK HGroupBoxFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern LRESULT CALLBACK HCheckListBoxFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+extern LRESULT CALLBACK HEditFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern WNDPROC DefToolBarProc;
 extern WNDPROC DefTabCtrlProc;
 extern WNDPROC DefGroupBoxProc;
 extern WNDPROC DefCheckListBoxProc;
+extern WNDPROC DefEditCtrlProc;
 
-static void parseAppNameVersion(char *appTitle,char *appVersion)
+static void parseAppNameVersion(PortString appTitle,PortString appVersion)
 {
 	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
 	int appNameLen;
-	char *s;
+	LPWSTR s;
 
 	s = appVersion;
-	while (*s != ' ' && *s != 0) s++;
+	while (*s != L' ' && *s != 0) s++;
 
-	if (*s == ' ')
+	if (*s == L' ')
 	{
 		appNameLen = s-appVersion;
-		pFrameData->lpszAppName = malloc(appNameLen+1);
+		pFrameData->lpszAppName = malloc((appNameLen+1)*sizeof(wchar_t));
 		memcpy(pFrameData->lpszAppName, appVersion, appNameLen);
 		pFrameData->lpszAppName[appNameLen] = 0;
 
-		while (*s == ' ') s++;
-		pFrameData->lpszAppVersion = strdup(s);
+		while (*s == L' ') s++;
+		pFrameData->lpszAppVersion = wcsdup(s);
 	}
 	else
 	{
-		pFrameData->lpszAppName    = strdup(appTitle);
-		pFrameData->lpszAppVersion = strdup(appVersion);
+		pFrameData->lpszAppName    = wcsdup(appTitle);
+		pFrameData->lpszAppVersion = wcsdup(appVersion);
 	}
 
 	s = pFrameData->lpszAppName;
 	appNameLen = 0;
 	while (*s)
 	{
-		if (isalnum(*s))
+		if (iswalnum(*s))
 			pFrameData->lpszAppName[appNameLen++] = *s++;
 		else
 			s++;
@@ -103,11 +105,11 @@ WindowHandle checkWindow(HWND hWnd, char *className)
 
 extern void doneGdiPlus();
 
-void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc initFunc)
+void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, OsInitFunc initFunc)
 {
 	if (!ghModule)
 	{
-		WNDCLASS wc;
+		WNDCLASSW wc;
 		INITCOMMONCONTROLSEX icc;
 
 		ghModule = GetModuleHandle(NULL);
@@ -122,8 +124,8 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		wc.hCursor       = LoadCursor (NULL, IDC_ARROW);
 		wc.hbrBackground = GetSysColorBrush(COLOR_APPWORKSPACE);
 		wc.lpszMenuName  = NULL;
-		wc.lpszClassName = "HSDIFRAME";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HSDIFRAME";
+		RegisterClassW(&wc);
 
 		// SDIWindow class
  		wc.style         = CS_DBLCLKS;
@@ -135,8 +137,8 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
     	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     	wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
     	wc.lpszMenuName  = NULL;
-    	wc.lpszClassName = "HSDIWINDOW";
-		RegisterClass(&wc);
+    	wc.lpszClassName = L"HSDIWINDOW";
+		RegisterClassW(&wc);
 
 		// Dialog class
  		wc.style         = CS_DBLCLKS;
@@ -148,8 +150,8 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
     	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     	wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
     	wc.lpszMenuName  = NULL;
-    	wc.lpszClassName = "HDIALOG";
-		RegisterClass(&wc);
+    	wc.lpszClassName = L"HDIALOG";
+		RegisterClassW(&wc);
 
 		// MDIFrame class
 		wc.style         = CS_DBLCLKS;
@@ -161,8 +163,8 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		wc.hCursor       = LoadCursor (NULL, IDC_ARROW);
 		wc.hbrBackground = GetSysColorBrush(COLOR_APPWORKSPACE);
 		wc.lpszMenuName  = NULL;
-		wc.lpszClassName = "HMDIFRAME";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HMDIFRAME";
+		RegisterClassW(&wc);
 
 		// MDIWindow class
 		wc.style         = CS_DBLCLKS;
@@ -174,8 +176,8 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		wc.hCursor       = LoadCursor (NULL, IDC_ARROW);
 		wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
 		wc.lpszMenuName  = NULL;
-		wc.lpszClassName = "HMDIWINDOW";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HMDIWINDOW";
+		RegisterClassW(&wc);
 
 		// CompoundControl class
 		wc.style         = CS_DBLCLKS;
@@ -187,24 +189,24 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		wc.hCursor       = LoadCursor (NULL, IDC_ARROW);
 		wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
 		wc.lpszMenuName  = NULL;
-		wc.lpszClassName = "HCOMPOUND";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HCOMPOUND";
+		RegisterClassW(&wc);
 
 		// GroupBox class
-		GetClassInfo(ghModule, "BUTTON", &wc);
+		GetClassInfoW(ghModule, L"BUTTON", &wc);
 		DefGroupBoxProc  = wc.lpfnWndProc;
 		wc.style         = CS_DBLCLKS;
 		wc.lpfnWndProc   = HGroupBoxFunction;
-		wc.lpszClassName = "HGROUPBOX";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HGROUPBOX";
+		RegisterClassW(&wc);
 
 		// GroupBox class
-		GetClassInfo(ghModule, "LISTBOX", &wc);
+		GetClassInfoW(ghModule, L"LISTBOX", &wc);
 		DefCheckListBoxProc = wc.lpfnWndProc;
 		wc.style         = CS_DBLCLKS;
 		wc.lpfnWndProc   = HCheckListBoxFunction;
-		wc.lpszClassName = "HCHECKLISTBOX";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HCHECKLISTBOX";
+		RegisterClassW(&wc);
 
 		// DockBar class
 		wc.style         = CS_DBLCLKS;
@@ -216,24 +218,24 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		wc.hCursor       = NULL;
 		wc.hbrBackground = GetSysColorBrush(COLOR_BTNFACE);
 		wc.lpszMenuName  = NULL;
-		wc.lpszClassName = "HDOCKBAR";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HDOCKBAR";
+		RegisterClassW(&wc);
 
 		// ToolBar class (subclass of the standard ToolBar class)
-		GetClassInfo(ghModule, TOOLBARCLASSNAME, &wc);
+		GetClassInfoW(ghModule, TOOLBARCLASSNAMEW, &wc);
 		DefToolBarProc = wc.lpfnWndProc;
 		wc.style         = CS_DBLCLKS;
 		wc.lpfnWndProc   = HToolBarFunction;
-		wc.lpszClassName = "HTOOLBAR";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HTOOLBAR";
+		RegisterClassW(&wc);
 
 		// Notebook class (subclass of the standard TabCtrl class)
-		GetClassInfo(ghModule, WC_TABCONTROL, &wc);
+		GetClassInfoW(ghModule, WC_TABCONTROLW, &wc);
 		DefTabCtrlProc = wc.lpfnWndProc;
 		wc.style         = CS_DBLCLKS;
 		wc.lpfnWndProc   = HNotebookFunction;
-		wc.lpszClassName = "HNOTEBOOK";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HNOTEBOOK";
+		RegisterClassW(&wc);
 
 		// NotebookPage class
 		wc.style         = CS_DBLCLKS;
@@ -245,8 +247,8 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		wc.hCursor       = NULL;
 		wc.hbrBackground = GetSysColorBrush(COLOR_BTNFACE);
 		wc.lpszMenuName  = NULL;
-		wc.lpszClassName = "HNOTEBOOKPAGE";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HNOTEBOOKPAGE";
+		RegisterClassW(&wc);
 
 		// Splitter class
 		wc.style         = CS_DBLCLKS;
@@ -258,8 +260,16 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		wc.hCursor       = LoadCursor (NULL, IDC_ARROW);
 		wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
 		wc.lpszMenuName  = NULL;
-		wc.lpszClassName = "HSPLITTER";
-		RegisterClass(&wc);
+		wc.lpszClassName = L"HSPLITTER";
+		RegisterClassW(&wc);
+
+		// HEDIT class
+		GetClassInfoW(ghModule, L"EDIT", &wc);
+		DefEditCtrlProc  = wc.lpfnWndProc;
+		wc.style         = CS_DBLCLKS;
+		wc.lpfnWndProc   = HEditFunction;
+		wc.lpszClassName = L"HEDIT";
+		RegisterClassW(&wc);
 
 		icc.dwSize = sizeof(icc);
 		icc.dwICC = ICC_WIN95_CLASSES | ICC_DATE_CLASSES;
@@ -270,7 +280,7 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 	{
 		if (DocumentInterface == 1)
 		{
-			ghWndFrame = CreateWindow ( "HSDIFRAME",
+			ghWndFrame = CreateWindowW( L"HSDIFRAME",
 										appTitle,
 										WS_OVERLAPPEDWINDOW,
 										CW_USEDEFAULT,CW_USEDEFAULT,
@@ -283,7 +293,7 @@ void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc
 		}
 		else
 		{
-			ghWndFrame = CreateWindow ( "HMDIFRAME",
+			ghWndFrame = CreateWindowW( L"HMDIFRAME",
 										appTitle,
 										WS_OVERLAPPEDWINDOW,
 										CW_USEDEFAULT,CW_USEDEFAULT,

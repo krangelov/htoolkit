@@ -46,6 +46,7 @@ Library
                src/cbits/Win32/DockBar.c
                src/cbits/Win32/ActionsMap.c
     cc-options: -DWIN32_TARGET=1
+    cpp-options: -DWIN32_TARGET=1
     extra-libraries: user32, comctl32, comdlg32, ole32
   else
     if os(darwin)

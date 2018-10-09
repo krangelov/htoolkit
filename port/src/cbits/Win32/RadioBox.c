@@ -6,8 +6,8 @@ WindowHandle osCreateRadioBox(WindowHandle window)
 {
 	HWND hRadioBox;
 
-	hRadioBox = CreateWindow(
-			  "BUTTON",
+	hRadioBox = CreateWindowW(
+			  L"BUTTON",
 			  NULL,
 			  WS_CHILD | BS_AUTORADIOBUTTON | WS_TABSTOP,
 			  0,0,0,0,
@@ -44,17 +44,17 @@ void osGetRadioBoxReqSize(WindowHandle radiobox, int *res)
 	res[1] = tm.tmHeight+tm.tmDescent;
 };
 
-char *osGetRadioBoxText(WindowHandle radiobox)
+PortString osGetRadioBoxText(WindowHandle radiobox)
 {
-	int nLen = GetWindowTextLength(radiobox);
-	char *buffer = (char *) rmalloc(nLen+1);
-	GetWindowText(radiobox, buffer, nLen+1);
+	int nLen = GetWindowTextLengthW(radiobox);
+	PortString buffer = (char *) rmalloc((nLen+1)*sizeof(wchar_t));
+	GetWindowTextW(radiobox, buffer, nLen+1);
 	return buffer;
 };
 
-void osSetRadioBoxText(WindowHandle radiobox, char *txt)
+void osSetRadioBoxText(WindowHandle radiobox, PortString txt)
 {
-	SetWindowText(radiobox, txt);
+	SetWindowTextW(radiobox, txt);
 	osForceContainerReLayout(radiobox);
 };
 

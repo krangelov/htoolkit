@@ -113,8 +113,8 @@ WindowHandle osCreateNotebook(WindowHandle form)
 {
 	HWND hNotebook;
 
-	hNotebook = CreateWindow(
-			  "HNOTEBOOK",
+	hNotebook = CreateWindowW(
+			  L"HNOTEBOOK",
 			  NULL,
 			  WS_CHILD | WS_TABSTOP,
 			  0,0,0,0,
@@ -208,34 +208,34 @@ WindowHandle osInsertNotebookPage(WindowHandle notebook, int pos)
 	GetWindowRect(notebook, &rect);
 	SendMessage(notebook, TCM_ADJUSTRECT, FALSE, (LPARAM) &rect);
 
-	hWnd = CreateWindow("HNOTEBOOKPAGE",
-						NULL,
-						WS_CHILD | ((nCount > 0) ? 0 : WS_VISIBLE),
-						0,0,rect.right-rect.left,rect.bottom-rect.top,
-						notebook,
-						NULL,
-						ghModule,
-						NULL
+	hWnd = CreateWindowW(L"HNOTEBOOKPAGE",
+						 NULL,
+						 WS_CHILD | ((nCount > 0) ? 0 : WS_VISIBLE),
+						 0,0,rect.right-rect.left,rect.bottom-rect.top,
+						 notebook,
+						 NULL,
+						 ghModule,
+						 NULL
 						);
 
 	item.mask    = TCIF_PARAM | TCIF_TEXT;
 	item.lParam  = (LPARAM) hWnd;
 	item.pszText = "";
-	SendMessage(notebook, TCM_INSERTITEM, pos, (LPARAM) &item);
+	SendMessageW(notebook, TCM_INSERTITEM, pos, (LPARAM) &item);
 	return hWnd;
 }
 
-char *osGetNotebookPageTitle(WindowHandle window)
+PortString osGetNotebookPageTitle(WindowHandle window)
 {
-    int nLen = GetWindowTextLength(window);
-    char *buffer = (char *) malloc(nLen+1);
-    if (buffer) GetWindowText(window, buffer, nLen+1);
+    int nLen = GetWindowTextLengthW(window);
+    PortString buffer = (PortString) malloc((nLen+1)*sizeof(wchar_t));
+    if (buffer) GetWindowTextW(window, buffer, nLen+1);
     return buffer;
 };
 
-void osSetNotebookPageTitle(WindowHandle window, char *txt)
+void osSetNotebookPageTitle(WindowHandle window, PortString txt)
 {
-    SetWindowText(window, txt);
+    SetWindowTextW(window, txt);
 };
 
 int osGetNotebookPagePos(WindowHandle window)
@@ -304,7 +304,7 @@ void osSetNotebookPageBitmap(WindowHandle window, BitmapHandle bitmap)
 		for (i = 0; i < nCount; i++)
 		{
 			item.mask = TCIF_PARAM | TCIF_IMAGE;
-			SendMessage(hNotebook, TCM_GETITEM, i, (LPARAM) &item);
+			SendMessageW(hNotebook, TCM_GETITEM, i, (LPARAM) &item);
 
 			if (((HWND) item.lParam) != window && item.iImage == nImage)
 			{
@@ -328,10 +328,10 @@ void osSetNotebookPageBitmap(WindowHandle window, BitmapHandle bitmap)
 		item.iImage = -1;
 	}
 
-	SendMessage(hNotebook, TCM_SETITEM, nPos, (LPARAM) &item);
+	SendMessageW(hNotebook, TCM_SETITEM, nPos, (LPARAM) &item);
 }
 
 int osGetNotebookPageCount(WindowHandle notebook)
 {
-	return SendMessage(notebook, TCM_GETITEMCOUNT, 0, 0);
+	return SendMessageW(notebook, TCM_GETITEMCOUNT, 0, 0);
 }

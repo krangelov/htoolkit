@@ -5,8 +5,8 @@
 
 WindowHandle osCreateCheckBox(WindowHandle window);
 void osGetCheckBoxReqSize(WindowHandle checkbox, int *res);
-char *osGetCheckBoxText(WindowHandle checkbox);
-void osSetCheckBoxText(WindowHandle checkbox, char *txt);
+PortString osGetCheckBoxText(WindowHandle checkbox);
+void osSetCheckBoxText(WindowHandle checkbox, PortString txt);
 BOOL osGetCheckBoxState(WindowHandle checkbox);
 void osSetCheckBoxState(WindowHandle checkbox, BOOL state);
 

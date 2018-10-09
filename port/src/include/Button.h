@@ -5,8 +5,8 @@
 
 WindowHandle osCreateButton(WindowHandle window);
 void osGetButtonReqSize(WindowHandle button, int *res);
-char *osGetButtonText(WindowHandle button);
-void osSetButtonText(WindowHandle button, char *txt);
+PortString osGetButtonText(WindowHandle button);
+void osSetButtonText(WindowHandle button, PortString txt);
 void osChangeButtonFont(WindowHandle button, FontHandle font);
 
 #endif

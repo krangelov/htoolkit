@@ -26,6 +26,8 @@ typedef enum {PosLeft=0, PosTop=1, PosRight=2, PosBottom=3} PositionType;
 #define I_IMAGENONE -2
 #endif
 
+typedef LPWSTR PortString;
+
 typedef HWND WindowHandle;
 
 typedef struct
@@ -91,6 +93,8 @@ typedef void *CodecsEnumeratorHandle;
 #include <gconf/gconf-client.h>
 #include <cairo.h>
 
+typedef gchar* PortString;
+
 typedef GtkWidget   *WindowHandle;
 
 typedef struct
@@ -155,6 +159,8 @@ typedef struct
 } *CodecsEnumeratorHandle;
 
 #elif COCOA_TARGET
+
+typedef char* PortString;
 
 #include <AppKit/AppKit.h>
 

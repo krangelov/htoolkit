@@ -6,8 +6,8 @@ WindowHandle osCreatePopUp(WindowHandle window)
 {
 	HWND hPopUp;
 
-	hPopUp = CreateWindow(
-			  "COMBOBOX",
+	hPopUp = CreateWindowW(
+			  L"COMBOBOX",
 			  NULL,
 			  WS_CHILD | CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,
 			  0,0,0,0,
@@ -19,15 +19,15 @@ WindowHandle osCreatePopUp(WindowHandle window)
 	return checkWindow(hPopUp, "POPUP");
 };
 
-void osAppendPopUpItem(WindowHandle popup, char *title)
+void osAppendPopUpItem(WindowHandle popup, PortString title)
 {
-	SendMessage(popup, CB_ADDSTRING, 0, (LPARAM) title);
+	SendMessageW(popup, CB_ADDSTRING, 0, (LPARAM) title);
 	osForceContainerReLayout(popup);
 };
 
-void osInsertPopUpItem(WindowHandle popup, int index, char *title)
+void osInsertPopUpItem(WindowHandle popup, int index, PortString title)
 {
-	SendMessage(popup, CB_INSERTSTRING, index, (LPARAM) title);
+	SendMessageW(popup, CB_INSERTSTRING, index, (LPARAM) title);
 	osForceContainerReLayout(popup);
 };
 

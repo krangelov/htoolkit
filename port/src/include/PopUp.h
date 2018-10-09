@@ -4,8 +4,8 @@
 #include "Types.h"
 
 WindowHandle osCreatePopUp(WindowHandle window);
-void osAppendPopUpItem(WindowHandle popup, char *title);
-void osInsertPopUpItem(WindowHandle popup, int index, char *title);
+void osAppendPopUpItem(WindowHandle popup, PortString title);
+void osInsertPopUpItem(WindowHandle popup, int index, PortString title);
 void osRemovePopUpItem(WindowHandle popup, int index);
 void osRemoveAllPopUpItems(WindowHandle popup);
 void osGetPopUpReqSize(WindowHandle popup, int *res);

@@ -5,7 +5,7 @@
 
 WindowHandle osCreateGroupBox(WindowHandle form);
 void osGetGroupBoxBordersSize(WindowHandle box, int *res);
-char *osGetGroupBoxText(WindowHandle box);
-void osSetGroupBoxText(WindowHandle box, char *txt);
+PortString osGetGroupBoxText(WindowHandle box);
+void osSetGroupBoxText(WindowHandle box, PortString txt);
 
 #endif

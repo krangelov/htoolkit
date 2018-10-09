@@ -180,12 +180,12 @@ getLabelRequestSize hwnd = withCSizeResult (osGetLabelReqSize hwnd)
 foreign import ccall osGetLabelReqSize :: WindowHandle -> Ptr CInt -> IO ()
 
 getLabelText :: WindowHandle -> IO String
-getLabelText hwnd = resultCString (osGetLabelText hwnd)
-foreign import ccall osGetLabelText :: WindowHandle -> IO CString
+getLabelText hwnd = resultPortString (osGetLabelText hwnd)
+foreign import ccall osGetLabelText :: WindowHandle -> IO PortString
 
 setLabelText :: WindowHandle -> String -> IO ()
-setLabelText hwnd txt = withCString txt (osSetLabelText hwnd)
-foreign import ccall osSetLabelText :: WindowHandle -> CString -> IO ()
+setLabelText hwnd txt = withPortString txt (osSetLabelText hwnd)
+foreign import ccall osSetLabelText :: WindowHandle -> PortString -> IO ()
 
 changeLabelFont :: WindowHandle -> Font -> IO ()
 changeLabelFont hwnd font = withCFont font (osChangeLabelFont hwnd)
@@ -204,12 +204,12 @@ getButtonRequestSize hwnd = withCSizeResult (osGetButtonReqSize hwnd)
 foreign import ccall osGetButtonReqSize :: WindowHandle -> Ptr CInt -> IO ()
 
 getButtonText :: WindowHandle -> IO String
-getButtonText hwnd = resultCString (osGetButtonText hwnd)
-foreign import ccall osGetButtonText :: WindowHandle -> IO CString
+getButtonText hwnd = resultPortString (osGetButtonText hwnd)
+foreign import ccall osGetButtonText :: WindowHandle -> IO PortString
 
 setButtonText :: WindowHandle -> String -> IO ()
-setButtonText hwnd txt = withCString txt (osSetButtonText hwnd)
-foreign import ccall osSetButtonText :: WindowHandle -> CString -> IO ()
+setButtonText hwnd txt = withPortString txt (osSetButtonText hwnd)
+foreign import ccall osSetButtonText :: WindowHandle -> PortString -> IO ()
 
 changeButtonFont :: WindowHandle -> Font -> IO ()
 changeButtonFont hwnd font = withCFont font (osChangeButtonFont hwnd)
@@ -227,12 +227,12 @@ getCheckBoxRequestSize hwnd = withCSizeResult (osGetCheckBoxReqSize hwnd)
 foreign import ccall osGetCheckBoxReqSize :: WindowHandle -> Ptr CInt -> IO ()
 
 getCheckBoxText :: WindowHandle -> IO String
-getCheckBoxText hwnd = resultCString (osGetCheckBoxText hwnd)
-foreign import ccall osGetCheckBoxText :: WindowHandle -> IO CString
+getCheckBoxText hwnd = resultPortString (osGetCheckBoxText hwnd)
+foreign import ccall osGetCheckBoxText :: WindowHandle -> IO PortString
 
 setCheckBoxText :: WindowHandle -> String -> IO ()
-setCheckBoxText hwnd txt = withCString txt (osSetCheckBoxText hwnd)
-foreign import ccall osSetCheckBoxText :: WindowHandle -> CString -> IO ()
+setCheckBoxText hwnd txt = withPortString txt (osSetCheckBoxText hwnd)
+foreign import ccall osSetCheckBoxText :: WindowHandle -> PortString -> IO ()
 
 getCheckBoxSelectState :: WindowHandle -> IO Bool
 getCheckBoxSelectState hwnd
@@ -257,13 +257,13 @@ foreign import ccall osGetEditReqSize :: WindowHandle -> Ptr CInt -> IO ()
 
 getEditText :: WindowHandle -> IO String
 getEditText hwnd
-  = resultCString (osGetEditText hwnd)
-foreign import ccall osGetEditText :: WindowHandle -> IO CString
+  = resultPortString (osGetEditText hwnd)
+foreign import ccall osGetEditText :: WindowHandle -> IO PortString
 
 setEditText :: WindowHandle -> String -> IO ()
 setEditText hwnd txt
-  = withCString txt $ \ctxt -> osSetEditText hwnd ctxt
-foreign import ccall osSetEditText :: WindowHandle -> CString -> IO ()
+  = withPortString txt (osSetEditText hwnd)
+foreign import ccall osSetEditText :: WindowHandle -> PortString -> IO ()
 
 foreign import ccall "osSetEditReadOnly" setEditReadOnly :: WindowHandle -> Bool -> IO ()
 foreign import ccall "osGetEditReadOnly" getEditReadOnly :: WindowHandle -> IO Bool
@@ -309,12 +309,12 @@ getRadioBoxRequestSize hwnd = withCSizeResult (osGetRadioBoxReqSize hwnd)
 foreign import ccall osGetRadioBoxReqSize :: WindowHandle -> Ptr CInt -> IO ()
 
 getRadioBoxText :: WindowHandle -> IO String
-getRadioBoxText hwnd = resultCString (osGetRadioBoxText hwnd)
-foreign import ccall osGetRadioBoxText :: WindowHandle -> IO CString
+getRadioBoxText hwnd = resultPortString (osGetRadioBoxText hwnd)
+foreign import ccall osGetRadioBoxText :: WindowHandle -> IO PortString
 
 setRadioBoxText :: WindowHandle -> String -> IO ()
-setRadioBoxText hwnd txt = withCString txt (osSetRadioBoxText hwnd)
-foreign import ccall osSetRadioBoxText :: WindowHandle -> CString -> IO ()
+setRadioBoxText hwnd txt = withPortString txt (osSetRadioBoxText hwnd)
+foreign import ccall osSetRadioBoxText :: WindowHandle -> PortString -> IO ()
 
 getRadioBoxSelectState :: WindowHandle -> IO Bool
 getRadioBoxSelectState hwnd
@@ -349,14 +349,13 @@ foreign import ccall "osCreateCheckListBox" createCheckListBox :: WindowHandle -
 
 appendListBoxItem :: WindowHandle -> String -> IO ()
 appendListBoxItem hwnd txt
-  = withCString txt $ \ctxt -> osAppendListBoxItem hwnd ctxt
-foreign import ccall osAppendListBoxItem :: WindowHandle -> CString -> IO ()
+  = withPortString txt (osAppendListBoxItem hwnd)
+foreign import ccall osAppendListBoxItem :: WindowHandle -> PortString -> IO ()
 
 insertListBoxItem :: WindowHandle -> Int -> String -> IO ()
 insertListBoxItem hwnd idx txt
-  = withCString txt $ \ctxt ->
-    osInsertListBoxItem hwnd (toCInt idx) ctxt
-foreign import ccall osInsertListBoxItem :: WindowHandle -> CInt -> CString -> IO ()
+  = withPortString txt (osInsertListBoxItem hwnd (toCInt idx))
+foreign import ccall osInsertListBoxItem :: WindowHandle -> CInt -> PortString -> IO ()
 
 removeListBoxItem :: WindowHandle -> Int -> IO ()
 removeListBoxItem hwnd idx
@@ -403,14 +402,13 @@ foreign import ccall "osCreatePopUp" createPopUp :: WindowHandle -> IO WindowHan
 
 appendPopUpItem :: WindowHandle -> String -> IO ()
 appendPopUpItem hwnd txt
-  = withCString txt $ \ctxt -> osAppendPopUpItem hwnd ctxt
-foreign import ccall osAppendPopUpItem :: WindowHandle -> CString -> IO ()
+  = withPortString txt (osAppendPopUpItem hwnd)
+foreign import ccall osAppendPopUpItem :: WindowHandle -> PortString -> IO ()
 
 insertPopUpItem :: WindowHandle -> Int -> String -> IO ()
 insertPopUpItem hwnd idx txt
-  = withCString txt $ \ctxt ->
-    osInsertPopUpItem hwnd (toCInt idx) ctxt
-foreign import ccall osInsertPopUpItem :: WindowHandle -> CInt -> CString -> IO ()
+  = withPortString txt (osInsertPopUpItem hwnd (toCInt idx))
+foreign import ccall osInsertPopUpItem :: WindowHandle -> CInt -> PortString -> IO ()
 
 removePopUpItem :: WindowHandle -> Int -> IO ()
 removePopUpItem hwnd idx
@@ -537,12 +535,12 @@ getGroupBoxBordersSize hwnd = allocaArray 4 $ \cborders -> do
 foreign import ccall osGetGroupBoxBordersSize :: WindowHandle -> Ptr CInt -> IO ()
 
 getGroupBoxText :: WindowHandle -> IO String
-getGroupBoxText hwnd = resultCString (osGetGroupBoxText hwnd)
-foreign import ccall osGetGroupBoxText :: WindowHandle -> IO CString
+getGroupBoxText hwnd = resultPortString (osGetGroupBoxText hwnd)
+foreign import ccall osGetGroupBoxText :: WindowHandle -> IO PortString
 
 setGroupBoxText :: WindowHandle -> String -> IO ()
-setGroupBoxText hwnd txt = withCString txt (osSetGroupBoxText hwnd)
-foreign import ccall osSetGroupBoxText :: WindowHandle -> CString -> IO ()
+setGroupBoxText hwnd txt = withPortString txt (osSetGroupBoxText hwnd)
+foreign import ccall osSetGroupBoxText :: WindowHandle -> PortString -> IO ()
 
 -----------------------------------------------------------------------------------------
 -- Notebook
@@ -582,13 +580,13 @@ foreign import ccall osInsertNotebookPage :: WindowHandle -> Int -> IO WindowHan
 
 -- | Get the label of the notebook page.
 getNotebookPageTitle :: WindowHandle -> IO String
-getNotebookPageTitle hwnd = resultCString (osGetNotebookPageTitle hwnd)
-foreign import ccall osGetNotebookPageTitle :: WindowHandle -> IO CString
+getNotebookPageTitle hwnd = resultPortString (osGetNotebookPageTitle hwnd)
+foreign import ccall osGetNotebookPageTitle :: WindowHandle -> IO PortString
 
 -- | Set the label of the notebook page.
 setNotebookPageTitle :: WindowHandle -> String -> IO ()
-setNotebookPageTitle hwnd title = withCString title (osSetNotebookPageTitle hwnd)
-foreign import ccall osSetNotebookPageTitle :: WindowHandle -> CString -> IO ()
+setNotebookPageTitle hwnd title = withPortString title (osSetNotebookPageTitle hwnd)
+foreign import ccall osSetNotebookPageTitle :: WindowHandle -> PortString -> IO ()
 
 foreign import ccall "osGetNotebookPagePos" getNotebookPagePos :: WindowHandle -> IO Int
 

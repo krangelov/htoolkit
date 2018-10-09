@@ -44,8 +44,8 @@ WindowHandle osCreateGroupBox(WindowHandle form)
 {
     HWND hWnd;
 
-	hWnd = CreateWindow(
-				"HGROUPBOX",
+	hWnd = CreateWindowW(
+				L"HGROUPBOX",
 				NULL,
 				WS_CHILD | BS_GROUPBOX,
 				0,0,0,0,
@@ -79,15 +79,15 @@ void osGetGroupBoxBordersSize(WindowHandle box, int *res)
 	res[3] = 5;
 }
 
-char *osGetGroupBoxText(WindowHandle box)
+PortString osGetGroupBoxText(WindowHandle box)
 {
-	int nLen = GetWindowTextLength(box);
-	char *buffer = (char *) rmalloc(nLen+1);
-	GetWindowText(box, buffer, nLen+1);
+	int nLen = GetWindowTextLengthW(box);
+	PortString buffer = (PortString) rmalloc((nLen+1)*sizeof(wchar_t));
+	GetWindowTextW(box, buffer, nLen+1);
 	return buffer;
 };
 
-void osSetGroupBoxText(WindowHandle box, char *txt)
+void osSetGroupBoxText(WindowHandle box, PortString txt)
 {
-	SetWindowText(box, txt);
+	SetWindowTextW(box, txt);
 };

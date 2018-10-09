@@ -5,8 +5,8 @@
 
 WindowHandle osCreateListBox(WindowHandle window, BOOL multisel);
 WindowHandle osCreateCheckListBox(WindowHandle window);
-void osAppendListBoxItem(WindowHandle listbox, char *title);
-void osInsertListBoxItem(WindowHandle listbox, int index, char *title);
+void osAppendListBoxItem(WindowHandle listbox, PortString title);
+void osInsertListBoxItem(WindowHandle listbox, int index, PortString title);
 void osRemoveListBoxItem(WindowHandle listbox, int index);
 void osRemoveAllListBoxItems(WindowHandle listbox);
 void osGetListBoxReqSize(WindowHandle listbox, int *res);

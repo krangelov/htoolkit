@@ -6,8 +6,8 @@ WindowHandle osCreateCheckBox(WindowHandle window)
 {
 	HWND hCheckBox;
 
-	hCheckBox = CreateWindow(
-			  "BUTTON",
+	hCheckBox = CreateWindowW(
+			  L"BUTTON",
 			  NULL,
 			  WS_CHILD | BS_AUTOCHECKBOX | WS_TABSTOP,
 			  0,0,0,0,
@@ -43,17 +43,17 @@ void osGetCheckBoxReqSize(WindowHandle checkbox, int *res)
 	res[1] = tm.tmHeight+tm.tmDescent;
 };
 
-char *osGetCheckBoxText(WindowHandle checkbox)
+PortString osGetCheckBoxText(WindowHandle checkbox)
 {
-	int nLen = GetWindowTextLength(checkbox);
-	char *buffer = (char *) rmalloc(nLen+1);
-	GetWindowText(checkbox, buffer, nLen+1);
+	int nLen = GetWindowTextLengthW(checkbox);
+	PortString buffer = (PortString) rmalloc((nLen+1)*sizeof(wchar_t));
+	GetWindowTextW(checkbox, buffer, nLen+1);
 	return buffer;
 };
 
-void osSetCheckBoxText(WindowHandle checkbox, char *txt)
+void osSetCheckBoxText(WindowHandle checkbox, PortString txt)
 {
-	SetWindowText(checkbox, txt);
+	SetWindowTextW(checkbox, txt);
 	osForceContainerReLayout(checkbox);
 };
 

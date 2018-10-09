@@ -24,8 +24,8 @@ typedef struct
 {
 	HWND hClientWnd;
 	int DocumentInterface;
-	LPSTR lpszAppName;
-	LPSTR lpszAppVersion;
+	LPWSTR lpszAppName;
+	LPWSTR lpszAppVersion;
 	ActionsMap *pActionsMap;
 
 	HWND hLeftBar, hTopBar, hRightBar, hBottomBar;

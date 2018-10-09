@@ -117,13 +117,13 @@ foreign import ccall osSetWindowColor :: WindowHandle -> CInt -> CInt -> CInt ->
 
 -- | Get the text of the title bar.
 getWindowTitle :: WindowHandle -> IO String
-getWindowTitle hwnd = resultCString (osGetWindowTitle hwnd)
-foreign import ccall osGetWindowTitle :: WindowHandle -> IO CString
+getWindowTitle hwnd = resultPortString (osGetWindowTitle hwnd)
+foreign import ccall osGetWindowTitle :: WindowHandle -> IO PortString
 
 -- | Set the text of the title bar.
 setWindowTitle :: WindowHandle -> String -> IO ()
-setWindowTitle hwnd title = withCString title (osSetWindowTitle hwnd)
-foreign import ccall osSetWindowTitle :: WindowHandle -> CString -> IO ()
+setWindowTitle hwnd title = withPortString title (osSetWindowTitle hwnd)
+foreign import ccall osSetWindowTitle :: WindowHandle -> PortString -> IO ()
 
 -- | Make the window resizeable or not.
 setWindowResizeable :: WindowHandle -> Bool -> IO ()

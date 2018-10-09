@@ -2,13 +2,29 @@
 #include "Internals.h"
 #include "Handlers_stub.h"
 
+WNDPROC DefEditCtrlProc;
+
+LRESULT CALLBACK HEditFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+    {
+	case WM_KEYDOWN:
+		if (wParam == VK_RETURN) {
+			handleControlCommand(hWnd);
+			return 0;
+		}
+		break;
+	}
+	return DefEditCtrlProc(hWnd,uMsg,wParam,lParam);
+};
+
 WindowHandle osCreateEdit(WindowHandle window)
 {
 	HWND hEdit;
 
-	hEdit = CreateWindowEx(
+	hEdit = CreateWindowExW(
 			  WS_EX_CLIENTEDGE,
-			  "EDIT",
+			  L"HEDIT",
 			  NULL,
 			  WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | WS_TABSTOP,
 			  0,0,0,0,
@@ -37,17 +53,17 @@ void osGetEditReqSize(WindowHandle edit, int *res)
 	res[1] = sz.cy + GetSystemMetrics(SM_CYBORDER)*2 + 6;
 }
 
-char *osGetEditText(WindowHandle editbox)
+PortString osGetEditText(WindowHandle editbox)
 {
-	int nLen = GetWindowTextLength(editbox);
-	char *buffer = (char *) rmalloc(nLen+1);
-	GetWindowText(editbox, buffer, nLen+1);
+	int nLen = GetWindowTextLengthW(editbox);
+	PortString buffer = (PortString) rmalloc((nLen+1)*sizeof(wchar_t));
+	GetWindowTextW(editbox, buffer, nLen+1);
 	return buffer;
 };
 
-void osSetEditText(WindowHandle editbox, char *txt)
+void osSetEditText(WindowHandle editbox, PortString txt)
 {
-	SetWindowText(editbox, txt);
+	SetWindowTextW(editbox, txt);
 };
 
 void osSetEditReadOnly(WindowHandle editbox, BOOL readOnly)

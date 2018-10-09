@@ -157,9 +157,9 @@ WindowHandle osCreateListBox(WindowHandle window, BOOL multisel)
 {
 	HWND hListBox;
 
-	hListBox = CreateWindowEx(
+	hListBox = CreateWindowExW(
 			  WS_EX_CLIENTEDGE,
-			  "LISTBOX",
+			  L"LISTBOX",
 			  NULL,
 			  WS_CHILD | WS_VSCROLL | WS_BORDER | WS_TABSTOP | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | (multisel ? LBS_EXTENDEDSEL : 0),
 			  0,0,0,0,
@@ -175,9 +175,9 @@ WindowHandle osCreateCheckListBox(WindowHandle window)
 {
 	HWND hListBox;
 
-	hListBox = CreateWindowEx(
+	hListBox = CreateWindowExW(
 			  WS_EX_CLIENTEDGE,
-			  "HCHECKLISTBOX",
+			  L"HCHECKLISTBOX",
 			  NULL,
 			  WS_CHILD | WS_VSCROLL | WS_BORDER | LBS_NOTIFY | WS_TABSTOP | LBS_HASSTRINGS | LBS_OWNERDRAWFIXED,
 			  0,0,0,0,
@@ -189,15 +189,15 @@ WindowHandle osCreateCheckListBox(WindowHandle window)
 	return checkWindow(hListBox, "LISTBOX");
 };
 
-void osAppendListBoxItem(WindowHandle listbox, char *title)
+void osAppendListBoxItem(WindowHandle listbox, PortString title)
 {
-	SendMessage(listbox, LB_ADDSTRING, 0, (LPARAM) title);
+	SendMessageW(listbox, LB_ADDSTRING, 0, (LPARAM) title);
 	osForceContainerReLayout(listbox);
 };
 
-void osInsertListBoxItem(WindowHandle listbox, int index, char *title)
+void osInsertListBoxItem(WindowHandle listbox, int index, PortString title)
 {
-	SendMessage(listbox, LB_INSERTSTRING, index, (LPARAM) title);
+	SendMessageW(listbox, LB_INSERTSTRING, index, (LPARAM) title);
 	osForceContainerReLayout(listbox);
 };
 
@@ -254,39 +254,39 @@ int osGetListBoxSingleSelection(WindowHandle listbox)
 
 BOOL osGetListBoxItemSelectState(WindowHandle listbox, int index)
 {
-	 char buffer[20];
-    GetClassName(listbox,buffer,sizeof(buffer));
+	wchar_t buffer[20];
+    GetClassNameW(listbox,buffer,sizeof(buffer));
 
-    if (_stricmp(buffer, "HCHECKLISTBOX") == 0)
-		return SendMessage(listbox, LB_GETITEMDATA, index, 0) > 0;
+    if (_wcsicmp(buffer, L"HCHECKLISTBOX") == 0)
+		return SendMessageW(listbox, LB_GETITEMDATA, index, 0) > 0;
 	else
-		return SendMessage(listbox, LB_GETSEL, index, 0) > 0;
+		return SendMessageW(listbox, LB_GETSEL, index, 0) > 0;
 }
 
 void osSetListBoxSingleSelection(WindowHandle listbox, int index)
 {
-	SendMessage(listbox, LB_SETCURSEL, index, 0);
+	SendMessageW(listbox, LB_SETCURSEL, index, 0);
 	handleControlCommand(listbox);
 };
 
 void osSetListBoxItemSelectState(WindowHandle listbox, int index, BOOL state)
 {
-	char buffer[20];
-    GetClassName(listbox,buffer,sizeof(buffer));
+	wchar_t buffer[20];
+    GetClassNameW(listbox,buffer,sizeof(buffer));
 
-    if (_stricmp(buffer, "HCHECKLISTBOX") == 0)
+    if (_wcsicmp(buffer, L"HCHECKLISTBOX") == 0)
 	{
 		RECT rect;
-		int cyItem = SendMessage(listbox, LB_GETITEMHEIGHT, 0, 0);
+		int cyItem = SendMessageW(listbox, LB_GETITEMHEIGHT, 0, 0);
 
-		SendMessage(listbox, LB_SETITEMDATA, index, state);
+		SendMessageW(listbox, LB_SETITEMDATA, index, state);
 
-		SendMessage(listbox, LB_GETITEMRECT, index, (LPARAM)&rect);
+		SendMessageW(listbox, LB_GETITEMRECT, index, (LPARAM)&rect);
 		rect.right = rect.left + cyItem;
 		InvalidateRect(listbox, &rect, TRUE);
 	}
 	else
-		SendMessage(listbox, LB_SETSEL, state, index);
+		SendMessageW(listbox, LB_SETSEL, state, index);
 };
 
 int osGetListBoxCurrentItem(WindowHandle listbox)

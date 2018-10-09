@@ -5,8 +5,8 @@
 
 WindowHandle osCreateLabel(WindowHandle window);
 void osGetLabelReqSize(WindowHandle label, int *res);
-char *osGetLabelText(WindowHandle label);
-void osSetLabelText(WindowHandle label, char *txt);
+PortString osGetLabelText(WindowHandle label);
+void osSetLabelText(WindowHandle label, PortString txt);
 void osChangeLabelFont(WindowHandle label, FontHandle font);
 
 #endif

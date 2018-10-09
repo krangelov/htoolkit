@@ -5,8 +5,8 @@
 
 WindowHandle osCreateEdit(WindowHandle window);
 void osGetEditReqSize(WindowHandle edit, int *res);
-char *osGetEditText(WindowHandle editbox);
-void osSetEditText(WindowHandle editbox, char *txt);
+PortString osGetEditText(WindowHandle editbox);
+void osSetEditText(WindowHandle editbox, PortString txt);
 void osSetEditReadOnly(WindowHandle editbox, BOOL readOnly);
 BOOL osGetEditReadOnly(WindowHandle editbox);
 void osSetEditPassword(WindowHandle editbox, BOOL visible);

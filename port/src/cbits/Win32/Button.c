@@ -6,8 +6,8 @@ WindowHandle osCreateButton(WindowHandle form)
 {
 	HWND hButton;
 
-	hButton = CreateWindow(
-			  "BUTTON",
+	hButton = CreateWindowW(
+			  L"BUTTON",
 			  NULL,
 			  WS_CHILD | WS_TABSTOP,
 			  0,0,0,0,
@@ -39,17 +39,17 @@ void osGetButtonReqSize(WindowHandle button, int *res)
 	res[1] = sz.cy + GetSystemMetrics(SM_CYBORDER)*2 + 6;
 }
 
-char *osGetButtonText(WindowHandle button)
+PortString osGetButtonText(WindowHandle button)
 {
-	int nLen = GetWindowTextLength(button);
-	char *buffer = (char *) rmalloc(nLen+1);
-	GetWindowText(button, buffer, nLen+1);
+	int nLen = GetWindowTextLengthW(button);
+	LPWSTR buffer = (LPWSTR) rmalloc((nLen+1)*sizeof(wchar_t));
+	GetWindowTextW(button, buffer, nLen+1);
 	return buffer;
 };
 
-void osSetButtonText(WindowHandle button, char *txt)
+void osSetButtonText(WindowHandle button, PortString txt)
 {
-	SetWindowText(button, txt);
+	SetWindowTextW(button, txt);
 	osForceContainerReLayout(button);
 };
 

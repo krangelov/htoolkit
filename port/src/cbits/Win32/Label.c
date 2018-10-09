@@ -6,8 +6,8 @@ WindowHandle osCreateLabel(WindowHandle window)
 {
 	HWND hText;
 
-	hText = CreateWindow(
-			  "STATIC",
+	hText = CreateWindowW(
+			  L"STATIC",
 			  NULL,
 			  WS_CHILD,
 			  0,0,0,0,
@@ -39,17 +39,17 @@ void osGetLabelReqSize(WindowHandle label, int *res)
 	res[1] = sz.cy;
 }
 
-char *osGetLabelText(WindowHandle label)
+PortString osGetLabelText(WindowHandle label)
 {
-	int nLen = GetWindowTextLength(label);
-	char *buffer = (char *) rmalloc(nLen+1);
-	GetWindowText(label, buffer, nLen+1);
+	int nLen = GetWindowTextLengthW(label);
+	PortString buffer = (PortString) rmalloc((nLen+1)*sizeof(wchar_t));
+	GetWindowTextW(label, buffer, nLen+1);
 	return buffer;
 };
 
-void osSetLabelText(WindowHandle label, char *txt)
+void osSetLabelText(WindowHandle label, PortString txt)
 {
-	SetWindowText(label, txt);
+	SetWindowTextW(label, txt);
 	osForceContainerReLayout(label);
 };
 

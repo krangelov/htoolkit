@@ -701,34 +701,34 @@ LRESULT CALLBACK HSDIWindowFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 	{
 	case WM_SETTEXT:
 		{
-			char *s = (char *) lParam;
+			LPWSTR s = (LPWSTR) lParam;
 
 			if (pFrameData->lpszAppName && *pFrameData->lpszAppName)
 			{
 				if (s && *s)
 				{
-					char *title;
+					LPWSTR title;
 					int nTextLen;
 
-					nTextLen = strlen(s);
-					title = malloc(strlen(pFrameData->lpszAppName)+nTextLen+6);
+					nTextLen = wcslen(s);
+					title = malloc((wcslen(pFrameData->lpszAppName)+nTextLen+6)*sizeof(wchar_t));
 
 					if (title)
 					{
-						strcpy(title, pFrameData->lpszAppName);
-						strcat(title, " - [");
-						strcat(title, s);
-						strcat(title, "]");
-						SetWindowText(ghWndFrame, title);
+						wcscpy(title, pFrameData->lpszAppName);
+						wcscat(title, L" - [");
+						wcscat(title, s);
+						wcscat(title, L"]");
+						SetWindowTextW(ghWndFrame, title);
 					}
 
 					free(title);
 				}
 				else
-					SetWindowText(ghWndFrame, pFrameData->lpszAppName);
+					SetWindowTextW(ghWndFrame, pFrameData->lpszAppName);
 			}
 			else
-				SetWindowText(ghWndFrame, s ? s : "");
+				SetWindowTextW(ghWndFrame, s ? s : "");
 		}
 		break;
 	case WM_LBUTTONDOWN:
@@ -737,7 +737,7 @@ LRESULT CALLBACK HSDIWindowFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		break;
     case WM_DESTROY:
     	pFrameData->hClientWnd = NULL;
-		SetWindowText(ghWndFrame, pFrameData->lpszAppName ? pFrameData->lpszAppName : "");
+		SetWindowTextW(ghWndFrame, pFrameData->lpszAppName ? pFrameData->lpszAppName : L"");
     	break;
     case WM_GETDLGCODE:
     	return DLGC_WANTMESSAGE;
@@ -843,8 +843,8 @@ WindowHandle osCreateWindow()
 			return NULL;			 //more that one window at the same time.
 
 		GetClientRect(ghWndFrame, &rect);
-		hWnd = CreateWindow(
-				  "HSDIWINDOW",
+		hWnd = CreateWindowW(
+				  L"HSDIWINDOW",
 				  NULL,
 				  WS_CHILD | WS_HSCROLL | WS_VSCROLL,
 				  0,0,0,0,
@@ -873,7 +873,7 @@ WindowHandle osCreateWindow()
 			mdicreate.lParam  = 0;
 
 			/* create the window */
-			hWnd = (HWND) SendMessage (pFrameData->hClientWnd,WM_MDICREATE,0,(LPARAM) &mdicreate);
+			hWnd = (HWND) SendMessageW(pFrameData->hClientWnd,WM_MDICREATE,0,(LPARAM) &mdicreate);
 		}
 		break;
 	}
@@ -923,8 +923,8 @@ WindowHandle osCreateCompoundControl(WindowHandle form)
 {
     HWND hWnd;
 
-	hWnd = CreateWindow(
-				"HCOMPOUND",
+	hWnd = CreateWindowW(
+				L"HCOMPOUND",
 				NULL,
 				WS_CHILD | WS_BORDER | WS_HSCROLL | WS_VSCROLL,
 				0,0,0,0,
@@ -962,17 +962,17 @@ void osSetWindowColor(WindowHandle window, int foreColor, int backColor, int hat
 	pData->foreColor = foreColor;
 }
 
-char *osGetWindowTitle(WindowHandle window)
+PortString osGetWindowTitle(WindowHandle window)
 {
-    int nLen = GetWindowTextLength(window);
-    char *buffer = (char *) rmalloc(nLen+1);
-    GetWindowText(window, buffer, nLen+1);
+    int nLen = GetWindowTextLengthW(window);
+    PortString buffer = (PortString) rmalloc((nLen+1)*sizeof(wchar_t));
+    GetWindowTextW(window, buffer, nLen+1);
     return buffer;
 };
 
-void osSetWindowTitle(WindowHandle window, char *txt)
+void osSetWindowTitle(WindowHandle window, PortString txt)
 {
-    SetWindowText(window, txt);
+    SetWindowTextW(window, txt);
 };
 
 void osGetWindowViewSize(WindowHandle window, int *res)
@@ -1352,7 +1352,7 @@ BOOL osGetControlVisible(WindowHandle ctrl)
 	return IsWindowVisible(ctrl);
 }
 
-void osSetControlTip(WindowHandle ctrl, char *text)
+void osSetControlTip(WindowHandle ctrl, PortString text)
 {
 	TOOLINFO ti;					/* The tool information that is sent to the tooltip control. */
 	HWND hParent;
@@ -1363,8 +1363,8 @@ void osSetControlTip(WindowHandle ctrl, char *text)
 
 	if (!pData->hTooltip)
 	{
-		pData->hTooltip = CreateWindowEx (WS_EX_TOPMOST,   // Apply the topmost style for this window
-		      TOOLTIPS_CLASS,                              // Class name
+		pData->hTooltip = CreateWindowExW(WS_EX_TOPMOST,   // Apply the topmost style for this window
+		      TOOLTIPS_CLASSW,                             // Class name
 		      NULL,                                        // Title (NULL)
 		      WS_POPUP | TTS_ALWAYSTIP,                    // Style *must* be WS_POPUP
 		      CW_USEDEFAULT,                               // Default position (x,y)
@@ -1376,13 +1376,14 @@ void osSetControlTip(WindowHandle ctrl, char *text)
 		      (HANDLE) ghModule,                           // The instance
 		      NULL                                         // No window creation data
 		      );
-		SendMessage(pData->hTooltip, TTM_SETMAXTIPWIDTH, 0, 400); // Enable multiline tooltips
+		SendMessageW(pData->hTooltip, TTM_SETMAXTIPWIDTH, 0, 400); // Enable multiline tooltips
 	}
 
 	if (text && *text)
 	{
-		text[256] = 0; //  Truncate the tip text to 255 chars because the osGetControlTip function
-		               //uses 256 bytes long buffer
+		if (wcslen(text) > 255)
+			text[256] = 0; //  Truncate the tip text to 255 chars because the osGetControlTip function
+			               //uses 256 bytes long buffer
 
 		/* Fill the tooltip info with the appropriate information. */
 		ti.cbSize     = sizeof(TOOLINFO);
@@ -1396,7 +1397,7 @@ void osSetControlTip(WindowHandle ctrl, char *text)
 		ti.hinst      = ghModule;
 		ti.lpszText   = text;
 
-		SendMessage (pData->hTooltip, TTM_ADDTOOL, 0, (LPARAM) (LPTOOLINFO)&ti);
+		SendMessageW(pData->hTooltip, TTM_ADDTOOL, 0, (LPARAM) (LPTOOLINFO)&ti);
 	}
 	else
 	{
@@ -1410,7 +1411,7 @@ void osSetControlTip(WindowHandle ctrl, char *text)
 	}
 }
 
-char *osGetControlTip(WindowHandle ctrl)
+PortString osGetControlTip(WindowHandle ctrl)
 {
 	TOOLINFO ti;					/* The tool information that is sent to the tooltip control. */
 	HWND hParent;
@@ -1427,12 +1428,12 @@ char *osGetControlTip(WindowHandle ctrl)
 		ti.uFlags     = TTF_IDISHWND;
 		ti.hwnd       = hParent;
 		ti.uId        = (UINT_PTR) ctrl;
-		ti.lpszText   = malloc(256);
+		ti.lpszText   = malloc(512);
 
 		if (ti.lpszText)
 		{
 			*ti.lpszText  = 0;
-			SendMessage (pData->hTooltip, TTM_GETTEXT, 0, (LPARAM) (LPTOOLINFO)&ti);
+			SendMessageW (pData->hTooltip, TTM_GETTEXT, 0, (LPARAM) (LPTOOLINFO)&ti);
 
 			if (*ti.lpszText == 0)
 			{

@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE CPP, RankNTypes #-}
 
 -- #hide
 -----------------------------------------------------------------------------------------
@@ -120,6 +120,7 @@ module Graphics.UI.Port.Types
             , CBool, fromCBool, toCBool
             , fromCChar, toCChar
             , withCStrings, peekCStrings, resultCString, resultCStrings
+            , PortString, withPortString, resultPortString
             ) where
 
 import Foreign
@@ -1136,3 +1137,29 @@ resultCString io
 resultCStrings :: IO (Ptr CChar) -> IO [String]
 resultCStrings io
   = bracket io free peekCStrings
+
+
+#ifdef WIN32_TARGET
+type PortString = CWString
+#else
+type PortString = CString
+#endif
+
+withPortString :: String -> (PortString -> IO a) -> IO a
+#ifdef WIN32_TARGET
+withPortString = withCWString
+#else
+withPortString = withCString
+#endif
+
+-- | Convert and free a c-string.
+resultPortString :: IO PortString -> IO String
+resultPortString io
+  = bracket io free safePeekPortString
+  where
+    safePeekPortString ptr | ptr == nullPtr = return ""
+#ifdef WIN32_TARGET
+                           | otherwise      = peekCWString ptr
+#else
+                           | otherwise      = peekCString ptr
+#endif
