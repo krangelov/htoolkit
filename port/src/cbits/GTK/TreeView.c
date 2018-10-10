@@ -30,7 +30,7 @@ struct _PortRecord
 
 struct _PortTreeStore
 {
-	GObject      parent;      /* this MUST be the first member */
+	GObject parent;         /* this MUST be the first member */
 
 	GtkWidget* view;        /* we can have only one view */
 	PortRecord root;
@@ -40,7 +40,7 @@ struct _PortTreeStore
 	gint   n_columns;
 	GType* column_types;
 
-	gint            stamp;       /* Random integer to check whether an iter belongs to our model */
+	gint stamp;             /* Random integer to check whether an iter belongs to our model */
 };
 
 
@@ -216,9 +216,9 @@ port_tree_store_tree_model_init (GtkTreeModelIface *iface)
 
 /*****************************************************************************
  *
- *  port_tree_store_init: this is called everytime a new custom list object
- *                    instance is created (we do that in port_tree_store_new).
- *                    Initialise the list structure's fields here.
+ *  port_tree_store_init: this is called everytime a new port tree store
+ *                        instance is created. Initialise the tree structure's
+ *                        fields here.
  *
  *****************************************************************************/
 
@@ -247,12 +247,25 @@ port_tree_store_init (PortTreeStore *port_tree_store)
  *****************************************************************************/
 
 static void
+port_tree_release_children(PortRecord *record)
+{
+	record = record->first_child;
+	while (record != NULL) {
+		PortRecord *next = record->next;
+		port_tree_release_children(record);
+		free(record);
+		record = next;
+	}
+}
+
+static void
 port_tree_store_finalize (GObject *object)
 {
-/*  PortTreeStore *port_tree_store = PORT_TREE_STORE(object); */
+  PortTreeStore *port_tree_store = PORT_TREE_STORE(object);
 
   /* free all records and free all memory used by the list */
-  #warning IMPLEMENT
+  port_tree_release_children(&port_tree_store->root);
+  free(port_tree_store->column_types);
 
   /* must chain up - finalize parent */
   (* parent_class->finalize) (object);
@@ -274,7 +287,7 @@ port_tree_store_get_flags (GtkTreeModel *tree_model)
 {
 	g_return_val_if_fail (PORT_IS_TREE_STORE(tree_model), (GtkTreeModelFlags)0);
 
-	return (GTK_TREE_MODEL_LIST_ONLY | GTK_TREE_MODEL_ITERS_PERSIST);
+	return (GTK_TREE_MODEL_ITERS_PERSIST);
 }
 
 
@@ -327,9 +340,9 @@ port_tree_store_get_iter (GtkTreeModel *tree_model,
                           GtkTreeIter  *iter,
                           GtkTreePath  *path)
 {
-	PortTreeStore *port_tree_store;
 	PortRecord *record;
-	gint *indices, n, depth;
+	PortTreeStore *port_tree_store;
+	gint *indices, n, depth, i;
 
 	g_assert(PORT_IS_TREE_STORE(tree_model));
 	g_assert(path!=NULL);
@@ -339,20 +352,22 @@ port_tree_store_get_iter (GtkTreeModel *tree_model,
 	indices = gtk_tree_path_get_indices(path);
 	depth   = gtk_tree_path_get_depth(path);
 
-	/* we do not allow children */
-	g_assert(depth == 1); /* depth 1 = top level; a list only has top level nodes and no children */
+	record = &port_tree_store->root;
+	for (i = 0; i < depth; i++) {
+		n = indices[i];
+		if (n >= record->num_children || n < 0)
+			return FALSE;
 
-	n = indices[0]; /* the n-th top level row */
+		record = record->first_child;
+		if (record == NULL)
+			return FALSE;
 
-	if (n >= port_tree_store->root.num_children || n < 0)
-		return FALSE;
-
-	record = port_tree_store->root.first_child;
-	while (n > 0) {
-		record = record->next; n--;
+		while (n > 0) {
+			record = record->next; n--;
+			if (record == NULL)
+				return FALSE;
+		}
 	}
-
-	g_assert(record != NULL);
 
 	/* We simply store a pointer to our custom record in the iter */
 	iter->stamp      = port_tree_store->stamp;
@@ -366,8 +381,7 @@ port_tree_store_get_iter (GtkTreeModel *tree_model,
 
 /*****************************************************************************
  *
- *  port_tree_store_get_path: converts a tree iter into a tree path (ie. the
- *                        physical position of that row in the list).
+ *  port_tree_store_get_path: converts a tree iter into a tree path.
  *
  *****************************************************************************/
 
@@ -388,7 +402,10 @@ port_tree_store_get_path (GtkTreeModel *tree_model,
 	record = (PortRecord*) iter->user_data;
 
 	path = gtk_tree_path_new();
-	gtk_tree_path_append_index(path, record->pos);
+	while (record != &port_tree_store->root) {
+		gtk_tree_path_prepend_index(path, record->pos);
+		record = record->parent;
+	}
 
 	return path;
 }
@@ -450,7 +467,7 @@ static gboolean
 port_tree_store_iter_next (GtkTreeModel  *tree_model,
                            GtkTreeIter   *iter)
 {
-	PortRecord  *record, *nextrecord;
+	PortRecord  *record;
 	PortTreeStore    *port_tree_store;
 
 	g_return_val_if_fail (PORT_IS_TREE_STORE (tree_model), FALSE);
@@ -478,9 +495,7 @@ port_tree_store_iter_next (GtkTreeModel  *tree_model,
  *  port_tree_store_iter_children: Returns TRUE or FALSE depending on whether
  *                             the row specified by 'parent' has any children.
  *                             If it has children, then 'iter' is set to
- *                             point to the first child. Special case: if
- *                             'parent' is NULL, then the first top-level
- *                             row should be returned if it exists.
+ *                             point to the first child.
  *
  *****************************************************************************/
 
@@ -489,26 +504,28 @@ port_tree_store_iter_children (GtkTreeModel *tree_model,
                                GtkTreeIter  *iter,
                                GtkTreeIter  *parent)
 {
+	PortRecord  *record;
 	PortTreeStore  *port_tree_store;
 
-	g_return_val_if_fail (parent == NULL || parent->user_data != NULL, FALSE);
-
-	/* this is a list, nodes have no children */
-	if (parent)
-		return FALSE;
-
-	/* parent == NULL is a special case; we need to return the first top-level row */
 	g_return_val_if_fail (PORT_IS_TREE_STORE (tree_model), FALSE);
+	g_return_val_if_fail (iter != NULL, FALSE);
 
 	port_tree_store = PORT_TREE_STORE(tree_model);
 
+	if (parent == NULL)
+		record = &port_tree_store->root;
+	else {
+		record = (PortRecord *) parent->user_data;
+		g_assert(record != NULL);
+	}
+
 	/* No rows => no first row */
-	if (port_tree_store->root.first_child == NULL)
+	if (record->first_child == NULL)
 		return FALSE;
 
 	/* Set iter to first item in list */
 	iter->stamp     = port_tree_store->stamp;
-	iter->user_data = port_tree_store->root.first_child;
+	iter->user_data = record->first_child;
 
 	return TRUE;
 }
@@ -518,7 +535,6 @@ port_tree_store_iter_children (GtkTreeModel *tree_model,
  *
  *  port_tree_store_iter_has_child: Returns TRUE or FALSE depending on whether
  *                              the row specified by 'iter' has any children.
- *                              We only have a list and thus no children.
  *
  *****************************************************************************/
 
@@ -526,19 +542,28 @@ static gboolean
 port_tree_store_iter_has_child (GtkTreeModel *tree_model,
                                 GtkTreeIter  *iter)
 {
-	return FALSE;
+	PortRecord  *record;
+	PortTreeStore  *port_tree_store;
+
+	g_return_val_if_fail (PORT_IS_TREE_STORE (tree_model), FALSE);
+	g_return_val_if_fail (iter != NULL, FALSE);
+
+	port_tree_store = PORT_TREE_STORE(tree_model);
+
+	if (iter == NULL)
+		record = &port_tree_store->root;
+	else
+		record = (PortRecord *) iter->user_data;
+
+	/* No rows => no first row */
+	return (record->first_child != NULL);
 }
 
 
 /*****************************************************************************
  *
  *  port_tree_store_iter_n_children: Returns the number of children the row
- *                               specified by 'iter' has. This is usually 0,
- *                               as we only have a list and thus do not have
- *                               any children to any rows. A special case is
- *                               when 'iter' is NULL, in which case we need
- *                               to return the number of top-level nodes,
- *                               ie. the number of rows in our list.
+ *                               specified by 'iter' has.
  *
  *****************************************************************************/
 
@@ -546,18 +571,21 @@ static gint
 port_tree_store_iter_n_children (GtkTreeModel *tree_model,
                                  GtkTreeIter  *iter)
 {
+	PortRecord  *record;
 	PortTreeStore  *port_tree_store;
 
 	g_return_val_if_fail (PORT_IS_TREE_STORE (tree_model), -1);
-	g_return_val_if_fail (iter == NULL || iter->user_data != NULL, FALSE);
 
 	port_tree_store = PORT_TREE_STORE(tree_model);
 
-	/* special case: if iter == NULL, return number of top-level rows */
-	if (!iter)
-		return port_tree_store->root.num_children;
+	if (iter == NULL)
+		record = &port_tree_store->root;
+	else {
+		record = (PortRecord *) iter->user_data;
+		g_assert (record != NULL);
+	}
 
-	return 0; /* otherwise, this is easy again for a list */
+	return record->num_children;
 }
 
 
@@ -566,9 +594,6 @@ port_tree_store_iter_n_children (GtkTreeModel *tree_model,
  *  port_tree_store_iter_nth_child: If the row specified by 'parent' has any
  *                              children, set 'iter' to the n-th child and
  *                              return TRUE if it exists, otherwise FALSE.
- *                              A special case is when 'parent' is NULL, in
- *                              which case we need to set 'iter' to the n-th
- *                              row if it exists.
  *
  *****************************************************************************/
 
@@ -581,24 +606,27 @@ port_tree_store_iter_nth_child (GtkTreeModel *tree_model,
 	PortRecord  *record;
 	PortTreeStore    *port_tree_store;
 
-	g_return_val_if_fail (PORT_IS_TREE_STORE (tree_model), FALSE);
+	g_return_val_if_fail(PORT_IS_TREE_STORE (tree_model), FALSE);
 
 	port_tree_store = PORT_TREE_STORE(tree_model);
 
-	/* a list has only top-level rows */
-	if (parent)
-		return FALSE;
+	if (parent == NULL)
+		record = &port_tree_store->root;
+	else {
+		record = (PortRecord *) parent->user_data;
+		g_assert (record != NULL);
+	}
 
 	/* special case: if parent == NULL, set iter to n-th top-level row */
-	if (n >= port_tree_store->root.num_children)
+	if (n >= record->num_children)
 		return FALSE;
 
-	record = port_tree_store->root.first_child;
+	record = record->first_child;
 	while (n > 0) {
 	  record = record->next; n--;
 	}
 
-	g_assert( record != NULL );
+	g_assert(record != NULL);
 
 	iter->stamp = port_tree_store->stamp;
 	iter->user_data = record;
@@ -609,9 +637,7 @@ port_tree_store_iter_nth_child (GtkTreeModel *tree_model,
 
 /*****************************************************************************
  *
- *  port_tree_store_iter_parent: Point 'iter' to the parent node of 'child'. As
- *                           we have a list and thus no children and no
- *                           parents of children, we can just return FALSE.
+ *  port_tree_store_iter_parent: Point 'iter' to the parent node of 'child'.
  *
  *****************************************************************************/
 
@@ -620,7 +646,25 @@ port_tree_store_iter_parent (GtkTreeModel *tree_model,
                              GtkTreeIter  *iter,
                              GtkTreeIter  *child)
 {
-	return FALSE;
+	PortRecord  *record;
+	PortTreeStore    *port_tree_store;
+
+	g_return_val_if_fail(PORT_IS_TREE_STORE (tree_model), FALSE);
+	g_return_val_if_fail(iter != NULL && child != NULL, FALSE);
+
+	port_tree_store = PORT_TREE_STORE(tree_model);
+
+	record = (PortRecord *) child->user_data;
+	if (record == NULL)
+		return FALSE;
+	if (record->parent == NULL ||
+	    record->parent == &port_tree_store->root)
+		return FALSE;
+
+	iter->stamp = port_tree_store->stamp;
+	iter->user_data = record->parent;
+
+	return TRUE;
 }
 
 WindowHandle osCreateTreeView(WindowHandle window)
@@ -667,7 +711,7 @@ int osAddTreeViewColumn(WindowHandle treeview, PortString title, int type)
 	return index;
 }
 
-RowHandle osAppendTreeViewItem (WindowHandle treeview)
+RowHandle osAppendTreeViewItem (WindowHandle treeview, RowHandle parent)
 {
 	GtkTreeIter   iter;
 	GtkTreePath  *path;
@@ -676,28 +720,34 @@ RowHandle osAppendTreeViewItem (WindowHandle treeview)
 	PortTreeStore* port_tree_store =
 		PORT_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(treeview)));
 
+	if (parent == NULL)
+		parent = &port_tree_store->root;
+
 	newrecord = malloc(sizeof(PortRecord));
-	newrecord->pos = port_tree_store->root.num_children++;
+	newrecord->pos = parent->num_children++;
 	newrecord->next = NULL;
-	newrecord->parent = NULL;
+	newrecord->parent = parent;
 	newrecord->num_children = 0;
 	newrecord->first_child = NULL;
 	newrecord->last_child = NULL;
 
-	if (port_tree_store->root.last_child != NULL) {
-		port_tree_store->root.last_child->next = newrecord;
+	if (parent->last_child != NULL) {
+		parent->last_child->next = newrecord;
 	} else {
-		port_tree_store->root.first_child = newrecord;
+		parent->first_child = newrecord;
 	}
-	port_tree_store->root.last_child = newrecord;
+	parent->last_child = newrecord;
 
 	/* inform the tree view and other interested objects
 	 *  (e.g. tree row references) that we have inserted
 	 *  a new row, and where it was inserted */
 
-	path = gtk_tree_path_new();
-	gtk_tree_path_append_index(path, newrecord->pos);
-	port_tree_store_get_iter(GTK_TREE_MODEL(port_tree_store), &iter, path);
+	iter.stamp      = port_tree_store->stamp;
+	iter.user_data  = newrecord;
+	iter.user_data2 = NULL;   /* unused */
+	iter.user_data3 = NULL;   /* unused */
+
+	path = port_tree_store_get_path(GTK_TREE_MODEL(port_tree_store), &iter);
 	gtk_tree_model_row_inserted(GTK_TREE_MODEL(port_tree_store), path, &iter);
 	gtk_tree_path_free(path);
 

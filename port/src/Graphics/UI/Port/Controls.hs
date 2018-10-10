@@ -674,7 +674,7 @@ addTreeViewColumn :: WindowHandle -> String -> TreeViewColumnType -> IO CInt
 addTreeViewColumn hwnd title typ = withPortString title (\ctitle -> osAddTreeViewColumn hwnd ctitle typ)
 foreign import ccall osAddTreeViewColumn :: WindowHandle -> PortString -> TreeViewColumnType -> IO CInt
 
-foreign import ccall "osAppendTreeViewItem" appendTreeViewItem :: WindowHandle -> IO RowHandle
+foreign import ccall "osAppendTreeViewItem" appendTreeViewItem :: WindowHandle -> RowHandle -> IO RowHandle
 
 getTreeViewRequestSize :: WindowHandle -> IO Size
 getTreeViewRequestSize hwnd = withCSizeResult (osGetTreeViewReqSize hwnd)

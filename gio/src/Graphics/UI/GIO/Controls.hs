@@ -1160,9 +1160,12 @@ treeColumn title fn = newActionProp addCol
 	                                        return x
 	      | otherwise  = old hrow col ptr
 
-appendTreeViewItem :: TreeView a -> a -> IO (TreeViewRow a) 
-appendTreeViewItem tv x = do
-  hrow <- Port.appendTreeViewItem (tvhandle tv)
+appendTreeViewItem :: TreeView a -> a -> (Maybe (TreeViewRow a)) -> IO (TreeViewRow a)
+appendTreeViewItem tv x mb_parent = do
+  let parent = case mb_parent of
+                 Nothing              -> nullHandle
+                 Just (TreeViewRow h) -> h
+  hrow <- Port.appendTreeViewItem (tvhandle tv) parent
   rows <- readIORef (tvdata tv)
   writeIORef (tvdata tv) (Port.insert hrow x rows)
   return (TreeViewRow hrow)
