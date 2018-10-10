@@ -129,6 +129,9 @@ module Graphics.UI.GIO.Controls(
                                , TreeView, TreeViewColumnType
                                , treeView, treeColumn
                                , TreeViewRow, appendTreeViewItem
+
+                               -- * WebView
+                               , WebView, webView, url
                                ) where
 
 import Data.IORef
@@ -1120,7 +1123,7 @@ instance RangedSelect Splitter where
    selectedPos = newStdAttr splhandle Port.getSplitterPosition Port.setSplitterPosition
 
 --------------------------------------------------------------------
--- Splitter
+-- TreeView
 --------------------------------------------------------------------
 -- | A TreeView control.
 data TreeView a = TreeView
@@ -1135,7 +1138,7 @@ class TreeViewColumnType a where
   colType :: a -> Port.TreeViewColumnType
   store :: a -> Ptr b -> IO Port.CBool
 
--- | Create a horizontal splitter control.
+-- | Create a tree view control.
 treeView :: Container w => [Prop (TreeView a)] -> w -> IO (TreeView a)
 treeView props w = do
 	tview <- Port.createTreeView (hwindow w)
@@ -1184,3 +1187,28 @@ instance TreeViewColumnType String where
 
 instance Control (TreeView a) where
   pack = stdPack tvparent tvhandle Port.getTreeViewRequestSize
+
+--------------------------------------------------------------------
+-- WebView
+--------------------------------------------------------------------
+-- | A WebView control.
+data WebView = WebView
+	{ wvhandle :: !WindowHandle
+	, wvparent :: !WindowHandle
+	}
+
+-- | Create a web view control.
+webView :: Container w => [Prop WebView] -> w -> IO WebView
+webView props w = do
+	wview <- Port.createWebView (hwindow w)
+	let wv = WebView wview (hwindow w)
+	set wv props
+	return wv
+
+url :: Attr WebView String
+url = writeAttr "url" setter
+  where
+    setter wv = Port.webViewLoadURL (wvhandle wv)
+
+instance Control WebView where
+  pack = stdPack wvparent wvhandle Port.getWebViewRequestSize

@@ -92,6 +92,7 @@ typedef void *CodecsEnumeratorHandle;
 #include <gconf/gconf.h>
 #include <gconf/gconf-client.h>
 #include <cairo.h>
+#include <webkit/webkit.h>
 
 typedef gchar* PortString;
 

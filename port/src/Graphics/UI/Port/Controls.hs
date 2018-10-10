@@ -130,6 +130,10 @@ module Graphics.UI.Port.Controls
            , treeViewColumnTypeInt, treeViewColumnTypeString, treeViewColumnTypeBool
            , addTreeViewColumn, appendTreeViewItem
            , getTreeViewRequestSize
+           -- * WebView
+           , createWebView
+           , webViewLoadURL
+           , getWebViewRequestSize
            ) where
 
 import Foreign
@@ -680,3 +684,16 @@ getTreeViewRequestSize :: WindowHandle -> IO Size
 getTreeViewRequestSize hwnd = withCSizeResult (osGetTreeViewReqSize hwnd)
 foreign import ccall osGetTreeViewReqSize :: WindowHandle -> Ptr CInt -> IO ()
 
+-----------------------------------------------------------------------------------------
+-- WebView
+-----------------------------------------------------------------------------------------
+
+foreign import ccall "osCreateWebView" createWebView :: WindowHandle -> IO WindowHandle
+
+webViewLoadURL :: WindowHandle -> String -> IO ()
+webViewLoadURL hwnd url = withPortString url (osWebViewLoadURL hwnd)
+foreign import ccall osWebViewLoadURL :: WindowHandle -> PortString -> IO ()
+
+getWebViewRequestSize :: WindowHandle -> IO Size
+getWebViewRequestSize hwnd = withCSizeResult (osGetWebViewReqSize hwnd)
+foreign import ccall osGetWebViewReqSize :: WindowHandle -> Ptr CInt -> IO ()
