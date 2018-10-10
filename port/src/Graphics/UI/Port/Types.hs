@@ -87,6 +87,7 @@ module Graphics.UI.Port.Types
             , ToolHandle
             , ActionHandle
             , IndicatorHandle
+            , RowHandle
             , nullHandle
 
             -- * Marshalling to C
@@ -120,7 +121,7 @@ module Graphics.UI.Port.Types
             , CBool, fromCBool, toCBool
             , fromCChar, toCChar
             , withCStrings, peekCStrings, resultCString, resultCStrings
-            , PortString, withPortString, resultPortString
+            , PortString, newPortString, withPortString, resultPortString
             ) where
 
 import Foreign
@@ -171,6 +172,10 @@ data ACT = ACT
 -- | Abstract handle to a indicator in the status bar
 type IndicatorHandle = Ptr IH
 data IH = IH
+
+-- | Abstract handle to a indicator in the status bar
+type RowHandle = Ptr RH
+data RH = RH
 
 -- | A null handle. Use with care.
 nullHandle :: Ptr a
@@ -1143,6 +1148,13 @@ resultCStrings io
 type PortString = CWString
 #else
 type PortString = CString
+#endif
+
+newPortString :: String -> IO PortString
+#ifdef WIN32_TARGET
+newPortString = newCWString
+#else
+newPortString = newCString
 #endif
 
 withPortString :: String -> (PortString -> IO a) -> IO a

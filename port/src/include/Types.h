@@ -128,6 +128,8 @@ typedef struct ActionHandle *ActionHandle;
 
 typedef GtkWidget *IndicatorHandle;
 
+typedef struct _PortRecord* RowHandle;
+
 typedef struct
 {
 	int count, max_count;

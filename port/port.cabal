@@ -107,6 +107,7 @@ Library
                  src/cbits/GTK/TrackBar.c,
                  src/cbits/GTK/ColorDialog.c,
                  src/cbits/GTK/Notebook.c,
+                 src/cbits/GTK/TreeView.c,
                  src/cbits/GTK/Util.c,
                  src/cbits/GTK/ConfigKey.c,
                  src/cbits/GTK/PopUp.c,
@@ -144,6 +145,4 @@ Library
     Graphics.UI.Port.Font
     Graphics.UI.Port.Window
     Graphics.UI.Port.Handlers
-
-  other-modules:
     Graphics.UI.Port.PtrMap

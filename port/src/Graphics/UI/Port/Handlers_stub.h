@@ -16,6 +16,7 @@ extern void handleWindowContextMenu(HsPtr a1, HsInt32 a2, HsInt32 a3, HsWord32 a
 extern void handleControlCommand(HsPtr a1);
 extern void handleTrackBarIncrement(HsPtr a1);
 extern void handleTrackBarDecrement(HsPtr a1);
+extern HsInt32 handleTreeViewGetter(HsPtr a1, HsPtr a2, HsInt32 a3, HsPtr a4);
 extern void handleMenuDestroy(HsPtr a1);
 extern void handleToolDestroy(HsPtr a1);
 extern void handleActionCommand(HsPtr a1);

@@ -124,16 +124,28 @@ module Graphics.UI.GIO.Controls(
 
                                -- * Splitter
                                , Splitter, hSplitter, vSplitter
+
+                               -- * TreeView
+                               , TreeView, TreeViewColumnType
+                               , treeView, treeColumn
+                               , TreeViewRow, appendTreeViewItem
                                ) where
 
+import Data.IORef
+import qualified Data.IntMap as IntMap
 import qualified Graphics.UI.Port as Port
+import qualified Graphics.UI.Port.Types as Port
+import qualified Graphics.UI.Port.PtrMap as Port
 import Graphics.UI.GIO.Types
 import Graphics.UI.GIO.Attributes
 import Graphics.UI.GIO.Events
 import Graphics.UI.GIO.Canvas
 import Graphics.UI.GIO.Layout
-import Control.Monad(when, mapM_, filterM)
+import Control.Monad(when, mapM_, zipWithM_, filterM)
 import System.Time(ClockTime)
+import Foreign
+import Foreign.C
+
 
 --------------------------------------------------------------------
 --  Helper functions
@@ -1106,3 +1118,66 @@ instance Control Splitter where
 instance RangedSelect Splitter where
    range = readAttr "range" (Port.getSplitterRange . splhandle)
    selectedPos = newStdAttr splhandle Port.getSplitterPosition Port.setSplitterPosition
+
+--------------------------------------------------------------------
+-- Splitter
+--------------------------------------------------------------------
+-- | A TreeView control.
+data TreeView a = TreeView
+	{ tvhandle :: !WindowHandle
+	, tvparent :: !WindowHandle
+	, tvdata   :: IORef (Port.PtrMap Port.RowHandle a)
+	}
+
+newtype TreeViewRow a = TreeViewRow Port.RowHandle
+
+class TreeViewColumnType a where
+  colType :: a -> Port.TreeViewColumnType
+  store :: a -> Ptr b -> IO Port.CBool
+
+-- | Create a horizontal splitter control.
+treeView :: Container w => [Prop (TreeView a)] -> w -> IO (TreeView a)
+treeView props w = do
+	tview <- Port.createTreeView (hwindow w)
+	ref <- newIORef IntMap.empty
+	let tv = TreeView tview (hwindow w) ref
+	set tv props
+	return tv
+
+treeColumn :: TreeViewColumnType b => String -> (a -> b) -> Prop (TreeView a)
+treeColumn title fn = newActionProp addCol
+  where
+    addCol tv = do
+	  idx <- Port.addTreeViewColumn (tvhandle tv) title (colType (fn undefined))
+	  old <- Port.getTreeViewGetterHandler (tvhandle tv)
+	  Port.setTreeViewGetterHandler (tvhandle tv) (getter idx old (tvdata tv))
+	  where
+	    getter idx old ref hrow col ptr
+	      | col == idx = do rows <- readIORef ref
+	                        case Port.lookup hrow rows of
+	                          Nothing -> return 0
+	                          Just x  -> do x <- store (fn x) ptr
+	                                        return x
+	      | otherwise  = old hrow col ptr
+
+appendTreeViewItem :: TreeView a -> a -> IO (TreeViewRow a) 
+appendTreeViewItem tv x = do
+  hrow <- Port.appendTreeViewItem (tvhandle tv)
+  rows <- readIORef (tvdata tv)
+  writeIORef (tvdata tv) (Port.insert hrow x rows)
+  return (TreeViewRow hrow)
+
+instance TreeViewColumnType Int where
+  colType _ = Port.treeViewColumnTypeInt
+  store n ptr = do
+    poke (castPtr ptr) (fromIntegral n :: CInt)
+    return 1
+
+instance TreeViewColumnType String where
+  colType _ = Port.treeViewColumnTypeString
+  store s ptr = do
+    Port.newPortString s >>= poke (castPtr ptr)
+    return 1
+
+instance Control (TreeView a) where
+  pack = stdPack tvparent tvhandle Port.getTreeViewRequestSize

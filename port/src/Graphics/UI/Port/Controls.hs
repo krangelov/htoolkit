@@ -40,6 +40,8 @@
     * NotebookPage
     
     * Splitter
+    
+    * TreeView
 -}
 -----------------------------------------------------------------------------------------
 module Graphics.UI.Port.Controls
@@ -122,6 +124,12 @@ module Graphics.UI.Port.Controls
            , getSplitterRequestSize
            , getSplitterRange
            , getSplitterPosition, setSplitterPosition
+           -- * TreeView
+           , createTreeView
+           , TreeViewColumnType
+           , treeViewColumnTypeInt, treeViewColumnTypeString, treeViewColumnTypeBool
+           , addTreeViewColumn, appendTreeViewItem
+           , getTreeViewRequestSize
            ) where
 
 import Foreign
@@ -649,3 +657,26 @@ foreign import ccall osGetSplitterRange :: WindowHandle -> Ptr CInt -> IO ()
 
 foreign import ccall "osSetSplitterPosition" setSplitterPosition :: WindowHandle -> Int -> IO ()
 foreign import ccall "osGetSplitterPosition" getSplitterPosition :: WindowHandle -> IO Int
+
+-----------------------------------------------------------------------------------------
+-- TreeView
+-----------------------------------------------------------------------------------------
+
+foreign import ccall "osCreateTreeView" createTreeView :: WindowHandle -> IO WindowHandle
+
+type TreeViewColumnType = CInt
+
+treeViewColumnTypeInt    = 1 :: TreeViewColumnType
+treeViewColumnTypeString = 2 :: TreeViewColumnType
+treeViewColumnTypeBool   = 3 :: TreeViewColumnType
+
+addTreeViewColumn :: WindowHandle -> String -> TreeViewColumnType -> IO CInt
+addTreeViewColumn hwnd title typ = withPortString title (\ctitle -> osAddTreeViewColumn hwnd ctitle typ)
+foreign import ccall osAddTreeViewColumn :: WindowHandle -> PortString -> TreeViewColumnType -> IO CInt
+
+foreign import ccall "osAppendTreeViewItem" appendTreeViewItem :: WindowHandle -> IO RowHandle
+
+getTreeViewRequestSize :: WindowHandle -> IO Size
+getTreeViewRequestSize hwnd = withCSizeResult (osGetTreeViewReqSize hwnd)
+foreign import ccall osGetTreeViewReqSize :: WindowHandle -> Ptr CInt -> IO ()
+

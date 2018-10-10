@@ -43,15 +43,15 @@ module Graphics.UI.GIO.Attributes
              , set1, set, get, with, (=:), (~:), (=::), (~::)
 
              -- * Generic attribute creators
-	     , newAttr
-	     , newStdAttr
-	     , varAttr
-	     , readAttr
+             , newAttr
+             , newStdAttr
+             , varAttr
+             , readAttr
              , writeAttr
-	     , mapAttr
-	     , mapAttrObj
-	     , newProp
-	     , mapProp
+             , mapAttr
+             , mapAttrObj
+             , newProp, newActionProp
+             , mapProp
 
              -- * Common widget classes
 
@@ -123,6 +123,10 @@ newStdAttr map getter setter = Attr (getter . map) (setter . map)
 newProp :: (w -> IO ()) -> (w -> IO a) -> (w -> a -> IO ()) -> Prop w
 newProp action getter setter
   = Prop action (\w -> do oldx <- getter w; return (setter w oldx))
+
+newActionProp :: (w -> IO ()) -> Prop w
+newActionProp action
+  = Prop action (\w -> do ioError (userError "the property cannot be restored."))
 
 -- | A property of a widget @w@ is an attribute that
 -- is already associated with a value. Properties are

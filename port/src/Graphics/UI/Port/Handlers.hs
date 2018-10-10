@@ -54,6 +54,9 @@ module Graphics.UI.Port.Handlers
                 ,setTrackBarIncrementHandler, setTrackBarIncrementDefHandler, getTrackBarIncrementHandler
                 ,setTrackBarDecrementHandler, setTrackBarDecrementDefHandler, getTrackBarDecrementHandler
 
+                -- * TreeView events
+                ,setTreeViewGetterHandler, getTreeViewGetterHandler
+
                 -- * Menu events
                 ,setMenuDestroyHandler, setMenuDestroyDefHandler, getMenuDestroyHandler
 
@@ -321,6 +324,30 @@ getTrackBarDecrementHandler hwnd
 handleTrackBarDecrement :: WindowHandle -> IO ()
 handleTrackBarDecrement hwnd
   = invokeHandler hwnd handlersTrackBarDecrement id
+
+-----------------------------------------------------------------------------------------
+-- TreeViewGetter
+-----------------------------------------------------------------------------------------
+
+{-# NOINLINE handlersTreeViewGetter #-}
+handlersTreeViewGetter :: MVar (PtrMap WindowHandle (RowHandle -> CInt -> Ptr a -> IO CBool))
+handlersTreeViewGetter
+  = unsafePerformIO (newMVar empty)
+
+setTreeViewGetterHandler :: WindowHandle -> (RowHandle -> CInt -> Ptr a -> IO CBool) -> IO ()
+setTreeViewGetterHandler htreeview handler
+  = setHandler htreeview handler handlersTreeViewGetter
+
+getTreeViewGetterHandler :: WindowHandle -> IO (RowHandle -> CInt -> Ptr a -> IO CBool)
+getTreeViewGetterHandler htreeview
+  = getHandler htreeview (\_ _ _ -> return 0) handlersTreeViewGetter
+
+handleTreeViewGetter :: WindowHandle -> RowHandle -> CInt -> Ptr a -> IO CBool
+handleTreeViewGetter htreeview hrow col ptr
+  = do map <- readMVar handlersTreeViewGetter
+       case lookup htreeview map of
+         Nothing -> return 0
+         Just f  -> f hrow col ptr `catch` (\e -> print (e :: SomeException) >> return 0)
 
 -----------------------------------------------------------------------------------------
 -- WindowDeactivate
@@ -877,6 +904,7 @@ foreign export ccall handleWindowContextMenu :: WindowHandle -> CInt -> CInt -> 
 foreign export ccall handleControlCommand :: WindowHandle -> IO ()
 foreign export ccall handleTrackBarIncrement :: WindowHandle -> IO ()
 foreign export ccall handleTrackBarDecrement :: WindowHandle -> IO ()
+foreign export ccall handleTreeViewGetter :: WindowHandle -> RowHandle -> CInt -> Ptr a -> IO CBool
 foreign export ccall handleMenuDestroy :: MenuHandle -> IO ()
 foreign export ccall handleToolDestroy :: ToolHandle -> IO ()
 foreign export ccall handleActionCommand :: ActionHandle -> IO ()
