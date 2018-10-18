@@ -30,6 +30,8 @@ typedef LPWSTR PortString;
 
 typedef HWND WindowHandle;
 
+typedef struct _PortRecord* RowHandle;
+
 typedef struct
 {
 	UINT_PTR id;
@@ -43,6 +45,8 @@ typedef struct
 	SIZE sourcesize;
 	SIZE destsize;
 } *BitmapHandle;
+
+typedef void *GradientHandle;
 
 typedef HFONT FontHandle;
 typedef struct MenuHandle *MenuHandle;
@@ -199,7 +203,7 @@ typedef struct CodecsEnumerator *CodecsEnumeratorHandle;
 
 typedef void (OsInitFunc)();
 
-void osStart(char *appTitle, char *appVersion, int DocumentInterface, OsInitFunc initFunc);
+void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, OsInitFunc initFunc);
 extern void osQuit();
 
 #endif

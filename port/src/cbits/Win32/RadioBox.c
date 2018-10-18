@@ -47,7 +47,7 @@ void osGetRadioBoxReqSize(WindowHandle radiobox, int *res)
 PortString osGetRadioBoxText(WindowHandle radiobox)
 {
 	int nLen = GetWindowTextLengthW(radiobox);
-	PortString buffer = (char *) rmalloc((nLen+1)*sizeof(wchar_t));
+	PortString buffer = (PortString) rmalloc((nLen+1)*sizeof(wchar_t));
 	GetWindowTextW(radiobox, buffer, nLen+1);
 	return buffer;
 };

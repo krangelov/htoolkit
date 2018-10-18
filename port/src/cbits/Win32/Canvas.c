@@ -190,7 +190,7 @@ void osDeletePolygon(PolygonHandle polygon)
 	rfree (polygon);
 }	/* osDeletePolygon */
 
-void SetupLogBrush(LOGBRUSH *plb, BOOL bSetSolid, int hatchStyle, void* fill_info)
+void SetupLogBrush(LOGBRUSH *plb, BOOL bSetSolid, int hatchStyle, BitmapHandle patBmp)
 {
 	switch (bSetSolid ? 0 : hatchStyle)
 	{
@@ -224,7 +224,7 @@ void SetupLogBrush(LOGBRUSH *plb, BOOL bSetSolid, int hatchStyle, void* fill_inf
 		break;
 	case 9:
 		plb->lbStyle = BS_PATTERN;
-		plb->lbHatch = (LONG_PTR) ((BitmapHandle) fill_info)->hBitmap;
+		plb->lbHatch = (LONG_PTR) patBmp->hBitmap;
 		break;
 	}
 }
@@ -336,6 +336,22 @@ void osChangeCanvasPen(int size, int function,
 	SelectObject (canvas->hDC, font);
 	canvas->theFont = font;
 };
+
+GradientHandle osNewLinearGradient(int x1, int y1, int x2, int y2)
+{
+	printf("osNewLinearGradient is not implemented\n");
+	return NULL;
+}
+
+GradientHandle osNewRadialGradient(int x1, int y1, int radius1, int x2, int y2, int radius2)
+{
+	printf("osNewRadialGradient is not implemented\n");
+	return NULL;
+}
+
+void osAddGradientStop(GradientHandle gradient, double offset, unsigned int color) {
+	printf("osAddGradientStop is not implemented\n");
+}
 
 void osRotateCanvas(double angle, CanvasHandle canvas)
 {

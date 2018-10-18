@@ -103,7 +103,7 @@ LRESULT CALLBACK HNotebookPageFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 		}
 		break;
 	case WM_CTLCOLORSTATIC:
-        return DefWindowProc(hWnd, uMsg, wParam, lParam);
+        return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 	}
 
 	return HCompoundControlFunction(hWnd, uMsg, wParam, lParam);

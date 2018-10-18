@@ -35,6 +35,8 @@ Library
                src/cbits/Win32/TrackBar.c,
                src/cbits/Win32/ColorDialog.c,
                src/cbits/Win32/Notebook.c,
+               src/cbits/Win32/TreeView.c,
+               src/cbits/Win32/WebView.c,
                src/cbits/Win32/Util.c,
                src/cbits/Win32/ConfigKey.c,
                src/cbits/Win32/PopUp.c,

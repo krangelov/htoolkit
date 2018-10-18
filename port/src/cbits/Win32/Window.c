@@ -1395,7 +1395,7 @@ void osSetControlTip(WindowHandle ctrl, PortString text)
 		ti.rect.right = 0;
 		ti.rect.bottom= 0;
 		ti.hinst      = ghModule;
-		ti.lpszText   = text;
+		ti.lpszText   = (char*) text;
 
 		SendMessageW(pData->hTooltip, TTM_ADDTOOL, 0, (LPARAM) (LPTOOLINFO)&ti);
 	}
@@ -1442,7 +1442,7 @@ PortString osGetControlTip(WindowHandle ctrl)
 			}
 		}
 
-		return ti.lpszText;
+		return (PortString) ti.lpszText;
 	}
 	else
 		return NULL;

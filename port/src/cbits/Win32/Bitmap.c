@@ -564,6 +564,11 @@ int osWriteBitmap(BitmapHandle bitmap, char *format, char *fname)
 	return 0;
 }
 
+int osWriteBitmapHandle(BitmapHandle bitmap, char *format, int fhandle)
+{
+	printf("osWriteBitmapHandle is not implemented\n");
+}
+
 CodecsEnumeratorHandle osInitEncodersEnumerator()
 {
 	UINT  num = 0;          // number of image encoders
