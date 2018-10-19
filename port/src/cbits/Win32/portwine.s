@@ -291,7 +291,7 @@ __wine_spec_file_name:
 	.quad .L__wine_spec_import_data_user32_dll_LoadImageA-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_LockWindowUpdate-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_MapWindowPoints-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_user32_dll_MessageBoxA-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_user32_dll_MessageBoxW-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_MoveWindow-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_OffsetRect-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_PeekMessageA-.L__wine_spec_rva_base
@@ -1252,9 +1252,9 @@ __wine_spec_file_name:
 	.short 462
 	.string "MapWindowPoints"
 	.align 2
-.L__wine_spec_import_data_user32_dll_MessageBoxA:
-	.short 467
-	.string "MessageBoxA"
+.L__wine_spec_import_data_user32_dll_MessageBoxW:
+	.short 474
+	.string "MessageBoxW"
 	.align 2
 .L__wine_spec_import_data_user32_dll_MoveWindow:
 	.short 480
@@ -2776,12 +2776,12 @@ MapWindowPoints:
 	.size MapWindowPoints, .-MapWindowPoints
 
 	.align 4
-	.type MessageBoxA,@function
-	.globl MessageBoxA
-	.hidden MessageBoxA
-MessageBoxA:
+	.type MessageBoxW,@function
+	.globl MessageBoxW
+	.hidden MessageBoxW
+MessageBoxW:
 	jmpq *.L__wine_spec_import_data_ptrs+1328(%rip)
-	.size MessageBoxA, .-MessageBoxA
+	.size MessageBoxW, .-MessageBoxW
 
 	.align 4
 	.type MoveWindow,@function

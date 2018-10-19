@@ -175,8 +175,8 @@ foreign import ccall osGetControlTip :: WindowHandle -> IO CString
 
 setControlTip :: WindowHandle -> String -> IO ()
 setControlTip hwnd txt
-  = withCString txt (osSetControlTip hwnd)
-foreign import ccall osSetControlTip :: WindowHandle -> CString -> IO ()
+  = withPortString txt (osSetControlTip hwnd)
+foreign import ccall osSetControlTip :: WindowHandle -> PortString -> IO ()
 
 foreign import ccall "osReLayoutContainer" relayoutContainer :: WindowHandle -> IO ()
 

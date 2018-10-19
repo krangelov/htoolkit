@@ -3,6 +3,7 @@
 #include "Internals.h"
 #include "Handlers_stub.h"
 	
+#include <wctype.h>
 #include <commctrl.h>
 
 HMODULE ghModule = NULL;

@@ -171,7 +171,7 @@ void DrawMenuItemCheck(HDC hdc, ActionHandle action, RECT rcFrame, BOOL bSelecte
 
 void SaveWindowState(HWND hWnd)
 {
-	char *keyName;
+	PortString keyName;
     WINDOWPLACEMENT wp;
     wp.length = sizeof(wp);
 
@@ -186,7 +186,7 @@ void SaveWindowState(HWND hWnd)
           wp.showCmd = SW_SHOWMAXIMIZED;
 
         // and write it to the registry
-		keyName = strdup("HToolkit.FrameState");
+		keyName = psdup(L"HToolkit.FrameState");
 		osSetConfigIntKey(keyName, wp.showCmd);
 		free(keyName);
     }
@@ -194,9 +194,9 @@ void SaveWindowState(HWND hWnd)
 
 void RestoreWindowState(HWND hWnd, int nShow)
 {
-	char *keyName;
+	PortString keyName;
 
-    keyName = strdup("HToolkit.FrameState");
+    keyName = psdup(L"HToolkit.FrameState");
 	nShow = osGetConfigIntKey(keyName, nShow);
 	free(keyName);
 

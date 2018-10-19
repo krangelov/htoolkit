@@ -3,12 +3,12 @@
 
 #include "Types.h"
 
-void osMessageInfo(char *szText);
-BOOL osMessageConfirm(char *szText);
-void osMessageWarning(char *szText);
-BOOL osMessageQuestion(char *szText);
-BOOL osMessageError(char *szText);
-int osMessageCancelQuestion(char *szText);
-int osMessageConfirmSave(char *szText);
+void osMessageInfo(PortString szText);
+BOOL osMessageConfirm(PortString szText);
+void osMessageWarning(PortString szText);
+BOOL osMessageQuestion(PortString szText);
+BOOL osMessageError(PortString szText);
+int osMessageCancelQuestion(PortString szText);
+int osMessageConfirmSave(PortString szText);
 
 #endif
