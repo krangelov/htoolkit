@@ -1,5 +1,6 @@
 #include "ConfigKey.h"
 #include "Internals.h"
+#include "Types.h"
 
 static HKEY openKey(PortString szName, PortString *pszValueName)
 {
@@ -52,18 +53,18 @@ PortString osGetConfigStringKey(PortString szName, PortString defvalue)
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
-		return wcsdup(defvalue);
+		return psdup(defvalue);
 
 	if (RegQueryValueExW(hKey, szValueName, NULL, &dwType, NULL, &dwLength) != ERROR_SUCCESS)
 	{
 		RegCloseKey(hKey);
-		return wcsdup(defvalue);
+		return psdup(defvalue);
 	}
 
 	if (dwType != REG_SZ && dwType != REG_EXPAND_SZ)
 	{
 		RegCloseKey(hKey);
-		return wcsdup(defvalue);
+		return psdup(defvalue);
 	}
 
 	szValue = malloc(sizeof(wchar_t)*(dwLength+1));
@@ -71,7 +72,7 @@ PortString osGetConfigStringKey(PortString szName, PortString defvalue)
 	{
 		RegCloseKey(hKey);
 		free(szValue);
-		return wcsdup(defvalue);
+		return psdup(defvalue);
 	}
 
 	RegCloseKey(hKey);
@@ -87,7 +88,7 @@ void osSetConfigStringKey(PortString szName, PortString szValue)
 	if (!hKey)
 		return;
 
-	RegSetValueExW(hKey, szValueName, 0, REG_SZ, (LPBYTE) szValue, wcslen(szValue)+1);
+	RegSetValueExW(hKey, szValueName, 0, REG_SZ, (LPBYTE) szValue, pslen(szValue)+1);
 
 	RegCloseKey(hKey);
 }
@@ -165,14 +166,14 @@ void osSetConfigDoubleKey(PortString szName, double dValue)
 {
 	HKEY hKey;
 	PortString szValueName;
-	wchar_t buffer[64];
+	WCHAR buffer[64];
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
 		return;
 
-	sprintf(buffer, "%f", dValue);
-	RegSetValueExW(hKey, szValueName, 0, REG_SZ, (LPBYTE) buffer, wcslen(buffer)+1);
+	ftops(dValue, buffer);
+	RegSetValueExW(hKey, szValueName, 0, REG_SZ, (LPBYTE) buffer, pslen(buffer)+1);
 
 	RegCloseKey(hKey);
 }

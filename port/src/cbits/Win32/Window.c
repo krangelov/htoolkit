@@ -710,15 +710,15 @@ LRESULT CALLBACK HSDIWindowFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 					LPWSTR title;
 					int nTextLen;
 
-					nTextLen = wcslen(s);
-					title = malloc((wcslen(pFrameData->lpszAppName)+nTextLen+6)*sizeof(wchar_t));
+					nTextLen = pslen(s);
+					title = malloc((pslen(pFrameData->lpszAppName)+nTextLen+6)*sizeof(wchar_t));
 
 					if (title)
 					{
-						wcscpy(title, pFrameData->lpszAppName);
-						wcscat(title, L" - [");
-						wcscat(title, s);
-						wcscat(title, L"]");
+						pscpy(title, pFrameData->lpszAppName);
+						pscat(title, L" - [");
+						pscat(title, s);
+						pscat(title, L"]");
 						SetWindowTextW(ghWndFrame, title);
 					}
 
@@ -1381,7 +1381,7 @@ void osSetControlTip(WindowHandle ctrl, PortString text)
 
 	if (text && *text)
 	{
-		if (wcslen(text) > 255)
+		if (pslen(text) > 255)
 			text[256] = 0; //  Truncate the tip text to 255 chars because the osGetControlTip function
 			               //uses 256 bytes long buffer
 

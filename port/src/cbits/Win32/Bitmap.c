@@ -337,7 +337,7 @@ void osReleaseBitmapCanvas(CanvasHandle canvas)
 	rfree(canvas);
 }
 
-static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
+static int GetEncoderClsid(PortString format, CLSID* pClsid)
 {
 	UINT  j;
 	UINT  num = 0;          // number of image encoders
@@ -357,7 +357,7 @@ static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 
 	for (j = 0; j < num; ++j)
 	{
-		if (wcscmp(pImageCodecInfo[j].MimeType, format) == 0 )
+		if (pscmp((PortString) pImageCodecInfo[j].MimeType, format) == 0 )
 		{
 			*pClsid = pImageCodecInfo[j].Clsid;
 			free(pImageCodecInfo);
@@ -616,7 +616,7 @@ char *osGetCurrentEncoderName(CodecsEnumeratorHandle enumerator)
 
 	if (nIndex < nCount)
 	{
-		int nChars = wcslen(pImageCodecInfo[nIndex].CodecName);
+		int nChars = pslen(pImageCodecInfo[nIndex].CodecName);
 		char *buffer = (char *) rmalloc((nChars+1)*2);
 
 		nChars = WideCharToMultiByte(CP_OEMCP, 0,
@@ -645,7 +645,7 @@ char *osGetCurrentEncoderDescription(CodecsEnumeratorHandle enumerator)
 
 	if (nIndex < nCount)
 	{
-		int nChars = wcslen(pImageCodecInfo[nIndex].FormatDescription);
+		int nChars = pslen(pImageCodecInfo[nIndex].FormatDescription);
 		char *buffer = (char *) rmalloc((nChars+1)*2);
 
 		nChars = WideCharToMultiByte(CP_OEMCP, 0,
@@ -674,7 +674,7 @@ char *osGetCurrentEncoderMime(CodecsEnumeratorHandle enumerator)
 
 	if (nIndex < nCount)
 	{
-		int nChars = wcslen(pImageCodecInfo[nIndex].MimeType);
+		int nChars = pslen(pImageCodecInfo[nIndex].MimeType);
 		char *buffer = (char *) rmalloc((nChars+1)*2);
 
 		nChars = WideCharToMultiByte(CP_OEMCP, 0,
@@ -713,7 +713,7 @@ char *osGetCurrentEncoderExtensions(CodecsEnumeratorHandle enumerator)
 
 	if (nIndex < nCount)
 	{
-		int nChars = wcslen(pImageCodecInfo[nIndex].FilenameExtension);
+		int nChars = pslen(pImageCodecInfo[nIndex].FilenameExtension);
 		char *ps, *pd, *buffer = (char *) rmalloc((nChars+2)*2);
 
 		nChars = WideCharToMultiByte(CP_OEMCP, 0,

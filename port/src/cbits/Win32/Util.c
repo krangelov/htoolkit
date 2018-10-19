@@ -64,12 +64,12 @@ static void parseAppNameVersion(PortString appTitle,PortString appVersion)
 		pFrameData->lpszAppName[appNameLen] = 0;
 
 		while (*s == L' ') s++;
-		pFrameData->lpszAppVersion = wcsdup(s);
+		pFrameData->lpszAppVersion = psdup(s);
 	}
 	else
 	{
-		pFrameData->lpszAppName    = wcsdup(appTitle);
-		pFrameData->lpszAppVersion = wcsdup(appVersion);
+		pFrameData->lpszAppName    = psdup(appTitle);
+		pFrameData->lpszAppVersion = psdup(appVersion);
 	}
 
 	s = pFrameData->lpszAppName;
@@ -111,7 +111,6 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 	{
 		WNDCLASSW wc;
 		INITCOMMONCONTROLSEX icc;
-
 
 		ghModule = GetModuleHandle(NULL);
 

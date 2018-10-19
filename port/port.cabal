@@ -56,6 +56,7 @@ Library
       cc-options: -fshort-wchar -DWINE_TARGET=1
       cpp-options: -DWINE_TARGET=1
       c-sources: src/cbits/Win32/portwine.s
+                 src/cbits/Win32/WineUtils.c
       include-dirs: /usr/include/wine/windows
       extra-lib-dirs: /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/wine
       extra-libraries: wine winecrt0

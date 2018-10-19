@@ -78,4 +78,30 @@ void osDestroyMenu(MenuHandle handle);
 
 void getWindowClipRgn(HWND hWnd, HRGN hRgn);
 
+#ifdef WINE_TARGET
+size_t
+pslen(PortString s);
+
+PortString
+psdup(PortString s);
+
+int
+pscmp(PortString s1, PortString s2);
+
+void
+pscpy(PortString s1, PortString s2);
+
+void
+pscat(PortString s1, PortString s2);
+#else
+#define pslen wcslen
+#define psdup wcsdup
+#define pscmp wcscmp
+#define pscpy wcscpy
+#define pscat wcscat
+#endif
+
+void
+ftops(double f, WCHAR *szOutput);
+
 #endif

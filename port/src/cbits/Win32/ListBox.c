@@ -257,7 +257,7 @@ BOOL osGetListBoxItemSelectState(WindowHandle listbox, int index)
 	wchar_t buffer[20];
     GetClassNameW(listbox,buffer,sizeof(buffer));
 
-    if (wcscmp(buffer, L"HCHECKLISTBOX") == 0)
+    if (pscmp(buffer, L"HCHECKLISTBOX") == 0)
 		return SendMessageW(listbox, LB_GETITEMDATA, index, 0) > 0;
 	else
 		return SendMessageW(listbox, LB_GETSEL, index, 0) > 0;
@@ -274,7 +274,7 @@ void osSetListBoxItemSelectState(WindowHandle listbox, int index, BOOL state)
 	wchar_t buffer[20];
     GetClassNameW(listbox,buffer,sizeof(buffer));
 
-    if (wcscmp(buffer, L"HCHECKLISTBOX") == 0)
+    if (pscmp(buffer, L"HCHECKLISTBOX") == 0)
 	{
 		RECT rect;
 		int cyItem = SendMessageW(listbox, LB_GETITEMHEIGHT, 0, 0);
