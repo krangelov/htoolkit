@@ -2,7 +2,7 @@
 #include "Window.h"
 #include "Internals.h"
 #include "Handlers_stub.h"
-
+	
 #include <commctrl.h>
 
 HMODULE ghModule = NULL;
@@ -111,6 +111,7 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 	{
 		WNDCLASSW wc;
 		INITCOMMONCONTROLSEX icc;
+
 
 		ghModule = GetModuleHandle(NULL);
 
@@ -339,3 +340,18 @@ void osQuit()
 	ghWndFrame = NULL;
 }
 
+#ifdef WINE_TARGET
+#include "HsFFI.h"
+#include "Rts.h"
+#include "wine/library.h"
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nShowCmd)
+{
+    RtsConfig conf = defaultRtsConfig;
+
+    extern StgClosure ZCMain_main_closure;
+    
+    hs_main(__wine_main_argc, __wine_main_argv, &ZCMain_main_closure, conf);
+}
+#endif

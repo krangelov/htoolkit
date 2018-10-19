@@ -4,14 +4,17 @@ version: 1.0
 cabal-version: >= 1.2
 build-type:          Simple
 
+flag use-wine
+  default: False
+
 Library
   default-language:    Haskell2010
   build-depends: base >= 4.5 && <5,
                  containers,
                  old-time, unix
   hs-source-dirs: src
-  
-  if os(windows)
+
+  if os(windows) || flag(use-wine)
     c-sources: src/cbits/Win32/AboutDialog.c
                src/cbits/Win32/FileDialog.c,
                src/cbits/Win32/Label.c,
@@ -49,7 +52,15 @@ Library
                src/cbits/Win32/ActionsMap.c
     cc-options: -DWIN32_TARGET=1
     cpp-options: -DWIN32_TARGET=1
-    extra-libraries: user32, comctl32, comdlg32, ole32
+    if flag(use-wine)
+      cc-options: -fshort-wchar -DWINE_TARGET=1
+      cpp-options: -DWINE_TARGET=1
+      c-sources: src/cbits/Win32/portwine.s
+      include-dirs: /usr/include/wine/windows
+      extra-lib-dirs: /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/wine
+      extra-libraries: wine winecrt0
+    else
+      extra-libraries: user32, comctl32, comdlg32, ole32
   else
     if os(darwin)
       c-sources: src/cbits/Cocoa/AboutDialog.m,
@@ -86,45 +97,46 @@ Library
       cc-options: -DCOCOA_TARGET=1
       frameworks: cocoa
     else
-      c-sources: src/cbits/GTK/AboutDialog.c,
-                 src/cbits/GTK/FileDialog.c,
-                 src/cbits/GTK/Label.c,
-                 src/cbits/GTK/Slider.c,
-                 src/cbits/GTK/Action.c,
-                 src/cbits/GTK/Font.c,
-                 src/cbits/GTK/Splitter.c,
-                 src/cbits/GTK/Bitmap.c,
-                 src/cbits/GTK/FontDialog.c,
-                 src/cbits/GTK/StatusBar.c,
-                 src/cbits/GTK/Button.c,
-                 src/cbits/GTK/Frame.c,
-                 src/cbits/GTK/ListBox.c,
-                 src/cbits/GTK/Timer.c,
-                 src/cbits/GTK/Canvas.c,
-                 src/cbits/GTK/GroupBox.c,
-                 src/cbits/GTK/Menu.c,
-                 src/cbits/GTK/ToolBar.c,
-                 src/cbits/GTK/CheckBox.c,
-                 src/cbits/GTK/Message.c,
-                 src/cbits/GTK/TrackBar.c,
-                 src/cbits/GTK/ColorDialog.c,
-                 src/cbits/GTK/Notebook.c,
-                 src/cbits/GTK/TreeView.c,
-                 src/cbits/GTK/WebView.c,
-                 src/cbits/GTK/Util.c,
-                 src/cbits/GTK/ConfigKey.c,
-                 src/cbits/GTK/PopUp.c,
-                 src/cbits/GTK/Window.c,
-                 src/cbits/GTK/DateEntry.c,
-                 src/cbits/GTK/ProgressBar.c,
-                 src/cbits/GTK/EditBox.c,
-                 src/cbits/GTK/RadioBox.c,
-                 src/cbits/GTK/LayoutContainer.c,
-                 src/cbits/GTK/gtkdropdownbutton.c,
-                 src/cbits/GTK/gtkdropdowntoolbutton.c
-      include-dirs: src/cbits/GTK
-      pkgconfig-depends: gtk+-2.0, pango, libgnome-2.0, libgnomeui-2.0, webkit-1.0
-      cc-options: -DGTK_TARGET=1
+      if os(linux)
+        c-sources: src/cbits/GTK/AboutDialog.c,
+                   src/cbits/GTK/FileDialog.c,
+                   src/cbits/GTK/Label.c,
+                   src/cbits/GTK/Slider.c,
+                   src/cbits/GTK/Action.c,
+                   src/cbits/GTK/Font.c,
+                   src/cbits/GTK/Splitter.c,
+                   src/cbits/GTK/Bitmap.c,
+                   src/cbits/GTK/FontDialog.c,
+                   src/cbits/GTK/StatusBar.c,
+                   src/cbits/GTK/Button.c,
+                   src/cbits/GTK/Frame.c,
+                   src/cbits/GTK/ListBox.c,
+                   src/cbits/GTK/Timer.c,
+                   src/cbits/GTK/Canvas.c,
+                   src/cbits/GTK/GroupBox.c,
+                   src/cbits/GTK/Menu.c,
+                   src/cbits/GTK/ToolBar.c,
+                   src/cbits/GTK/CheckBox.c,
+                   src/cbits/GTK/Message.c,
+                   src/cbits/GTK/TrackBar.c,
+                   src/cbits/GTK/ColorDialog.c,
+                   src/cbits/GTK/Notebook.c,
+                   src/cbits/GTK/TreeView.c,
+                   src/cbits/GTK/WebView.c,
+                   src/cbits/GTK/Util.c,
+                   src/cbits/GTK/ConfigKey.c,
+                   src/cbits/GTK/PopUp.c,
+                   src/cbits/GTK/Window.c,
+                   src/cbits/GTK/DateEntry.c,
+                   src/cbits/GTK/ProgressBar.c,
+                   src/cbits/GTK/EditBox.c,
+                   src/cbits/GTK/RadioBox.c,
+                   src/cbits/GTK/LayoutContainer.c,
+                   src/cbits/GTK/gtkdropdownbutton.c,
+                   src/cbits/GTK/gtkdropdowntoolbutton.c
+        include-dirs: src/cbits/GTK
+        pkgconfig-depends: gtk+-2.0, pango, libgnome-2.0, libgnomeui-2.0, webkit-1.0
+        cc-options: -DGTK_TARGET=1
 
   include-dirs: src/include, src/Graphics/UI/Port/
 

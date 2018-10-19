@@ -129,6 +129,7 @@ import Foreign.C
 import Foreign.Marshal.Alloc
 import Control.Exception( bracket )
 import Data.Bits
+import Data.Char
 import Graphics.UI.Port.Colors
 
 {-----------------------------------------------------------------------------------------
@@ -1144,24 +1145,38 @@ resultCStrings io
   = bracket io free peekCStrings
 
 
+#ifdef WINE_TARGET
+type PortString = Ptr Int16
+#else
 #ifdef WIN32_TARGET
 type PortString = CWString
 #else
 type PortString = CString
 #endif
+#endif
 
 newPortString :: String -> IO PortString
+#ifdef WINE_TARGET
+newPortString  = newArray0 0 . charsToCWINEchars
+#else
 #ifdef WIN32_TARGET
 newPortString = newCWString
 #else
 newPortString = newCString
 #endif
+#endif
 
 withPortString :: String -> (PortString -> IO a) -> IO a
+#ifdef WINE_TARGET
+-- with Wine wchar_t is 16 bits even on Linux so we need our 
+-- own implementation
+withPortString  = withArray0 0 . charsToCWINEchars
+#else
 #ifdef WIN32_TARGET
 withPortString = withCWString
 #else
 withPortString = withCString
+#endif
 #endif
 
 -- | Convert and free a c-string.
@@ -1170,8 +1185,34 @@ resultPortString io
   = bracket io free safePeekPortString
   where
     safePeekPortString ptr | ptr == nullPtr = return ""
+#ifdef WINE_TARGET
+                           | otherwise      = do cs <- peekArray0 0 ptr
+                                                 return (cWINEcharsToChars cs)                                               
+#else
 #ifdef WIN32_TARGET
                            | otherwise      = peekCWString ptr
 #else
                            | otherwise      = peekCString ptr
+#endif
+#endif
+
+#ifdef WINE_TARGET
+charsToCWINEchars :: [Char] -> [Int16]
+charsToCWINEchars = foldr utf16Char [] . map ord
+ where
+  utf16Char c wcs
+    | c < 0x10000 = fromIntegral c : wcs
+    | otherwise   = let c' = c - 0x10000 in
+                    fromIntegral (c' `div` 0x400 + 0xd800) :
+                    fromIntegral (c' `mod` 0x400 + 0xdc00) : wcs
+  
+-- coding errors generate Chars in the surrogate range
+cWINEcharsToChars :: [Int16] -> [Char]
+cWINEcharsToChars = map chr . fromUTF16 . map fromIntegral
+ where
+  fromUTF16 (c1:c2:wcs)
+    | 0xd800 <= c1 && c1 <= 0xdbff && 0xdc00 <= c2 && c2 <= 0xdfff =
+      ((c1 - 0xd800)*0x400 + (c2 - 0xdc00) + 0x10000) : fromUTF16 wcs
+  fromUTF16 (c:wcs) = c : fromUTF16 wcs
+  fromUTF16 [] = []
 #endif

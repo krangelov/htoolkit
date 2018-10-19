@@ -235,19 +235,19 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
             HWND hCtrl = (HWND) lParam;
 
             GetClassName(hCtrl,buffer,sizeof(buffer));
-            if (_stricmp(buffer, "ComboBox") == 0)
+            if (strcmp(buffer, "ComboBox") == 0)
             {
                 if (HIWORD(wParam) == CBN_SELENDOK)
                     handleControlCommand(hCtrl);
             }
             else
-                if (_stricmp(buffer, "ListBox") == 0)
+                if (strcmp(buffer, "ListBox") == 0)
                 {
                     if (HIWORD(wParam) == LBN_SELCHANGE)
                         handleControlCommand(hCtrl);
                 }
                 else
-                    if (_stricmp(buffer, "Button") == 0)
+                    if (strcmp(buffer, "Button") == 0)
                     {
                     	if ((GetWindowLong(hCtrl, GWL_STYLE) & BS_AUTORADIOBUTTON) == BS_AUTORADIOBUTTON)
                     	{
@@ -728,7 +728,7 @@ LRESULT CALLBACK HSDIWindowFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 					SetWindowTextW(ghWndFrame, pFrameData->lpszAppName);
 			}
 			else
-				SetWindowTextW(ghWndFrame, s ? s : "");
+				SetWindowTextW(ghWndFrame, s ? s : L"");
 		}
 		break;
 	case WM_LBUTTONDOWN:
@@ -991,7 +991,7 @@ void osSetWindowViewSize(WindowHandle window, int w, int h)
     RECT crect, wrect;
 
     GetClassName(window,buffer,sizeof(buffer));
-	hTargetWnd = (_stricmp(buffer, "HSDIWINDOW") == 0) ? ghWndFrame : window;
+	hTargetWnd = (strcmp(buffer, "HSDIWINDOW") == 0) ? ghWndFrame : window;
 
     GetClientRect(hTargetWnd,&crect);
     GetWindowRect(hTargetWnd,&wrect);
@@ -1263,7 +1263,7 @@ void osMoveResizeControl(WindowHandle ctrl, int x, int y, int w, int h)
     WindowData *pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
 
     GetClassName(ctrl,buffer,sizeof(buffer));
-    if (_stricmp(buffer, "ComboBox") == 0) h = 150;
+    if (strcmp(buffer, "ComboBox") == 0) h = 150;
 
     MoveWindow(ctrl,x-pData->Origin.x,y-pData->Origin.y,w,h,TRUE);
     InvalidateRect(ctrl,NULL,TRUE);
@@ -1454,7 +1454,7 @@ void osSetWindowPosition(WindowHandle window, int position, int x0, int y0, int 
 
 	GetClassName(window,buffer,sizeof(buffer));
 
-	if (_stricmp(buffer, "HSDIWINDOW") == 0)
+	if (strcmp(buffer, "HSDIWINDOW") == 0)
 	{
 		POINT pos;
 		SIZE sz;
@@ -1549,9 +1549,9 @@ void osReLayoutContainer(WindowHandle window)
 	char buffer[20];
 	GetClassName(window,buffer,sizeof(buffer));
 
-	if (_stricmp(buffer, "HNOTEBOOK")     == 0 ||
-		_stricmp(buffer, "HNOTEBOOKPAGE") == 0 ||
-		_stricmp(buffer, "HGROUPBOX")     == 0)
+	if (strcmp(buffer, "HNOTEBOOK")     == 0 ||
+		strcmp(buffer, "HNOTEBOOKPAGE") == 0 ||
+		strcmp(buffer, "HGROUPBOX")     == 0)
 	{
 		osForceContainerReLayout(window);
 	}
@@ -1568,9 +1568,9 @@ void osForceContainerReLayout(HWND hCtrl)
 		hWnd = GetParent(hWnd);
 		GetClassName(hWnd,buffer,sizeof(buffer));
 
-		if (_stricmp(buffer, "HNOTEBOOK") != 0 &&
-		    _stricmp(buffer, "HNOTEBOOKPAGE") != 0 &&
-		    _stricmp(buffer, "HGROUPBOX") != 0)
+		if (strcmp(buffer, "HNOTEBOOK") != 0 &&
+		    strcmp(buffer, "HNOTEBOOKPAGE") != 0 &&
+		    strcmp(buffer, "HGROUPBOX") != 0)
 		{
 			handleContainerReLayout(hWnd);
 			break;
