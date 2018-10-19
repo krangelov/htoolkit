@@ -1,9 +1,9 @@
 #include "ConfigKey.h"
 #include "Internals.h"
 
-static HKEY openKey(char *szName, char **pszValueName)
+static HKEY openKey(PortString szName, PortString *pszValueName)
 {
-	char *s;
+	PortString s;
 	FrameData *pFrameData;
 	HKEY hSoftwareKey, hAppKey, hKey;
 
@@ -22,10 +22,10 @@ static HKEY openKey(char *szName, char **pszValueName)
 		s++;
 	}
 
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_READ, &hSoftwareKey) != ERROR_SUCCESS)
+	if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software", 0, KEY_READ, &hSoftwareKey) != ERROR_SUCCESS)
 		return NULL;
 
-	if (RegCreateKeyEx(hSoftwareKey, pFrameData->lpszAppName, 0, 0, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hAppKey, NULL)!= ERROR_SUCCESS)
+	if (RegCreateKeyExW(hSoftwareKey, pFrameData->lpszAppName, 0, 0, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hAppKey, NULL)!= ERROR_SUCCESS)
 		return NULL;
 
 	if (*pszValueName == szName)
@@ -33,7 +33,7 @@ static HKEY openKey(char *szName, char **pszValueName)
 	else
 	{
 		(*pszValueName)[-1] = 0;
-		if (RegCreateKeyEx(hAppKey, szName, 0, 0, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hKey, NULL) != ERROR_SUCCESS)
+		if (RegCreateKeyExW(hAppKey, szName, 0, 0, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hKey, NULL) != ERROR_SUCCESS)
 			return NULL;
 
 		RegCloseKey(hAppKey);
@@ -44,66 +44,66 @@ static HKEY openKey(char *szName, char **pszValueName)
 	return hKey;
 }
 
-char *osGetConfigStringKey(char *szName, char *defvalue)
+PortString osGetConfigStringKey(PortString szName, PortString defvalue)
 {
 	HKEY hKey;
 	DWORD dwType, dwLength;
-	char *szValue, *szValueName;
+	PortString szValue, szValueName;
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
-		return strdup(defvalue);
+		return wcsdup(defvalue);
 
-	if (RegQueryValueEx(hKey, szValueName, NULL, &dwType, NULL, &dwLength) != ERROR_SUCCESS)
+	if (RegQueryValueExW(hKey, szValueName, NULL, &dwType, NULL, &dwLength) != ERROR_SUCCESS)
 	{
 		RegCloseKey(hKey);
-		return strdup(defvalue);
+		return wcsdup(defvalue);
 	}
 
 	if (dwType != REG_SZ && dwType != REG_EXPAND_SZ)
 	{
 		RegCloseKey(hKey);
-		return strdup(defvalue);
+		return wcsdup(defvalue);
 	}
 
-	szValue = malloc(dwLength);
-	if (RegQueryValueEx(hKey, szValueName, NULL, &dwType, szValue, &dwLength) != ERROR_SUCCESS)
+	szValue = malloc(sizeof(wchar_t)*(dwLength+1));
+	if (RegQueryValueExW(hKey, szValueName, NULL, &dwType, (LPBYTE) szValue, &dwLength) != ERROR_SUCCESS)
 	{
 		RegCloseKey(hKey);
 		free(szValue);
-		return strdup(defvalue);
+		return wcsdup(defvalue);
 	}
 
 	RegCloseKey(hKey);
 	return szValue;
 }
 
-void osSetConfigStringKey(char *szName, char *szValue)
+void osSetConfigStringKey(PortString szName, PortString szValue)
 {
 	HKEY hKey;
-	char *szValueName;
+	PortString szValueName;
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
 		return;
 
-	RegSetValueEx(hKey, szValueName, 0, REG_SZ, szValue, strlen(szValue)+1);
+	RegSetValueExW(hKey, szValueName, 0, REG_SZ, (LPBYTE) szValue, wcslen(szValue)+1);
 
 	RegCloseKey(hKey);
 }
 
-int osGetConfigIntKey(char *szName, int defvalue)
+int osGetConfigIntKey(PortString szName, int defvalue)
 {
 	HKEY hKey;
 	DWORD dwType, dwLength, dwValue;
-	char *szValueName;
+	PortString szValueName;
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
 		return defvalue;
 
 	dwLength = sizeof(DWORD);
-	if (RegQueryValueEx(hKey, szValueName, NULL, &dwType, (LPBYTE) &dwValue, &dwLength) != ERROR_SUCCESS)
+	if (RegQueryValueExW(hKey, szValueName, NULL, &dwType, (LPBYTE) &dwValue, &dwLength) != ERROR_SUCCESS)
 	{
 		RegCloseKey(hKey);
 		return defvalue;
@@ -119,25 +119,25 @@ int osGetConfigIntKey(char *szName, int defvalue)
 	return dwValue;
 }
 
-void osSetConfigIntKey(char *szName, int nValue)
+void osSetConfigIntKey(PortString szName, int nValue)
 {
 	HKEY hKey;
-	char *szValueName;
+	PortString szValueName;
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
 		return;
 
-	RegSetValueEx(hKey, szValueName, 0, REG_DWORD, (LPBYTE) &nValue, sizeof(nValue));
+	RegSetValueExW(hKey, szValueName, 0, REG_DWORD, (LPBYTE) &nValue, sizeof(nValue));
 
 	RegCloseKey(hKey);
 }
 
-double osGetConfigDoubleKey(char *szName, double defvalue)
+double osGetConfigDoubleKey(PortString szName, double defvalue)
 {
 	HKEY hKey;
 	DWORD dwType, dwLength;
-	char *szValueName;
+	PortString szValueName;
 	char buffer[64];
 
 	hKey = openKey(szName, &szValueName);
@@ -145,7 +145,7 @@ double osGetConfigDoubleKey(char *szName, double defvalue)
 		return defvalue;
 
 	dwLength = sizeof(buffer);
-	if (RegQueryValueEx(hKey, szValueName, NULL, &dwType, buffer, &dwLength) != ERROR_SUCCESS)
+	if (RegQueryValueExW(hKey, szValueName, NULL, &dwType, buffer, &dwLength) != ERROR_SUCCESS)
 	{
 		RegCloseKey(hKey);
 		return defvalue;
@@ -161,34 +161,34 @@ double osGetConfigDoubleKey(char *szName, double defvalue)
 	return atof(buffer);
 }
 
-void osSetConfigDoubleKey(char *szName, double dValue)
+void osSetConfigDoubleKey(PortString szName, double dValue)
 {
 	HKEY hKey;
-	char *szValueName;
-	char buffer[64];
+	PortString szValueName;
+	wchar_t buffer[64];
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
 		return;
 
 	sprintf(buffer, "%f", dValue);
-	RegSetValueEx(hKey, szValueName, 0, REG_SZ, buffer, strlen(buffer)+1);
+	RegSetValueExW(hKey, szValueName, 0, REG_SZ, (LPBYTE) buffer, wcslen(buffer)+1);
 
 	RegCloseKey(hKey);
 }
 
-BOOL osGetConfigBoolKey(char *szName, BOOL defvalue)
+BOOL osGetConfigBoolKey(PortString szName, BOOL defvalue)
 {
 	HKEY hKey;
 	DWORD dwType, dwLength, dwValue;
-	char *szValueName;
+	PortString szValueName;
 
 	hKey = openKey(szName, &szValueName);
 	if (!hKey)
 		return defvalue;
 
 	dwLength = sizeof(DWORD);
-	if (RegQueryValueEx(hKey, szValueName, NULL, &dwType, (LPBYTE) &dwValue, &dwLength) != ERROR_SUCCESS)
+	if (RegQueryValueExW(hKey, szValueName, NULL, &dwType, (LPBYTE) &dwValue, &dwLength) != ERROR_SUCCESS)
 	{
 		RegCloseKey(hKey);
 		return defvalue;
@@ -204,10 +204,10 @@ BOOL osGetConfigBoolKey(char *szName, BOOL defvalue)
 	return (dwValue != 0);
 }
 
-void osSetConfigBoolKey(char *szName, BOOL bValue)
+void osSetConfigBoolKey(PortString szName, BOOL bValue)
 {
 	HKEY hKey;
-	char *szValueName;
+	PortString szValueName;
 	DWORD dwValue;
 
 	hKey = openKey(szName, &szValueName);
@@ -215,7 +215,7 @@ void osSetConfigBoolKey(char *szName, BOOL bValue)
 		return;
 
 	dwValue = bValue ? 1 : 0;
-	RegSetValueEx(hKey, szValueName, 0, REG_DWORD, (LPBYTE) &dwValue, sizeof(dwValue));
+	RegSetValueExW(hKey, szValueName, 0, REG_DWORD, (LPBYTE) &dwValue, sizeof(dwValue));
 
 	RegCloseKey(hKey);
 }

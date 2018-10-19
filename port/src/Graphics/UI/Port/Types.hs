@@ -121,7 +121,7 @@ module Graphics.UI.Port.Types
             , CBool, fromCBool, toCBool
             , fromCChar, toCChar
             , withCStrings, peekCStrings, resultCString, resultCStrings
-            , PortString, newPortString, withPortString, resultPortString
+            , PortString, newPortString, withPortString, peekPortString, resultPortString
             ) where
 
 import Foreign
@@ -1179,22 +1179,26 @@ withPortString = withCString
 #endif
 #endif
 
+peekPortString :: PortString -> IO String
+#ifdef WINE_TARGET
+peekPortString ptr = do cs <- peekArray0 0 ptr
+                        return (cWINEcharsToChars cs)                                               
+#else
+#ifdef WIN32_TARGET
+peekPortString = peekCWString ptr
+#else
+peekPortString = peekCString ptr
+#endif
+#endif
+
 -- | Convert and free a c-string.
 resultPortString :: IO PortString -> IO String
 resultPortString io
   = bracket io free safePeekPortString
   where
     safePeekPortString ptr | ptr == nullPtr = return ""
-#ifdef WINE_TARGET
-                           | otherwise      = do cs <- peekArray0 0 ptr
-                                                 return (cWINEcharsToChars cs)                                               
-#else
-#ifdef WIN32_TARGET
-                           | otherwise      = peekCWString ptr
-#else
-                           | otherwise      = peekCString ptr
-#endif
-#endif
+                           | otherwise      = peekPortString ptr
+
 
 #ifdef WINE_TARGET
 charsToCWINEchars :: [Char] -> [Int16]

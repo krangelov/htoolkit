@@ -15,6 +15,7 @@ module Graphics.UI.Port.ConfigKey
 
 import Foreign
 import Foreign.C
+import Graphics.UI.Port.Types
 
 -----------------------------------------------------------------------------------------
 -- ConfigKey class definition
@@ -32,24 +33,24 @@ class ConfigKey a where
 
 instance ConfigKey String where
   setConfigKey name value =
-    (withCString name  $ \cname ->
-     withCString value $ \cvalue ->
+    (withPortString name  $ \cname ->
+     withPortString value $ \cvalue ->
        osSetConfigStringKey cname cvalue)
   
   getConfigKey name = getConfigKeyDef name ""
   
   getConfigKeyDef name defvalue =
-    (withCString name $ \cname -> do
+    (withPortString name $ \cname -> do
        ptr <- osGetConfigStringKey cname nullPtr
        (if ptr == nullPtr 
           then return defvalue
           else do
-                value <- peekCString ptr
+                value <- peekPortString ptr
                 free ptr
                 return value))
 
-foreign import ccall osGetConfigStringKey :: CString -> CString -> IO CString
-foreign import ccall osSetConfigStringKey :: CString -> CString -> IO ()
+foreign import ccall osGetConfigStringKey :: PortString -> PortString -> IO PortString
+foreign import ccall osSetConfigStringKey :: PortString -> PortString -> IO ()
 
 
 -----------------------------------------------------------------------------------------
@@ -58,15 +59,15 @@ foreign import ccall osSetConfigStringKey :: CString -> CString -> IO ()
 
 instance ConfigKey Int where
   setConfigKey name value =
-    withCString name (\cname -> osSetConfigIntKey cname value)
+    withPortString name (\cname -> osSetConfigIntKey cname value)
 
   getConfigKey name = getConfigKeyDef name 0
 
   getConfigKeyDef name defvalue =
-    withCString name (\cname -> osGetConfigIntKey cname defvalue)
+    withPortString name (\cname -> osGetConfigIntKey cname defvalue)
 
-foreign import ccall osGetConfigIntKey :: CString -> Int -> IO Int
-foreign import ccall osSetConfigIntKey :: CString -> Int -> IO ()
+foreign import ccall osGetConfigIntKey :: PortString -> Int -> IO Int
+foreign import ccall osSetConfigIntKey :: PortString -> Int -> IO ()
 
 
 -----------------------------------------------------------------------------------------
@@ -75,15 +76,15 @@ foreign import ccall osSetConfigIntKey :: CString -> Int -> IO ()
 
 instance ConfigKey Double where
   setConfigKey name value =
-    withCString name (\cname -> osSetConfigDoubleKey cname value)
+    withPortString name (\cname -> osSetConfigDoubleKey cname value)
 
   getConfigKey name = getConfigKeyDef name 0.0
 
   getConfigKeyDef name defvalue =
-    withCString name (\cname -> osGetConfigDoubleKey cname defvalue)
+    withPortString name (\cname -> osGetConfigDoubleKey cname defvalue)
 
-foreign import ccall osGetConfigDoubleKey :: CString -> Double -> IO Double
-foreign import ccall osSetConfigDoubleKey :: CString -> Double -> IO ()
+foreign import ccall osGetConfigDoubleKey :: PortString -> Double -> IO Double
+foreign import ccall osSetConfigDoubleKey :: PortString -> Double -> IO ()
 
 
 -----------------------------------------------------------------------------------------
@@ -92,12 +93,12 @@ foreign import ccall osSetConfigDoubleKey :: CString -> Double -> IO ()
 
 instance ConfigKey Bool where
   setConfigKey name value =
-    withCString name (\cname -> osSetConfigBoolKey cname value)
+    withPortString name (\cname -> osSetConfigBoolKey cname value)
 
   getConfigKey name = getConfigKeyDef name False
 
   getConfigKeyDef name defvalue =
-    withCString name (\cname -> osGetConfigBoolKey cname defvalue)
+    withPortString name (\cname -> osGetConfigBoolKey cname defvalue)
 
-foreign import ccall osGetConfigBoolKey :: CString -> Bool -> IO Bool
-foreign import ccall osSetConfigBoolKey :: CString -> Bool -> IO ()
+foreign import ccall osGetConfigBoolKey :: PortString -> Bool -> IO Bool
+foreign import ccall osSetConfigBoolKey :: PortString -> Bool -> IO ()

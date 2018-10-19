@@ -205,10 +205,10 @@ __wine_spec_file_name:
 	.quad .L__wine_spec_import_data_gdi32_dll_TextOutA-.L__wine_spec_rva_base
 	.quad 0
 	.quad .L__wine_spec_import_data_advapi32_dll_RegCloseKey-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_advapi32_dll_RegCreateKeyExA-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_advapi32_dll_RegOpenKeyExA-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_advapi32_dll_RegQueryValueExA-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_advapi32_dll_RegSetValueExA-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_advapi32_dll_RegCreateKeyExW-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_advapi32_dll_RegOpenKeyExW-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_advapi32_dll_RegQueryValueExW-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_advapi32_dll_RegSetValueExW-.L__wine_spec_rva_base
 	.quad 0
 	.quad .L__wine_spec_import_data_user32_dll_AdjustWindowRect-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_AdjustWindowRectEx-.L__wine_spec_rva_base
@@ -912,21 +912,21 @@ __wine_spec_file_name:
 	.short 348
 	.string "RegCloseKey"
 	.align 2
-.L__wine_spec_import_data_advapi32_dll_RegCreateKeyExA:
-	.short 352
-	.string "RegCreateKeyExA"
+.L__wine_spec_import_data_advapi32_dll_RegCreateKeyExW:
+	.short 353
+	.string "RegCreateKeyExW"
 	.align 2
-.L__wine_spec_import_data_advapi32_dll_RegOpenKeyExA:
-	.short 382
-	.string "RegOpenKeyExA"
+.L__wine_spec_import_data_advapi32_dll_RegOpenKeyExW:
+	.short 383
+	.string "RegOpenKeyExW"
 	.align 2
-.L__wine_spec_import_data_advapi32_dll_RegQueryValueExA:
-	.short 392
-	.string "RegQueryValueExA"
+.L__wine_spec_import_data_advapi32_dll_RegQueryValueExW:
+	.short 393
+	.string "RegQueryValueExW"
 	.align 2
-.L__wine_spec_import_data_advapi32_dll_RegSetValueExA:
-	.short 404
-	.string "RegSetValueExA"
+.L__wine_spec_import_data_advapi32_dll_RegSetValueExW:
+	.short 405
+	.string "RegSetValueExW"
 	.align 2
 .L__wine_spec_import_data_user32_dll_AdjustWindowRect:
 	.short 2
@@ -2096,36 +2096,36 @@ RegCloseKey:
 	.size RegCloseKey, .-RegCloseKey
 
 	.align 4
-	.type RegCreateKeyExA,@function
-	.globl RegCreateKeyExA
-	.hidden RegCreateKeyExA
-RegCreateKeyExA:
+	.type RegCreateKeyExW,@function
+	.globl RegCreateKeyExW
+	.hidden RegCreateKeyExW
+RegCreateKeyExW:
 	jmpq *.L__wine_spec_import_data_ptrs+640(%rip)
-	.size RegCreateKeyExA, .-RegCreateKeyExA
+	.size RegCreateKeyExW, .-RegCreateKeyExW
 
 	.align 4
-	.type RegOpenKeyExA,@function
-	.globl RegOpenKeyExA
-	.hidden RegOpenKeyExA
-RegOpenKeyExA:
+	.type RegOpenKeyExW,@function
+	.globl RegOpenKeyExW
+	.hidden RegOpenKeyExW
+RegOpenKeyExW:
 	jmpq *.L__wine_spec_import_data_ptrs+648(%rip)
-	.size RegOpenKeyExA, .-RegOpenKeyExA
+	.size RegOpenKeyExW, .-RegOpenKeyExW
 
 	.align 4
-	.type RegQueryValueExA,@function
-	.globl RegQueryValueExA
-	.hidden RegQueryValueExA
-RegQueryValueExA:
+	.type RegQueryValueExW,@function
+	.globl RegQueryValueExW
+	.hidden RegQueryValueExW
+RegQueryValueExW:
 	jmpq *.L__wine_spec_import_data_ptrs+656(%rip)
-	.size RegQueryValueExA, .-RegQueryValueExA
+	.size RegQueryValueExW, .-RegQueryValueExW
 
 	.align 4
-	.type RegSetValueExA,@function
-	.globl RegSetValueExA
-	.hidden RegSetValueExA
-RegSetValueExA:
+	.type RegSetValueExW,@function
+	.globl RegSetValueExW
+	.hidden RegSetValueExW
+RegSetValueExW:
 	jmpq *.L__wine_spec_import_data_ptrs+664(%rip)
-	.size RegSetValueExA, .-RegSetValueExA
+	.size RegSetValueExW, .-RegSetValueExW
 
 	.align 4
 	.type AdjustWindowRect,@function
