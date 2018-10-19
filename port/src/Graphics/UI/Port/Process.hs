@@ -36,8 +36,8 @@ start :: String             -- ^ Application title. Under Windows and Gnome this
       -> IO ()              -- ^ Startup action
       -> IO ()
 start name version di io =
-  withCString name    $ \cname    ->
-  withCString version $ \cversion -> do
+  withPortString name    $ \cname    ->
+  withPortString version $ \cversion -> do
     setProcessDismissHandler (quit >> return ())
     fptr_io <- wrapIO io
     osStart cname cversion (toCDocumentInterface di) fptr_io
@@ -65,5 +65,5 @@ halt = do
 foreign import ccall "wrapper"
   wrapIO :: IO () -> IO (FunPtr (IO ()))
 
-foreign import ccall "osStart" osStart :: CString -> CString -> CInt -> FunPtr (IO ()) -> IO ()
+foreign import ccall "osStart" osStart :: PortString -> PortString -> CInt -> FunPtr (IO ()) -> IO ()
 foreign import ccall osQuit :: IO ()
