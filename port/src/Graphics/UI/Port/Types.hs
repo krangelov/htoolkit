@@ -1185,9 +1185,9 @@ peekPortString ptr = do cs <- peekArray0 0 ptr
                         return (cWINEcharsToChars cs)                                               
 #else
 #ifdef WIN32_TARGET
-peekPortString = peekCWString ptr
+peekPortString = peekCWString
 #else
-peekPortString = peekCString ptr
+peekPortString = peekCString
 #endif
 #endif
 
