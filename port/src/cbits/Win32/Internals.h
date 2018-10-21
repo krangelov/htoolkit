@@ -93,15 +93,16 @@ pscpy(PortString s1, PortString s2);
 
 void
 pscat(PortString s1, PortString s2);
+
+void
+ftops(double f, WCHAR *szOutput);
 #else
 #define pslen wcslen
 #define psdup wcsdup
 #define pscmp wcscmp
 #define pscpy wcscpy
 #define pscat wcscat
+#define ftops(f,szOutput) wsprintfW(szOutput, L"%f", f);
 #endif
-
-void
-ftops(double f, WCHAR *szOutput);
 
 #endif
