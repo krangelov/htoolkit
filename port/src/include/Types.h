@@ -30,7 +30,7 @@ typedef LPWSTR PortString;
 
 typedef HWND WindowHandle;
 
-typedef struct _PortRecord* RowHandle;
+typedef HTREEITEM RowHandle;
 
 typedef struct
 {
@@ -187,7 +187,8 @@ typedef NSToolbarItem *ToolHandle;
 
 typedef NSActionHandle *ActionHandle;
 
-typedef NSStatusItem *IndicatorHandle;
+// typedef NSStatusItem *IndicatorHandle;
+typedef void *IndicatorHandle;
 
 typedef void *PolygonHandle;
 

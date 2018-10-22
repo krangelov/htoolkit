@@ -136,7 +136,7 @@ mkDataNames (dll,fs) = map mkDataName fs ++ ["\t"++ptr++" 0"]
       "\t"++ptr++" .L__wine_spec_import_data_"++dll++"_dll_"++f++"-.L__wine_spec_rva_base"
 
 mkTable fns =
-  let count = length fns+sum (map (length . snd) fns)
+  let count = sum (map ((+1) . length . snd) fns)
   in [".L__wine_spec_import_data_ptrs:"]++
      replicate count ("\t"++ptr++" 0")++
      [".L__wine_spec_imports_end:"]
@@ -216,6 +216,7 @@ importedFunctions =
                 ,"ExcludeClipRect"
                 ,"ExtCreatePen"
                 ,"ExtTextOutA"
+                ,"ExtTextOutW"
                 ,"FillRgn"
                 ,"GetBkColor"
                 ,"GetClipBox"
@@ -295,6 +296,7 @@ importedFunctions =
                 ,"DrawFrameControl"
                 ,"DrawMenuBar"
                 ,"DrawTextA"
+                ,"DrawTextW"
                 ,"EnableMenuItem"
                 ,"EnableWindow"
                 ,"EndDialog"

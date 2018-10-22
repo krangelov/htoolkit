@@ -41,6 +41,7 @@ extern LRESULT CALLBACK HGroupBoxFunction(HWND hWnd, UINT uMsg, WPARAM wParam, L
 extern LRESULT CALLBACK HCheckListBoxFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern LRESULT CALLBACK HEditFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+extern LRESULT CALLBACK HTreeListFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern WNDPROC DefToolBarProc;
 extern WNDPROC DefTabCtrlProc;
@@ -270,6 +271,18 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 		wc.style         = CS_DBLCLKS;
 		wc.lpfnWndProc   = HEditFunction;
 		wc.lpszClassName = L"HEDIT";
+		RegisterClassW(&wc);
+
+		wc.style		= CS_DBLCLKS;
+		wc.lpfnWndProc	= HTreeListFunction;
+		wc.cbClsExtra	= 0;
+		wc.cbWndExtra	= sizeof(void*);
+		wc.hInstance	= NULL;
+		wc.hIcon		= NULL;
+		wc.hCursor		= LoadCursor(NULL,IDC_ARROW);
+		wc.hbrBackground= NULL;
+		wc.lpszMenuName	= NULL;
+		wc.lpszClassName= L"HTreeList";
 		RegisterClassW(&wc);
 
 		icc.dwSize = sizeof(icc);

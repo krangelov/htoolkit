@@ -271,15 +271,29 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
     	{
     		NMHDR *pNMHDR = (NMHDR *) lParam;
 
-			if (pNMHDR->code == UDN_DELTAPOS)
-			{
+			if (pNMHDR->code == UDN_DELTAPOS) {
 				if (((LPNM_UPDOWN)pNMHDR)->iDelta < 0)
 					handleTrackBarIncrement(pNMHDR->hwndFrom);
 				else
 					handleTrackBarDecrement(pNMHDR->hwndFrom);
-			}
-			else
-			{
+			} else if (pNMHDR->code == TVN_GETDISPINFO) {
+				PortString s;
+				NMTVDISPINFOW* pInfo = (NMHDR *) lParam;
+
+				int col = 0;
+				if (pInfo->item.mask & 0x8000)
+					col = pInfo->item.cChildren;
+
+				if (handleTreeViewGetter(pInfo->hdr.hwndFrom, pInfo->item.hItem, col, &s)) {
+					if (pslen(s) > pInfo->item.cchTextMax) {
+						s[pInfo->item.cchTextMax] = 0;
+					}
+					pscpy(pInfo->item.pszText, s);
+					free(s);
+				} else {
+					pInfo->item.pszText[0] = 0;
+				}
+			} else {
 				if (pNMHDR->hwndFrom != hWnd)
 					SendMessage(pNMHDR->hwndFrom, uMsg, wParam, lParam);
 			}
