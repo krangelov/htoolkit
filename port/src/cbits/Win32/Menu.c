@@ -33,7 +33,7 @@ MenuHandle osCreatePopupMenu()
 	MenuHandle handle;
 	FrameData *pFrameData;
 
-	pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	handle = newMenuHandle(pFrameData->pActionsMap, NULL, -1, MENU_POPUP, NULL);
 
 	if (handle)
@@ -60,7 +60,7 @@ MenuHandle osInsertMenu(MenuHandle parent, int pos)
 
 	CHECK_MENU_TYPE(parent, MENU_SUBMENU | MENU_POPUP, NULL);
 
-	pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	handle = newMenuHandle(pFrameData->pActionsMap, parent, pos, MENU_SUBMENU, NULL);
 
 	if (handle)
@@ -83,7 +83,7 @@ MenuHandle osInsertMenuItem(ActionHandle action, MenuHandle parent, int pos)
 
 	CHECK_MENU_TYPE(parent, MENU_SUBMENU | MENU_POPUP, NULL);
 
-	pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	mii.cbSize = sizeof(mii);
 	mii.fMask  = MIIM_ID | MIIM_STATE | MIIM_TYPE;
@@ -125,7 +125,7 @@ MenuHandle osInsertMenuSeparatorItem(MenuHandle parent, int pos)
 
 	CHECK_MENU_TYPE(parent, MENU_SUBMENU | MENU_POPUP, NULL);
 
-	pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	handle = newMenuHandle(pFrameData->pActionsMap, parent, pos, MENU_SEPARATOR, NULL);
 
 	if (handle)
@@ -139,7 +139,7 @@ MenuHandle osInsertMenuSeparatorItem(MenuHandle parent, int pos)
 
 void osDestroyMenu(MenuHandle handle)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	while (handle->children)
 		osDestroyMenu(handle->children);
@@ -161,7 +161,7 @@ int osGetMenuItemCount(MenuHandle handle)
 
 	CHECK_MENU_TYPE(handle, MENU_SUBMENU | MENU_POPUP, 0);
 
-	pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	return getChildrenCount(pFrameData->pActionsMap, handle);
 }
@@ -174,7 +174,7 @@ void osSetMenuItemEnabled(MenuHandle handle, BOOL bState)
 
 		CHECK_MENU_TYPE_V(handle, MENU_RADIO_ITEM | MENU_CHECK_ITEM | MENU_ITEM | MENU_SUBMENU);
 
-		pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+		pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 		EnableMenuItem(getParentHMENU(handle), getMenuPos(pFrameData->pActionsMap, handle), (bState ? MF_ENABLED : MF_GRAYED) | MF_BYPOSITION);
 		updateMenuBar(handle->parent);
@@ -190,7 +190,7 @@ BOOL osGetMenuItemEnabled(MenuHandle handle)
 
 		CHECK_MENU_TYPE(handle, MENU_RADIO_ITEM | MENU_CHECK_ITEM | MENU_ITEM | MENU_SUBMENU, FALSE);
 
-		pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+		pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 		mii.cbSize = sizeof(mii);
 		mii.fMask = MIIM_STATE;
@@ -213,7 +213,7 @@ char *osGetMenuLabel(MenuHandle handle)
 
 		CHECK_MENU_TYPE(handle, MENU_SUBMENU | MENU_RADIO_ITEM | MENU_CHECK_ITEM | MENU_ITEM, NULL);
 
-		pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+		pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 		pos = getMenuPos(pFrameData->pActionsMap, handle);
 		hParent = getParentHMENU(handle);
 
@@ -251,7 +251,7 @@ void osSetMenuLabel(MenuHandle handle, char *title)
 
 		CHECK_MENU_TYPE_V(handle, MENU_SUBMENU | MENU_RADIO_ITEM | MENU_CHECK_ITEM | MENU_ITEM);
 
-		pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+		pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 		memset(&mii,0,sizeof(mii));
 		mii.cbSize     = sizeof(mii);
@@ -267,6 +267,6 @@ void osSetMenuLabel(MenuHandle handle, char *title)
 
 int osGetMenuItemPos(MenuHandle handle)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	return getMenuPos(pFrameData->pActionsMap, handle);
 }

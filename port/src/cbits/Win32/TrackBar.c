@@ -38,7 +38,7 @@ WindowHandle osCreateVertTrackBar(WindowHandle form)
 
 void osGetTrackBarReqSize(WindowHandle trackBar, int *res)
 {
-	if (GetWindowLong(trackBar,GWL_STYLE) & UDS_HORZ)
+	if (GetWindowLongPtrW(trackBar,GWL_STYLE) & UDS_HORZ)
 	{
 		res[0] = 20;
 		res[1] = GetSystemMetrics(SM_CYHSCROLL);

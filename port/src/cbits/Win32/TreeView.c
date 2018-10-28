@@ -212,23 +212,6 @@
 #define		TreeList_GetSelectionColumn(h)				((int)TreeView_GetNextItem(h, NULL,  TVGN_CARETSUB))
 #define		TreeList_GetDropHilightColumn(h)			((int)TreeView_GetNextItem(h, NULL,  TVGN_DROPHILITESUB))
 
-
-
-#ifndef	   _WIN64
-#ifndef		SetWindowLongPtr
-#define		SetWindowLongPtr	SetWindowLong
-#endif
-#ifndef		GetWindowLongPtr
-#define		GetWindowLongPtr	GetWindowLong
-#endif
-#ifndef		DWORD_PTR
-#define		DWORD_PTR			DWORD
-#endif
-#ifndef		LONG_PTR
-#define		LONG_PTR			LONG
-#endif
-#endif
-
 #ifndef		WM_MOUSEWHEEL
 #define		WM_MOUSEWHEEL		0x020A
 #endif
@@ -246,7 +229,7 @@
 #define 	FIRST_LINE			0xFFFFFFFE
 #define 	I_CCB				I_CHILDRENCALLBACK
 #define 	U(h)				((size_t)(h))
-#define 	GetHandle(h)		((TreeListData*)GetWindowLongPtr(h,0))
+#define 	GetHandle(h)		((TreeListData*)GetWindowLongPtrW(h,0))
 #define 	TVIF_ALL			(TVIF_CHILDREN|TVIF_HANDLE|TVIF_IMAGE|TVIF_PARAM|TVIF_SELECTEDIMAGE|TVIF_STATE|TVIF_TEXT)
 #define 	UNLOCK(d)			ReleaseSemaphore(d->hSem,1,NULL)
 #define 	LOCK(d)				WaitForSingleObject(d->hSem,INFINITE)
@@ -439,7 +422,7 @@ static void GlobalDeinit()
 static LRESULT SendNotify(TreeListData *pData, NMHDR *pNotify)
 {
 	pNotify->hwndFrom	= pData->hWnd;
-    pNotify->idFrom		= GetWindowLong(pNotify->hwndFrom,GWL_ID);
+    pNotify->idFrom		= GetWindowLongPtrW(pNotify->hwndFrom,GWLP_ID);
 
 	return SendMessage(GetParent(pNotify->hwndFrom),WM_NOTIFY,pNotify->idFrom,(LPARAM)pNotify);
 }
@@ -475,7 +458,7 @@ static void CallbackEntry(TreeListData *pData,BaseItem *pEntry,size_t uItem,unsi
 	}
 
 	sInfo.hdr.hwndFrom	= pData->hWnd;
-    sInfo.hdr.idFrom	= GetWindowLong(pData->hWnd,GWL_ID);
+    sInfo.hdr.idFrom	= GetWindowLongPtrW(pData->hWnd,GWLP_ID);
 	sInfo.hdr.code		= TVN_GETDISPINFO;
 
 	UNLOCK(pData);
@@ -542,7 +525,7 @@ static void CallbackExtra(TreeListData *pData,BaseItem *pEntry,ExtraItem *pExtra
 	}
 
 	sInfo.hdr.hwndFrom	= pData->hWnd;
-    sInfo.hdr.idFrom	= GetWindowLong(pData->hWnd,GWL_ID);
+    sInfo.hdr.idFrom	= GetWindowLongPtrW(pData->hWnd,GWLP_ID);
 	sInfo.hdr.code		= TVN_GETDISPINFO;
 
 	UNLOCK(pData);
@@ -559,7 +542,7 @@ static void CallbackExtra(TreeListData *pData,BaseItem *pEntry,ExtraItem *pExtra
 
 static LRESULT CALLBACK EditProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
-	WNDPROC	pProc = (WNDPROC) GetWindowLongPtr(hWnd,GWL_USERDATA);
+	WNDPROC	pProc = (WNDPROC) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
 	if (uMsg==WM_KEYDOWN) {
 		if (wParam==VK_RETURN) {
@@ -595,7 +578,7 @@ static LRESULT CALLBACK ToolTipProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPa
 	HDC				hDc;
 	int				iLen;
 
-	pData = (TreeListData*)GetWindowLongPtr(hWnd,GWL_USERDATA);
+	pData = (TreeListData*)GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 	pProc = pData->pToolTipProc;
 
 	if(uMsg==WM_PAINT) {
@@ -632,12 +615,11 @@ static void CreateToolTip(TreeListData *pData)
 {
 	if (pData->hToolTip) return;
 
-	pData->hToolTip	    = CreateWindowW(L"STATIC",NULL,WS_POPUP|WS_BORDER|WS_CLIPSIBLINGS,0,0,0,0,pData->hWnd,NULL,NULL,NULL);
-	pData->pToolTipProc = (WNDPROC)GetWindowLongPtr(pData->hToolTip,GWL_WNDPROC);
-
-	SetWindowLongPtr(pData->hToolTip,GWL_USERDATA,(LPARAM)pData);
-	SetWindowLongPtr(pData->hToolTip,GWL_WNDPROC ,(LPARAM)ToolTipProc);
-	SetWindowLong   (pData->hToolTip,GWL_ID,2);
+	pData->hToolTip	    = CreateWindowW(L"STATIC",NULL,WS_POPUP|WS_BORDER|WS_CLIPSIBLINGS,0,0,0,0,pData->hWnd,NULL,ghModule,NULL);
+	pData->pToolTipProc = (WNDPROC)GetWindowLongPtrW(pData->hToolTip,GWLP_WNDPROC);
+	SetWindowLongPtrW(pData->hToolTip,GWLP_USERDATA,(LPARAM)pData);
+	SetWindowLongPtrW(pData->hToolTip,GWLP_WNDPROC ,(LPARAM)ToolTipProc);
+	SetWindowLongPtrW(pData->hToolTip,GWLP_ID,2);
 }
 
 static void CreateStateImageList(TreeListData *pData)
@@ -1065,11 +1047,11 @@ static void UpdateToolTip(TreeListData *pData,size_t uItem,unsigned uFlags)
 
 	pEntry=pData->pTreeItems[uItem];
 
-	if(uFlags&TVHT_ONITEM) {
-		if(pData->uToolTipItem!=uItem || pData->uToolTipSub!=0) {
-			TreeListGetItemRect(pData,uItem,TVIR_GETCOLUMN|TVIR_TEXT,&sRect);
+	if (uFlags & TVHT_ONITEM) {
+		if(pData->uToolTipItem != uItem || pData->uToolTipSub != 0) {
+			TreeListGetItemRect(pData,uItem,TVIR_GETCOLUMN|TVIR_TEXT, &sRect);
 
-			if(sRect.right-sRect.left<=pEntry->iTextPixels+4) {
+			if (sRect.right-sRect.left <= pEntry->iTextPixels+4) {
 				pText	= pEntry->pText;
 				uSize	= pEntry->uTextSize;
 				iPixels	= pEntry->iTextPixels;
@@ -1080,7 +1062,7 @@ static void UpdateToolTip(TreeListData *pData,size_t uItem,unsigned uFlags)
 					CallbackEntry(pData,pEntry,uItem,TVIF_TEXT,&iTemp,&uSize,&pText);
 					hDc=GetDC    (pData->hWnd);
 					SelectObject (hDc,hFont);
-					DrawTextW    (hDc,pText,0,&sRect,DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_CALCRECT);
+					DrawTextW    (hDc,pText,-1,&sRect,DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_CALCRECT);
 					ReleaseDC    (pData->hWnd,hDc);
 					iPixels=sRect.right-sRect.left;
 				}
@@ -1372,7 +1354,7 @@ static void UpdateItems(TreeListData *pData,size_t uItem)
 		UpdateScrollY(pData);
 }
 
-static int UpdateCoumns(TreeListData *pData)
+static int UpdateColumns(TreeListData *pData)
 {
 	HWND		hHeader;
 	RECT		sRect;
@@ -1383,18 +1365,17 @@ static int UpdateCoumns(TreeListData *pData)
 	hHeader = pData->hHeader;
 	pData->iColumnXpos[0] = 0;
 
-	for(uPos=0;uPos<pData->uColumnCount;) {
+	for (uPos=0; uPos<pData->uColumnCount; ) {
 		Header_GetItemRect(hHeader,uPos,&sRect);
 
 		uPos++;
-		sRect.right--;
 		iNum=pData->iColumnXpos[uPos];
 
-		if(iNum==sRect.right)
+		if (iNum == sRect.right)
 			continue;
-		if(iNum==0)iNum=sRect.left;
-		if(iNum>=sRect.right) {
-			if(pData->cColumnAlign[uPos-1]==DT_LEFT)
+		if (iNum == 0) iNum=sRect.left;
+		if (iNum >= sRect.right) {
+			if (pData->cColumnAlign[uPos-1] == DT_LEFT)
 				iRet = sRect.right;
 			else
 				iRet = sRect.left;
@@ -1404,22 +1385,20 @@ static int UpdateCoumns(TreeListData *pData)
 			else
 				iRet = sRect.left;
 
-			if (pData->uSelectedItem)
-				if (pData->uSelectedSub+1==uPos) {
-					UpdateRect(pData,pData->uSelectedItem,pData->uSelectedSub);
-				}
+			if (pData->uSelectedItem && pData->uSelectedSub+1==uPos) {
+				UpdateRect(pData,pData->uSelectedItem,pData->uSelectedSub);
+			}
 
-			if(pData->uTrackedItem)
-				if (pData->uTrackedSub+1==uPos) {
-					UpdateRect(pData,pData->uTrackedItem,pData->uTrackedSub);
-				}
+			if (pData->uTrackedItem  && pData->uTrackedSub+1==uPos) {
+				UpdateRect(pData,pData->uTrackedItem,pData->uTrackedSub);
+			}
 		}
 
 		pData->iColumnXpos[uPos] = sRect.right;
 		break;
 	}
 
-	for (;uPos<pData->uColumnCount;) {
+	for (;uPos < pData->uColumnCount;) {
 		Header_GetItemRect(hHeader,uPos,&sRect);
 
 		uPos++;
@@ -3199,7 +3178,7 @@ static int TreeListDeleteColumn(TreeListData *pData,unsigned uCol)
 		for(uPos=0;uPos<pData->uColumnCount;uPos++) {
 			if(!pData->cColumnVar[uPos])continue;
 			sItem.cxy   = iSize/iNum;
-			Header_SetItem(pData->hHeader,uPos,&sItem);
+			Header_SetItemW(pData->hHeader,uPos,&sItem);
 			iSize	   -= sItem.cxy;
 			iNum	   -= 1;
 		}
@@ -3212,7 +3191,7 @@ static int TreeListDeleteColumn(TreeListData *pData,unsigned uCol)
 		InvalidateRect(pData->hWnd,&sRect,FALSE);
 	}
 
-	iXoff=UpdateCoumns(pData);							
+	iXoff=UpdateColumns(pData);							
 	if (iXoff<0x10000) {
 		sRect.left  = iXoff;
 		sRect.left -= pData->uScrollX;
@@ -3244,7 +3223,7 @@ static int TreeListInsertColumn(TreeListData *pData,int iCol,TVCOLUMNW *pColumn)
 	if (!pData->hHeader) {
 		iYoff = sRect.top+GetSystemMetrics(SM_CYHSCROLL);
 
-		pData->hHeader=CreateWindowW(WC_HEADERW,NULL,WS_VISIBLE|WS_CHILD|HDS_HORZ|HDS_BUTTONS,sRect.left,sRect.top,sRect.right,iYoff,pData->hWnd,NULL,NULL,NULL);
+		pData->hHeader=CreateWindowW(WC_HEADERW,NULL,WS_VISIBLE|WS_CHILD|HDS_HORZ|HDS_BUTTONS,sRect.left,sRect.top,sRect.right,iYoff,pData->hWnd,NULL,ghModule,NULL);
 		if (!pData->hHeader)
 			return -1;
 
@@ -3253,7 +3232,7 @@ static int TreeListInsertColumn(TreeListData *pData,int iCol,TVCOLUMNW *pColumn)
 		InvalidateRect(pData->hWnd,&sRect,FALSE);
 		SendMessage   (pData->hHeader,HDM_SETIMAGELIST,0,(LPARAM)pData->hImages);
 		SendMessage   (pData->hHeader,WM_SETFONT,(WPARAM)hDefaultFontN,0);
-		SetWindowLong (pData->hHeader,GWL_ID,1);
+		SetWindowLongPtrW(pData->hHeader,GWLP_ID,1);
 
 		if (pData->uSizeX<=pData->uStartPixel)
 			pData->uSizeYsub = 0;
@@ -3367,11 +3346,11 @@ static int TreeListInsertColumn(TreeListData *pData,int iCol,TVCOLUMNW *pColumn)
 			if ( uPos==(unsigned)iCol) continue;
 			iNum--;
 			if (!iNum) sItem.cxy+=iAdd;
-			Header_SetItem(pData->hHeader,uPos,&sItem);
+			Header_SetItemW(pData->hHeader,uPos,&sItem);
 		}
 	}
 
-	iXoff=UpdateCoumns(pData);							
+	iXoff=UpdateColumns(pData);							
 	if (iXoff<0x10000) {
 		sRect.left  = iXoff;
 		sRect.left -= pData->uScrollX;
@@ -5360,17 +5339,17 @@ static HWND TreeListEditLabel(TreeListData *pData,size_t uItem,unsigned uSub)
 	if (!pData->hEdit) {
 		switch(uBits&3) {
 		case 1:
-			pData->hEdit=CreateWindowW(L"COMBOBOX",NULL,WS_BORDER|WS_CHILD|ES_AUTOHSCROLL|ES_LEFT|CBS_DROPDOWN,0,0,0,0,pData->hWnd,NULL,NULL,NULL);
+			pData->hEdit=CreateWindowW(L"COMBOBOX",NULL,WS_BORDER|WS_CHILD|ES_AUTOHSCROLL|ES_LEFT|CBS_DROPDOWN,0,0,0,0,pData->hWnd,NULL,ghModule,NULL);
 			pData->uEditMode=1;
 			break;
 
 		case 2:
-			pData->hEdit=CreateWindowW(L"COMBOBOX",NULL,WS_BORDER|WS_CHILD|ES_AUTOHSCROLL|ES_LEFT|CBS_DROPDOWNLIST,0,0,0,0,pData->hWnd,NULL,NULL,NULL);
+			pData->hEdit=CreateWindowW(L"COMBOBOX",NULL,WS_BORDER|WS_CHILD|ES_AUTOHSCROLL|ES_LEFT|CBS_DROPDOWNLIST,0,0,0,0,pData->hWnd,NULL,ghModule,NULL);
 			pData->uEditMode=2;
 			break;
 
 		default:
-			pData->hEdit=CreateWindowW(L"EDIT"    ,NULL,WS_BORDER|WS_CHILD|ES_AUTOHSCROLL|ES_LEFT,0,0,0,0,pData->hWnd,NULL,NULL,NULL);
+			pData->hEdit=CreateWindowW(L"EDIT"    ,NULL,WS_BORDER|WS_CHILD|ES_AUTOHSCROLL|ES_LEFT,0,0,0,0,pData->hWnd,NULL,ghModule,NULL);
 			pData->uEditMode=0;
 			break;
 		}
@@ -5378,18 +5357,18 @@ static HWND TreeListEditLabel(TreeListData *pData,size_t uItem,unsigned uSub)
 		if (!pData->hEdit)
 			return NULL;
 
-		pProc = (WNDPROC)GetWindowLongPtr(pData->hEdit,GWL_WNDPROC);
+		pProc = (WNDPROC)GetWindowLongPtrW(pData->hEdit,GWLP_WNDPROC);
 
-		SetWindowLongPtr(pData->hEdit,GWL_USERDATA,(LPARAM)pProc);
-		SetWindowLongPtr(pData->hEdit,GWL_WNDPROC ,(LPARAM)EditProc);
-		SetWindowLong   (pData->hEdit,GWL_ID,3);
+		SetWindowLongPtrW(pData->hEdit,GWLP_USERDATA,(LPARAM)pProc);
+		SetWindowLongPtrW(pData->hEdit,GWLP_WNDPROC,(LPARAM)EditProc);
+		SetWindowLongPtrW(pData->hEdit,GWLP_ID,3);
 
 		hWnd = GetWindow(pData->hEdit,GW_CHILD);
 				
 		while (hWnd) {
-			pProc = (WNDPROC)GetWindowLongPtr(hWnd,GWL_WNDPROC);
-			SetWindowLongPtr(hWnd,GWL_USERDATA,(LPARAM)pProc);
-			SetWindowLongPtr(hWnd,GWL_WNDPROC ,(LPARAM)EditProc);
+			pProc = (WNDPROC)GetWindowLongPtrW(hWnd,GWLP_WNDPROC);
+			SetWindowLongPtrW(hWnd,GWLP_USERDATA,(LPARAM)pProc);
+			SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LPARAM)EditProc);
 			hWnd = GetNextWindow(hWnd,GW_HWNDNEXT);
 		}
 
@@ -5580,10 +5559,10 @@ LRESULT CALLBACK HTreeListFunction(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPar
 		pData->pItemPos  [0] = 0;
 		pData->pTreeItems[0] = NULL;
 
-		SetWindowLongPtr(hWnd,0,(LONG_PTR)pData);
+		SetWindowLongPtrW(hWnd,0,(LONG_PTR)pData);
 		pData->iIdent		 = DEFAULT_IDENT;
 		pData->iShift		 = DEFAULT_SHIFT;
-		pData->uStyle		 = GetWindowLong(hWnd,GWL_STYLE);
+		pData->uStyle		 = GetWindowLongPtrW(hWnd,GWL_STYLE);
 		pData->hSem			 = CreateSemaphore(0,1,0x70000000,0);
 		pData->hWnd			 = hWnd;
 		pData->cIsEnabled	 = (char)IsWindowEnabled(hWnd);
@@ -5654,7 +5633,7 @@ LRESULT CALLBACK HTreeListFunction(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPar
 				iDelta		= uVal-pData->uSizeX;
 				iNum		= pData->uColumnCountVar;
 
-				for(uPos=0;uPos<pData->uColumnCount;uPos++) {
+				for (uPos=0; uPos < pData->uColumnCount; uPos++) {
 					if (!pData->cColumnVar[uPos])
 						continue;
 
@@ -5663,22 +5642,21 @@ LRESULT CALLBACK HTreeListFunction(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPar
 					iSize	= iOld+iDelta/iNum;
 					uFlag	= 1;
 
-					if (iOld<=16 && iSize<16) {
+					if (iOld <= 16 && iSize < 16) {
 						iNum--;
 						continue;
 					}
 
-					if (uPos) iSize++;
 					if (iSize<16) iSize=16;
 
 					sItem.cxy   = iSize;
-					Header_SetItem(pData->hHeader,uPos,&sItem);
+					Header_SetItemW(pData->hHeader,uPos,&sItem);
 
 					iDelta -= iSize-iOld;
 					iNum--;
 				}
 
-				iNum = UpdateCoumns(pData);
+				iNum = UpdateColumns(pData);
 				GetClientRect(hWnd,&sRect);
 				sRect.left  = iNum;
 				sRect.left -= pData->uScrollX;
@@ -6129,7 +6107,7 @@ LRESULT CALLBACK HTreeListFunction(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPar
 
 		return 0;
 
-	case WM_NOTIFY:											
+	case WM_NOTIFY:
 		if (wParam==1) {
 			NMHEADERW  *pHdr=(NMHEADERW*)lParam;
 			HDITEMW		sItem;
@@ -6137,7 +6115,7 @@ LRESULT CALLBACK HTreeListFunction(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPar
 			int			iSize;
 			int			iCol;
 
-			if (pHdr->hdr.code==HDN_DIVIDERDBLCLICK) {
+			if (pHdr->hdr.code==HDN_DIVIDERDBLCLICKW) {
 				int		iSize;
 
 				pData	= GetHandle(hWnd);
@@ -6147,14 +6125,14 @@ LRESULT CALLBACK HTreeListFunction(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPar
 				iSize=TreeListScanColumn(pData,pHdr->iItem);
 				if (iSize) {
 					sItem.cxy		 = iSize;
-					pHdr->hdr.code	 = HDN_ENDTRACK;
+					pHdr->hdr.code	 = HDN_ENDTRACKW;
 					pHdr->pitem		 = &sItem;
 				}
 
 				UNLOCK(pData);
 			}
-															
-			if (pHdr->hdr.code==HDN_TRACK || pHdr->hdr.code==HDN_ENDTRACK) {
+
+			if (pHdr->hdr.code==HDN_TRACKW || pHdr->hdr.code==HDN_ENDTRACKW) {
 				pData	= GetHandle(hWnd);
 				LOCK(pData);
 
@@ -6162,9 +6140,9 @@ LRESULT CALLBACK HTreeListFunction(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPar
 				sItem.mask	= HDI_WIDTH;
 				sItem.cxy	= pHdr->pitem->cxy;
 
-				Header_SetItem(pData->hHeader,iCol,&sItem);
+				Header_SetItemW(pData->hHeader,iCol,&sItem);
 
-				iSize = UpdateCoumns(pData);
+				iSize = UpdateColumns(pData);
 				if (iSize<0x10000) {
 					GetClientRect (hWnd,&sRect);
 					sRect.left  = iSize;

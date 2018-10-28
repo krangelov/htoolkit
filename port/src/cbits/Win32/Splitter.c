@@ -19,7 +19,7 @@ static void CalcPaneRects(HWND hWnd, SplitterData *pData, RECT *rects)
 	rects[1] = rects[0];
 	rects[2] = rects[0];
 
-	if (GetWindowLong(hWnd, GWL_STYLE) & CCS_VERT)
+	if (GetWindowLongPtrW(hWnd, GWL_STYLE) & CCS_VERT)
 	{
 		rects[0].top    = pData->nSplitterPos-(SPLIT_LINE_SIZE-2)/2;
 		rects[0].bottom = pData->nSplitterPos+(SPLIT_LINE_SIZE-2)/2;
@@ -55,7 +55,7 @@ static void UpdateSplitterPos(HWND hWnd, SplitterData *pData, int pos)
 	int nMaxPos;
 
 	GetClientRect(hWnd, &rect);
-	if (GetWindowLong(hWnd, GWL_STYLE) & CCS_VERT)
+	if (GetWindowLongPtrW(hWnd, GWL_STYLE) & CCS_VERT)
 		nMaxPos = rect.bottom-rect.top;
 	else
 		nMaxPos = rect.right-rect.left;
@@ -71,7 +71,7 @@ LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 {
 	POINT pos;
 	RECT rects[3];
-	SplitterData *pData = (SplitterData *) GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	SplitterData *pData = (SplitterData *) GetWindowLongPtrW(hWnd, GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -102,7 +102,7 @@ LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 				NULL
 				);
 
-			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) pData);
+			SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR) pData);
 			RelayoutPanes(hWnd, pData);
 		}
 		break;
@@ -118,7 +118,7 @@ LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 			FillRect(hDC, &rects[0], GetSysColorBrush(COLOR_BTNFACE));
 
-			if (GetWindowLong(hWnd, GWL_STYLE) & CCS_VERT)
+			if (GetWindowLongPtrW(hWnd, GWL_STYLE) & CCS_VERT)
 			{
 				MoveToEx(hDC, rects[0].left, rects[0].top-1, NULL);
 				LineTo(hDC, rects[0].right, rects[0].top-1);
@@ -159,7 +159,7 @@ LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 			pData->bInDragMode = TRUE;
 			SetCapture(hWnd);
 
-			if (GetWindowLong(hWnd, GWL_STYLE) & CCS_VERT)
+			if (GetWindowLongPtrW(hWnd, GWL_STYLE) & CCS_VERT)
 				SetCursor(LoadCursor(NULL, IDC_SIZENS));
 			else
 				SetCursor(LoadCursor(NULL, IDC_SIZEWE));
@@ -175,7 +175,7 @@ LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 		if (pData->bInDragMode)
 		{
-			if (GetWindowLong(hWnd, GWL_STYLE) & CCS_VERT)
+			if (GetWindowLongPtrW(hWnd, GWL_STYLE) & CCS_VERT)
 				UpdateSplitterPos(hWnd, pData, pos.y);
 			else
 				UpdateSplitterPos(hWnd, pData, pos.x);
@@ -183,7 +183,7 @@ LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 		if (PtInRect(&rects[0],pos))
 		{
-			if (GetWindowLong(hWnd, GWL_STYLE) & CCS_VERT)
+			if (GetWindowLongPtrW(hWnd, GWL_STYLE) & CCS_VERT)
 				SetCursor(LoadCursor(NULL, IDC_SIZENS));
 			else
 				SetCursor(LoadCursor(NULL, IDC_SIZEWE));
@@ -215,7 +215,7 @@ WindowHandle osCreateSplitter(WindowHandle window, BOOL isVert, /* out */ Window
 			  NULL
 			);
 
-	pData = (SplitterData *) GetWindowLongPtr(hSplitter, GWLP_USERDATA);
+	pData = (SplitterData *) GetWindowLongPtrW(hSplitter, GWLP_USERDATA);
 	panes[0] = pData->hCtrl1;
 	panes[1] = pData->hCtrl2;
 
@@ -233,7 +233,7 @@ void osGetSplitterRange(WindowHandle splitter, int *range)
 	RECT rect;
 	GetClientRect(splitter, &rect);
 	range[0] = SPLIT_LINE_SIZE/2;
-	if (GetWindowLong(splitter, GWL_STYLE) & CCS_VERT)
+	if (GetWindowLongPtrW(splitter, GWL_STYLE) & CCS_VERT)
 		range[1] = (rect.bottom-rect.top)-SPLIT_LINE_SIZE/2;
 	else
 		range[1] = (rect.right-rect.left)-SPLIT_LINE_SIZE/2;
@@ -241,12 +241,12 @@ void osGetSplitterRange(WindowHandle splitter, int *range)
 
 void osSetSplitterPosition(WindowHandle splitter, int pos)
 {
-	SplitterData *pData = (SplitterData *) GetWindowLongPtr(splitter, GWLP_USERDATA);
+	SplitterData *pData = (SplitterData *) GetWindowLongPtrW(splitter, GWLP_USERDATA);
 	UpdateSplitterPos(splitter, pData, pos);
 }
 
 int osGetSplitterPosition(WindowHandle splitter)
 {
-	SplitterData *pData = (SplitterData *) GetWindowLongPtr(splitter, GWLP_USERDATA);
+	SplitterData *pData = (SplitterData *) GetWindowLongPtrW(splitter, GWLP_USERDATA);
 	return pData->nSplitterPos;
 }

@@ -139,7 +139,7 @@ void osSetNotebookLabelsPosition(WindowHandle notebook, PositionType position)
 {
 	LONG lStyle;
 
-	lStyle = GetWindowLong(notebook, GWL_STYLE);
+	lStyle = GetWindowLongPtrW(notebook, GWL_STYLE);
 	lStyle &= ~(TCS_VERTICAL | TCS_RIGHT | TCS_BOTTOM);
 
 	switch (position)
@@ -151,7 +151,7 @@ void osSetNotebookLabelsPosition(WindowHandle notebook, PositionType position)
 	}
 
 	SendMessage(notebook, WM_SETFONT, (WPARAM)NULL, TRUE);
-	SetWindowLong(notebook, GWL_STYLE, lStyle);
+	SetWindowLongPtrW(notebook, GWL_STYLE, lStyle);
 	SendMessage(notebook, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM (TRUE,0));
 
 	ResizeNotebookPages(notebook);
@@ -159,7 +159,7 @@ void osSetNotebookLabelsPosition(WindowHandle notebook, PositionType position)
 
 PositionType osGetNotebookLabelsPosition(WindowHandle notebook)
 {
-	LONG lStyle = GetWindowLong(notebook, GWL_STYLE);
+	LONG lStyle = GetWindowLongPtrW(notebook, GWL_STYLE);
 
 	if (lStyle & TCS_VERTICAL)
 		if (lStyle & TCS_RIGHT)

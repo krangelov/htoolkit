@@ -1461,7 +1461,7 @@ static HRESULT WINAPI GetWebPtrs(HWND hwnd, IWebBrowser2 **webBrowser2Result, IH
         if (!IsWindow(hwnd) ||
 
             // Get the browser object stored in the window's USERDATA member
-            !(browserObject = *((IOleObject **)GetWindowLongPtr(hwnd, GWL_USERDATA))) ||
+            !(browserObject = *((IOleObject **)GetWindowLongPtrW(hwnd, GWLP_USERDATA))) ||
 
             // Get the IWebBrowser2 object embedded within the browser object
             browserObject->lpVtbl->QueryInterface(browserObject, &IID_IWebBrowser2, (void **)&webBrowser2))
@@ -1739,7 +1739,7 @@ static void WINAPI UnEmbedBrowserObject(HWND hwnd)
     // may have failed the EmbedBrowserObject() call in WM_CREATE, in which case, our window
     // may get a WM_DESTROY which could call this a second time (ie, since we may call
     // UnEmbedBrowserObject in EmbedBrowserObject).
-    if ((browserHandle = (IOleObject **)GetWindowLongPtr(hwnd, GWL_USERDATA)))
+    if ((browserHandle = (IOleObject **)GetWindowLongPtrW(hwnd, GWLP_USERDATA)))
     {
         // Unembed the browser object, and release its resources.
         browserObject = *browserHandle;
@@ -1747,7 +1747,7 @@ static void WINAPI UnEmbedBrowserObject(HWND hwnd)
         browserObject->lpVtbl->Release(browserObject);
 
         // Zero out the pointer just in case UnEmbedBrowserObject is called again for this window.
-        SetWindowLongPtr(hwnd, GWL_USERDATA, 0);
+        SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
     }
 }
 
@@ -2169,7 +2169,7 @@ static long WINAPI EmbedBrowserObject(HWND hwnd)
         // its matching window and its own objects containing per-window data.
         if ((*((IOleObject **)ptr) = browserObject))
         {
-            SetWindowLongPtr(hwnd, GWL_USERDATA, (LONG_PTR)ptr);
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)ptr);
 
             // Give the browser a pointer to my IOleClientSite object.
             //

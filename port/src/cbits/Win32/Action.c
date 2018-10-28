@@ -6,26 +6,26 @@
 
 ActionHandle osCreateAction()
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	return newActionHandle(pFrameData->pActionsMap, ACTION_NORMAL);
 }
 
 ActionHandle osCreateCheckAction()
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	return newActionHandle(pFrameData->pActionsMap, ACTION_CHECK);
 }
 
 ActionHandle osCreateRadioAction()
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	return newActionHandle(pFrameData->pActionsMap, ACTION_RADIO);
 }
 
 ActionHandle osCreateDropDownAction(MenuHandle menu)
 {
 	ActionHandle action;
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	action = newActionHandle(pFrameData->pActionsMap, ACTION_DROPDOWN);
 	action->menu = menu;
@@ -65,7 +65,7 @@ void osSetActionBitmap(ActionHandle action, BitmapHandle bitmap)
 	ToolHandle tool;
 	FrameData *pFrameData;
 
-	pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	action->bitmap = bitmap;
 
@@ -98,7 +98,7 @@ void osSetActionEnabled(ActionHandle action, BOOL enabled)
 {
 	ToolHandle tool;
 	MenuHandle menu;
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	action->enabled = enabled;
 
@@ -221,7 +221,7 @@ BOOL osGetActionChecked(ActionHandle action)
 
 void osSetActionAccel(ActionHandle action, int key, unsigned int mods)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	updateAccelTable(pFrameData->pActionsMap, action, key, mods);
 };
 
@@ -233,7 +233,7 @@ void osGetActionAccel(ActionHandle action, int *key, unsigned int *mods)
 
 void osActivateAction(int id)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	ActionHandle action = getActionHandle(pFrameData->pActionsMap, id);
 
 	if (action)
@@ -257,7 +257,7 @@ void osActivateAction(int id)
 
 void osDestroyAction(ActionHandle action)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	while (action->toolProxies)
 		osDestroyToolItem(action->toolProxies);
@@ -272,7 +272,7 @@ void osDestroyAction(ActionHandle action)
 
 void osDestroyAllActions()
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	for (;;)
 	{

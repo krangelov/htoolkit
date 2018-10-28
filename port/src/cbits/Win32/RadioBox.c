@@ -16,7 +16,7 @@ WindowHandle osCreateRadioBox(WindowHandle window)
 			  ghModule,
 			  NULL
 			);
-	SetWindowLongPtr(hRadioBox, GWLP_USERDATA, (LONG_PTR) hRadioBox);
+	SetWindowLongPtrW(hRadioBox, GWLP_USERDATA, (LONG_PTR) hRadioBox);
 	return checkWindow(hRadioBox, "RADIOBOX");
 };
 
@@ -78,7 +78,7 @@ void osSetRadioBoxState(WindowHandle radiobox, BOOL state)
 		hNextCtrl = radiobox;
 		for (;;)
 		{
-			hNextCtrl = (WindowHandle) GetWindowLongPtr(hNextCtrl, GWLP_USERDATA);
+			hNextCtrl = (WindowHandle) GetWindowLongPtrW(hNextCtrl, GWLP_USERDATA);
 			if (hNextCtrl == radiobox) break;
 
 			if (SendMessage(hNextCtrl,BM_GETCHECK,0,0) == BST_CHECKED)
@@ -110,15 +110,15 @@ void osSetRadioBoxGroup(WindowHandle *handles)
 	{
 		handle = *phandle;
 
-		first = (WindowHandle) GetWindowLongPtr(handle, GWLP_USERDATA);
+		first = (WindowHandle) GetWindowLongPtrW(handle, GWLP_USERDATA);
 		child = first;
 		for (;;)
 		{
-			next = (WindowHandle) GetWindowLongPtr(child, GWLP_USERDATA);
+			next = (WindowHandle) GetWindowLongPtrW(child, GWLP_USERDATA);
 			if (next == handle) break;
 			child = next;
 		}
-		SetWindowLongPtr(child, GWLP_USERDATA, (LONG_PTR) first);
+		SetWindowLongPtrW(child, GWLP_USERDATA, (LONG_PTR) first);
 
 		if (SendMessage(handle,BM_GETCHECK,0,0) == BST_CHECKED)
 		{
@@ -139,10 +139,10 @@ void osSetRadioBoxGroup(WindowHandle *handles)
 
 		phandle++;
 		if (*phandle)
-			SetWindowLongPtr(handle, GWLP_USERDATA, (LONG_PTR) *phandle);
+			SetWindowLongPtrW(handle, GWLP_USERDATA, (LONG_PTR) *phandle);
 		else
 		{
-			SetWindowLongPtr(handle, GWLP_USERDATA, (LONG_PTR) *handles);
+			SetWindowLongPtrW(handle, GWLP_USERDATA, (LONG_PTR) *handles);
 			break;
 		}
 	}

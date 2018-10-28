@@ -150,7 +150,7 @@ void GetToolBarSize(HWND hToolBar, SIZE *pSize)
 	int i, nButtons;
 	LONG lStyle;
 
-	lStyle = (LONG) GetWindowLongPtr(hToolBar, GWLP_USERDATA);
+	lStyle = (LONG) GetWindowLongPtrW(hToolBar, GWLP_USERDATA);
 
 	sz.cx = 0;
 	sz.cy = 0;
@@ -222,7 +222,7 @@ static BOOL InitDockContext(HWND hToolBar, POINT pos, DockContext *pCtxt)
 	pCtxt->bForceFrame = FALSE;
 	pCtxt->bFlip = FALSE;
 	pCtxt->bDitherLast = FALSE;
-	pCtxt->dwDockStyle = ((LONG) GetWindowLongPtr(hToolBar, GWLP_USERDATA)) & (HORZ | VERT);
+	pCtxt->dwDockStyle = ((LONG) GetWindowLongPtrW(hToolBar, GWLP_USERDATA)) & (HORZ | VERT);
 	SetRectEmpty(&pCtxt->rectLast);
 
 	// don't handle if capture already set
@@ -369,7 +369,7 @@ static BOOL CanDockBar(HWND hDockBar, RECT *pRect)
 static DWORD CanDock(DockContext *pCtxt, HWND *phDockBar)
 {
 	RECT rect;
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame, GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame, GWLP_USERDATA);
 	int nSize;
 
 	if (((pCtxt->dwDockStyle & HORZ) && !pCtxt->bFlip) || ((pCtxt->dwDockStyle & VERT) && pCtxt->bFlip))
@@ -460,7 +460,7 @@ static void EndDrag(DockContext *pCtxt)
 	int nLen;
 
 	hToolBar = pCtxt->hToolBar;
-	lStyle = GetWindowLongPtr(hToolBar, GWLP_USERDATA);
+	lStyle = GetWindowLongPtrW(hToolBar, GWLP_USERDATA);
 
 	CanDock(pCtxt, &hDockBar);
 
@@ -473,7 +473,7 @@ static void EndDrag(DockContext *pCtxt)
 		else
 			rect = pCtxt->rectDragVert;
 
-		SetWindowLongPtr(hToolBar, GWLP_USERDATA, (lStyle & ~(VERT | HORZ | FLOAT)) | pCtxt->dwOverDockStyle);
+		SetWindowLongPtrW(hToolBar, GWLP_USERDATA, (lStyle & ~(VERT | HORZ | FLOAT)) | pCtxt->dwOverDockStyle);
 		MapWindowPoints(NULL, hDockBar, (LPPOINT) &rect, 2);
 
 		// dock it at the specified position
@@ -486,7 +486,7 @@ static void EndDrag(DockContext *pCtxt)
 		else
 			rect = pCtxt->rectFrameDragVert;
 
-		SetWindowLongPtr(hToolBar, GWLP_USERDATA, lStyle | FLOAT);
+		SetWindowLongPtrW(hToolBar, GWLP_USERDATA, lStyle | FLOAT);
 
 		szCaption = NULL;
 		nLen = GetWindowTextLength(hToolBar);
@@ -575,7 +575,7 @@ end_loop:
 LRESULT CALLBACK HToolBarFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT lResult = 0;
-	LONG lStyle = GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	LONG lStyle = GetWindowLongPtrW(hWnd, GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -747,7 +747,7 @@ LRESULT CALLBACK HToolBarFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 WindowHandle osCreateToolBar(char *name, PositionType place, int band_num, int band_position, int offset)
 {
 	HWND hDockBar, hWnd;
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	LONG lStyle;
 
 	switch (place)
@@ -784,7 +784,7 @@ WindowHandle osCreateToolBar(char *name, PositionType place, int band_num, int b
 							(HANDLE) ghModule,
 							NULL
 							);
-	SetWindowLongPtr(hWnd, GWLP_USERDATA, lStyle);
+	SetWindowLongPtrW(hWnd, GWLP_USERDATA, lStyle);
 	SendMessage(hWnd, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_MIXEDBUTTONS);
 	SetWindowText(hWnd, name);
 	DockToolBar(hDockBar, hWnd, band_num, band_position, offset);

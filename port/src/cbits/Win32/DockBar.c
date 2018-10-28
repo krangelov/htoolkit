@@ -77,9 +77,9 @@ static int GetDockBarSize(HWND hDockBar)
     DockBarData *pData;
 
 	nSize = 0;
-	pData = (DockBarData *) GetWindowLongPtr(hDockBar, GWLP_USERDATA);
+	pData = (DockBarData *) GetWindowLongPtrW(hDockBar, GWLP_USERDATA);
 
-	RecalcDockBarLayout(pData, GetWindowLong(hDockBar, GWL_STYLE) & CCS_VERT);
+	RecalcDockBarLayout(pData, GetWindowLongPtrW(hDockBar, GWL_STYLE) & CCS_VERT);
 
 	for (i = 0; i < pData->nBandCount; i++)
 		nSize += pData->pBands[i].nSize;
@@ -98,7 +98,7 @@ void RelayoutFrameBars()
 	if (!ghWndFrame)
 		return;
 
-	pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	if (IsWindowVisible(pData->hStatusBar))
 		nStatusHeight = 20;
@@ -126,8 +126,8 @@ void RelayoutFrameBars()
 
 LRESULT CALLBACK HDockBarFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	DockBarData *pData = (DockBarData *) GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	DockBarData *pData = (DockBarData *) GetWindowLongPtrW(hWnd, GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -143,7 +143,7 @@ LRESULT CALLBACK HDockBarFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 				pData->nBandCount = 0;
 				pData->pBands     = NULL;
 
-				SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) pData);
+				SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR) pData);
 			}
 
 			hMenu = GetSystemMenu(hWnd, FALSE);
@@ -162,7 +162,7 @@ LRESULT CALLBACK HDockBarFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		{
 			int i;
 
-			SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
+			SetWindowLongPtrW(hWnd, GWLP_USERDATA, 0);
 			for (i = 0; i < pData->nBandCount; i++)
 				free(pData->pBands[i].pBars);
 			free(pData->pBands);
@@ -232,8 +232,8 @@ void DockToolBarToRect(HWND hDockBar, HWND hWnd, RECT rect)
 	int nPosition;
 	int nOffset;
 	int nCentralOffset;
-	DockBarData *pData = (DockBarData *) GetWindowLongPtr(hDockBar, GWLP_USERDATA);
-	BOOL bVert = GetWindowLong(hDockBar, GWL_STYLE) & CCS_VERT;
+	DockBarData *pData = (DockBarData *) GetWindowLongPtrW(hDockBar, GWLP_USERDATA);
+	BOOL bVert = GetWindowLongPtrW(hDockBar, GWL_STYLE) & CCS_VERT;
 	BandData *pBand;
 
 	RecalcDockBarLayout(pData, bVert);
@@ -281,7 +281,7 @@ void DockToolBar(HWND hDockBar, HWND hWnd, int nBandNum, int nPosition, int nOff
 {
 	BarData *pBar;
 	BandData *pBand;
-	DockBarData *pData = (DockBarData *) GetWindowLongPtr(hDockBar, GWLP_USERDATA);
+	DockBarData *pData = (DockBarData *) GetWindowLongPtrW(hDockBar, GWLP_USERDATA);
 
 	SetParent(hWnd, hDockBar);
 
@@ -307,7 +307,7 @@ void DockToolBar(HWND hDockBar, HWND hWnd, int nBandNum, int nPosition, int nOff
 		pBar->nOffset = nOffset;
 		pBar->hWnd = hWnd;
 
-		RecalcDockBarLayout(pData, GetWindowLong(hWnd, GWL_STYLE) & CCS_VERT);
+		RecalcDockBarLayout(pData, GetWindowLongPtrW(hWnd, GWL_STYLE) & CCS_VERT);
 	}
 }
 
@@ -316,7 +316,7 @@ void UndockToolBar(HWND hDockBar, HWND hWnd)
 	int i, j;
 	BarData *pBar;
 	BandData *pBand;
-	DockBarData *pData = (DockBarData *) GetWindowLongPtr(hDockBar, GWLP_USERDATA);
+	DockBarData *pData = (DockBarData *) GetWindowLongPtrW(hDockBar, GWLP_USERDATA);
 
 	SetParent(hWnd, NULL);
 

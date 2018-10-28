@@ -5,21 +5,21 @@
 
 void osSetStatusBarVisible(BOOL visible)
 {
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	ShowWindow(pData->hStatusBar, visible ? SW_SHOWNORMAL : SW_HIDE);
 	RelayoutFrameBars();
 }
 
 BOOL osGetStatusBarVisible()
 {
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	return IsWindowVisible(pData->hStatusBar);
 }
 
 void osPushStatusBarContext(char *title)
 {
 	StatusContext context;
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	context = (StatusContext) rmalloc(sizeof(struct StatusContext) + strlen(title) + 1);
 	context->next = pData->statusContexts;
@@ -32,7 +32,7 @@ void osPushStatusBarContext(char *title)
 void osPopStatusBarContext()
 {
 	StatusContext context;
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	context = pData->statusContexts;
 	if (!context)
@@ -47,7 +47,7 @@ void osPopStatusBarContext()
 
 char *osGetStatusBarTitle()
 {
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
     int nLen = GetWindowTextLength(pData->hStatusBar);
     char *buffer = (char *) rmalloc(nLen+1);
     GetWindowText(pData->hStatusBar, buffer, nLen+1);
@@ -56,14 +56,14 @@ char *osGetStatusBarTitle()
 
 void osSetStatusBarTitle(char *title)
 {
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	SetWindowText(pData->hStatusBar, title);
 };
 
 int osGetStatusBarIndicatorsCount()
 {
 	int count;
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	IndicatorHandle indicator;
 
 	count = 0;
@@ -80,7 +80,7 @@ int osGetStatusBarIndicatorsCount()
 void RefreshStatusBarIndicators()
 {
 	int i, x, count, *buffer;
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	IndicatorHandle indicator;
 	HDC hDC;
 	HFONT hFont;
@@ -154,7 +154,7 @@ void RefreshStatusBarIndicators()
 IndicatorHandle osCreateIndicator(int index)
 {
 	IndicatorHandle indicator, *link, last;
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	indicator = rmalloc(sizeof(struct IndicatorHandle));
 	indicator->title = NULL;
@@ -200,7 +200,7 @@ IndicatorHandle osCreateIndicator(int index)
 
 void osDestroyIndicator(IndicatorHandle indicator)
 {
-	FrameData *pData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	handleIndicatorDestroy(indicator);
 

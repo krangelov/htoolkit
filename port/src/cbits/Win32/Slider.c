@@ -38,7 +38,7 @@ WindowHandle osCreateVertSlider(WindowHandle form)
 
 void osGetSliderReqSize(WindowHandle slider, int *res)
 {
-	if (GetWindowLong(slider,GWL_STYLE) & TBS_HORZ)
+	if (GetWindowLongPtrW(slider,GWL_STYLE) & TBS_HORZ)
 	{
 		res[0] = 32;
 		res[1] = GetSystemMetrics(SM_CYHSCROLL);

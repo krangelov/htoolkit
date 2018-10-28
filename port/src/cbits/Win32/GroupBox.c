@@ -7,7 +7,7 @@ extern LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd,
 
 LRESULT CALLBACK HGroupBoxFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	WindowData *pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+	WindowData *pData = (WindowData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 	
 	switch (uMsg)
 	{
@@ -24,7 +24,7 @@ LRESULT CALLBACK HGroupBoxFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 			while (hCtrl && !pData->hBackBrush)
 			{
 				hCtrl = GetParent(hCtrl);
-				pData = (WindowData *) GetWindowLongPtr(hCtrl,GWLP_USERDATA);
+				pData = (WindowData *) GetWindowLongPtrW(hCtrl,GWLP_USERDATA);
             }
 
 			GetClipBox(hDC, &rect);

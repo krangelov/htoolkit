@@ -38,7 +38,7 @@ WindowHandle osCreateVertProgressBar(WindowHandle form, BOOL bSmooth)
 
 void osGetProgressBarReqSize(WindowHandle bar, int *res)
 {
-	LONG lStyle = GetWindowLong(bar,GWL_STYLE);
+	LONG lStyle = GetWindowLongPtrW(bar,GWL_STYLE);
 
 	if (lStyle & PBS_VERTICAL)
 	{

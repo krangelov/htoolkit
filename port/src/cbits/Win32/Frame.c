@@ -206,7 +206,7 @@ void RestoreWindowState(HWND hWnd, int nShow)
 LRESULT CALLBACK HFrameSharedFunction(int DocumentInterface, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	ActionHandle action;
-	FrameData *pData = (FrameData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -315,7 +315,7 @@ LRESULT CALLBACK HFrameSharedFunction(int DocumentInterface, HWND hWnd, UINT uMs
 			pData->first_indicator  = NULL;
 			pData->last_indicator   = NULL;
 
-			SetWindowLongPtr(hWnd,GWLP_USERDATA,(LONG_PTR) pData);
+			SetWindowLongPtrW(hWnd,GWLP_USERDATA,(LONG_PTR) pData);
 		}
 		break;
 	case WM_SIZE:
@@ -550,7 +550,7 @@ LRESULT CALLBACK HFrameSharedFunction(int DocumentInterface, HWND hWnd, UINT uMs
 LRESULT CALLBACK HMDIFrameFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT result = HFrameSharedFunction(2, hWnd, uMsg, wParam, lParam);
-	FrameData *pData = (FrameData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+	FrameData *pData = (FrameData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -621,7 +621,7 @@ LRESULT CALLBACK HMDIFrameFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 LRESULT CALLBACK HSDIFrameFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT result = HFrameSharedFunction(1, hWnd, uMsg, wParam, lParam);
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
 	switch (uMsg)
 	{

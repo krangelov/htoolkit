@@ -200,7 +200,7 @@ static INT_PTR CALLBACK HAboutDialogFunction(HWND hWnd, UINT uMsg, WPARAM wParam
 			pdi = (DlgInfo *) lParam;
 			bitmap = pdi->bitmap;
 			
-			SetWindowLongPtr(hWnd, DWLP_USER, lParam);
+			SetWindowLongPtrW(hWnd, DWLP_USER, lParam);
 	
 			if (bitmap->destsize.cx != bitmap->sourcesize.cx || bitmap->destsize.cy != bitmap->sourcesize.cy)
 			{
@@ -254,7 +254,7 @@ static INT_PTR CALLBACK HAboutDialogFunction(HWND hWnd, UINT uMsg, WPARAM wParam
 				int nPageIndex, n;
 				char *s;
 				
-				pdi = (DlgInfo *) GetWindowLongPtr(hWnd, DWLP_USER);
+				pdi = (DlgInfo *) GetWindowLongPtrW(hWnd, DWLP_USER);
 				
 				nPageIndex = 0;
 				memset(&psp, 0, sizeof(psp));

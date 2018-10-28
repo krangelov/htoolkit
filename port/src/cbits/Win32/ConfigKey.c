@@ -8,7 +8,7 @@ static HKEY openKey(PortString szName, PortString *pszValueName)
 	FrameData *pFrameData;
 	HKEY hSoftwareKey, hAppKey, hKey;
 
-	pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	s = szName;
 	*pszValueName = szName;

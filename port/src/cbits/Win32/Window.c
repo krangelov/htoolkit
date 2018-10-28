@@ -143,7 +143,7 @@ static void SetupWindowPosition(HWND hWnd)
 	WindowData *pData;
 	RECT rc;
 
-	pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+	pData = (WindowData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
 	pos.x = pData->windowPosRect.left;
 	pos.y = pData->windowPosRect.top;
@@ -182,7 +182,7 @@ static void SetupWindowPosition(HWND hWnd)
 
 LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    WindowData *pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
     switch (uMsg)
     {
@@ -210,7 +210,7 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
 			pData->MinTrackSize.cx = 0;
             pData->MinTrackSize.cy = 0;
             pData->windowPos = -1;
-			SetWindowLongPtr(hWnd,GWLP_USERDATA,(LONG_PTR) pData);
+			SetWindowLongPtrW(hWnd,GWLP_USERDATA,(LONG_PTR) pData);
 
 			SetFocus(hWnd);
         }
@@ -249,12 +249,12 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
                 else
                     if (strcmp(buffer, "Button") == 0)
                     {
-                    	if ((GetWindowLong(hCtrl, GWL_STYLE) & BS_AUTORADIOBUTTON) == BS_AUTORADIOBUTTON)
+                    	if ((GetWindowLongPtrW(hCtrl, GWL_STYLE) & BS_AUTORADIOBUTTON) == BS_AUTORADIOBUTTON)
                     	{
 							HWND hNextCtrl = hCtrl;
 							for (;;)
 							{
-								hNextCtrl = (WindowHandle) GetWindowLongPtr(hNextCtrl, GWLP_USERDATA);
+								hNextCtrl = (WindowHandle) GetWindowLongPtrW(hNextCtrl, GWLP_USERDATA);
 								if (hNextCtrl == hCtrl) break;
 
 								SendMessage(hNextCtrl,BM_SETCHECK,BST_UNCHECKED,0);
@@ -278,7 +278,7 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
 					handleTrackBarDecrement(pNMHDR->hwndFrom);
 			} else if (pNMHDR->code == TVN_GETDISPINFO) {
 				PortString s;
-				NMTVDISPINFOW* pInfo = (NMHDR *) lParam;
+				NMTVDISPINFOW* pInfo = (NMTVDISPINFOW*) lParam;
 
 				int col = 0;
 				if (pInfo->item.mask & 0x8000)
@@ -329,7 +329,7 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
             handleWindowPaint(hWnd,canvas, updRect.left, updRect.top, updRect.right, updRect.bottom);
             rfree(canvas);
 
-			if (GetParent(hWnd) == NULL && (GetWindowLong(hWnd, GWL_STYLE) & WS_THICKFRAME))
+			if (GetParent(hWnd) == NULL && (GetWindowLongPtrW(hWnd, GWL_STYLE) & WS_THICKFRAME))
 				DrawSizeGrip(hWnd, ps.hdc);
 
             EndPaint(hWnd, &ps);
@@ -338,7 +338,7 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
     case WM_ERASEBKGND:
         return TRUE;
 	case WM_SIZING:
-		if (GetParent(hWnd) == NULL && (GetWindowLong(hWnd, GWL_STYLE) & WS_THICKFRAME))
+		if (GetParent(hWnd) == NULL && (GetWindowLongPtrW(hWnd, GWL_STYLE) & WS_THICKFRAME))
 		{
 			RECT rect;
 			GetClientRect(hWnd,&rect);
@@ -686,7 +686,7 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
             while (hWnd && !pData->hBackBrush)
             {
             	hWnd = GetParent(hWnd);
-            	pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+            	pData = (WindowData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
             }
 
             SelectObject(hDC, pData->hBackBrush);
@@ -709,7 +709,7 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
 
 LRESULT CALLBACK HSDIWindowFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -762,7 +762,7 @@ LRESULT CALLBACK HSDIWindowFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 LRESULT CALLBACK HDialogFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	WindowData *pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+	WindowData *pData = (WindowData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -806,7 +806,7 @@ LRESULT CALLBACK HDialogFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
 LRESULT CALLBACK HMDIWindowFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	switch (uMsg)
 	{
@@ -848,7 +848,7 @@ WindowHandle osCreateWindow()
 {
     HWND hWnd;
     RECT rect;
-    FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+    FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	switch (pFrameData->DocumentInterface)
 	{
@@ -959,7 +959,7 @@ void osGetCompoundControlReqSize(WindowHandle listbox, int *res)
 void osSetWindowColor(WindowHandle window, int foreColor, int backColor, int hatchStyle, BitmapHandle patBmp)
 {
 	LOGBRUSH lb;
-	WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+	WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
 	if (pData->backColor != backColor ||
 		pData->hatchStyle != hatchStyle ||
@@ -1022,7 +1022,7 @@ void osSetWindowDomainSize(WindowHandle window, int cx, int cy)
     SCROLLINFO si;
     int  nWidth, nHeight;
     int  nLimitX, nLimitY;
-    WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
     pData->DomainSize.cx = cx;
     pData->DomainSize.cy = cy;
@@ -1053,7 +1053,7 @@ void osSetWindowDomainSize(WindowHandle window, int cx, int cy)
 
 void osSetWindowScrollOrigin(WindowHandle window, int x, int y)
 {
-    WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
     SetScrollPos(window,SB_HORZ,x,TRUE);
     SetScrollPos(window,SB_VERT,y,TRUE);
@@ -1065,7 +1065,7 @@ void osSetWindowScrollOrigin(WindowHandle window, int x, int y)
 
 void osGetWindowScrollOrigin(WindowHandle window, int *res)
 {
-    WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
     res[0] = pData->Origin.x;
     res[1] = pData->Origin.y;
@@ -1073,7 +1073,7 @@ void osGetWindowScrollOrigin(WindowHandle window, int *res)
 
 void osSetWindowLineSize(WindowHandle window, int cx, int cy)
 {
-    WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
     pData->LineSize.cx = cx;
     pData->LineSize.cy = cy;
@@ -1081,7 +1081,7 @@ void osSetWindowLineSize(WindowHandle window, int cx, int cy)
 
 void osGetWindowLineSize(WindowHandle window, int *res)
 {
-    WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
     res[0] = pData->LineSize.cx;
     res[1] = pData->LineSize.cy;
@@ -1089,7 +1089,7 @@ void osGetWindowLineSize(WindowHandle window, int *res)
 
 void osSetWindowPageSize(WindowHandle window, int cx, int cy)
 {
-    WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
     pData->PageSize.cx = cx;
     pData->PageSize.cy = cy;
@@ -1097,7 +1097,7 @@ void osSetWindowPageSize(WindowHandle window, int cx, int cy)
 
 void osGetWindowPageSize(WindowHandle window, int *res)
 {
-    WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
     res[0] = pData->PageSize.cx;
     res[1] = pData->PageSize.cy;
@@ -1145,7 +1145,7 @@ BOOL osDismissWindow(WindowHandle window)
 
 void osDestroyWindow(WindowHandle window)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	if (pFrameData->DocumentInterface == 1 || GetParent(window) != pFrameData->hClientWnd)
 	{
 		HWND hOwner = GetWindow(window, GW_OWNER);
@@ -1167,7 +1167,7 @@ void osSetWindowEnabled(WindowHandle window, BOOL enabled)
 	HWND hCtrl;
 	WindowData *pData;
 
-	pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+	pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
 	if (pData->enabled != enabled)
 	{
@@ -1217,7 +1217,7 @@ void osSetWindowEnabled(WindowHandle window, BOOL enabled)
 
 BOOL osGetWindowEnabled(WindowHandle window)
 {
-	WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+	WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 	return pData->enabled;
 }
 
@@ -1229,7 +1229,7 @@ CanvasHandle osGetWindowCanvas(WindowHandle window)
     WindowData *pData;
     CanvasHandle canvas;
 
-    pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+    pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
     if (pData==NULL)
     {
         printf("Invalid window handle\n");
@@ -1274,7 +1274,7 @@ void osMoveResizeControl(WindowHandle ctrl, int x, int y, int w, int h)
 {
     char buffer[20];
     HWND hWnd = GetParent(ctrl);
-    WindowData *pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
     GetClassName(ctrl,buffer,sizeof(buffer));
     if (strcmp(buffer, "ComboBox") == 0) h = 150;
@@ -1286,7 +1286,7 @@ void osMoveResizeControl(WindowHandle ctrl, int x, int y, int w, int h)
 void osGetControlRect(WindowHandle ctrl, int *res)
 {
     HWND hWnd = GetParent(ctrl);
-    WindowData *pData = (WindowData *) GetWindowLongPtr(hWnd,GWLP_USERDATA);
+    WindowData *pData = (WindowData *) GetWindowLongPtrW(hWnd,GWLP_USERDATA);
 
     RECT rect;
     GetWindowRect(ctrl,&rect);
@@ -1299,7 +1299,7 @@ void osGetControlRect(WindowHandle ctrl, int *res)
 void osSetControlEnabled(WindowHandle ctrl, BOOL enabled)
 {
 	int i;
-	WindowData *pData = (WindowData *) GetWindowLongPtr(GetParent(ctrl),GWLP_USERDATA);
+	WindowData *pData = (WindowData *) GetWindowLongPtrW(GetParent(ctrl),GWLP_USERDATA);
 
 	if (pData->enabled)
 		EnableWindow(ctrl, enabled);
@@ -1331,7 +1331,7 @@ void osSetControlEnabled(WindowHandle ctrl, BOOL enabled)
 BOOL osGetControlEnabled(WindowHandle ctrl)
 {
 	int i;
-	WindowData *pData = (WindowData *) GetWindowLongPtr(GetParent(ctrl),GWLP_USERDATA);
+	WindowData *pData = (WindowData *) GetWindowLongPtrW(GetParent(ctrl),GWLP_USERDATA);
 
 	if (pData->enabled)
 		return IsWindowEnabled(ctrl);
@@ -1350,9 +1350,9 @@ void osSetControlVisible(WindowHandle ctrl, BOOL visible)
 	HWND hParent;
 	LONG lStyle;
 
-	lStyle = GetWindowLong(ctrl, GWL_STYLE);
+	lStyle = GetWindowLongPtrW(ctrl, GWL_STYLE);
 	lStyle = visible ? (lStyle | WS_VISIBLE) : (lStyle & ~WS_VISIBLE);
-	SetWindowLong(ctrl, GWL_STYLE, lStyle);
+	SetWindowLongPtrW(ctrl, GWL_STYLE, lStyle);
 
 	hParent = GetParent(ctrl);
 
@@ -1373,7 +1373,7 @@ void osSetControlTip(WindowHandle ctrl, PortString text)
 	WindowData *pData;
 
 	hParent = GetParent(ctrl);
-	pData = (WindowData *) GetWindowLongPtr(GetParent(ctrl),GWLP_USERDATA);
+	pData = (WindowData *) GetWindowLongPtrW(GetParent(ctrl),GWLP_USERDATA);
 
 	if (!pData->hTooltip)
 	{
@@ -1432,7 +1432,7 @@ PortString osGetControlTip(WindowHandle ctrl)
 	WindowData *pData;
 
 	hParent = GetParent(ctrl);
-	pData = (WindowData *) GetWindowLongPtr(GetParent(ctrl),GWLP_USERDATA);
+	pData = (WindowData *) GetWindowLongPtrW(GetParent(ctrl),GWLP_USERDATA);
 
 	if (pData->hTooltip)
 	{
@@ -1494,7 +1494,7 @@ void osSetWindowPosition(WindowHandle window, int position, int x0, int y0, int 
 	}
 	else
 	{
-		WindowData *pData = (WindowData *) GetWindowLongPtr(window,GWLP_USERDATA);
+		WindowData *pData = (WindowData *) GetWindowLongPtrW(window,GWLP_USERDATA);
 
 		// if the window is a child window then the WinPosCenter is the same as WinPosCenterToParent
 		if (GetParent(window) && position == 1)
@@ -1527,13 +1527,13 @@ void osSetWindowResizeable(WindowHandle hwnd, int resizeable)
   RECT rc;
   LONG style;
   HWND hTargetWnd;
-  FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+  FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
   hTargetWnd = hwnd;
   if (pFrameData->DocumentInterface == 1 && GetParent(hwnd) == ghWndFrame)
   	hTargetWnd = ghWndFrame;
 
-  style = GetWindowLong(hTargetWnd, GWL_STYLE);
+  style = GetWindowLongPtrW(hTargetWnd, GWL_STYLE);
   if (resizeable)
   	if (style & DS_MODALFRAME)
   		style |= WS_THICKFRAME;
@@ -1541,7 +1541,7 @@ void osSetWindowResizeable(WindowHandle hwnd, int resizeable)
   		style |= WS_THICKFRAME | WS_MAXIMIZEBOX;
   else
     style &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
-  SetWindowLong(hTargetWnd, GWL_STYLE, style);
+  SetWindowLongPtrW(hTargetWnd, GWL_STYLE, style);
 
   GetWindowRect(hTargetWnd,&rc);
   SetWindowPos(hTargetWnd,NULL,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top,SWP_NOZORDER | SWP_FRAMECHANGED);
@@ -1595,13 +1595,13 @@ void osForceContainerReLayout(HWND hCtrl)
 void osSetDialogMinSize(WindowHandle dialog, int w, int h)
 {
 	RECT rect;
-	WindowData *pData = (WindowData *) GetWindowLongPtr(dialog,GWLP_USERDATA);
+	WindowData *pData = (WindowData *) GetWindowLongPtrW(dialog,GWLP_USERDATA);
 
 	rect.left   = 0;
 	rect.top    = 0;
 	rect.right  = w;
 	rect.bottom = h;
-	AdjustWindowRect(&rect, GetWindowLong(dialog, GWL_STYLE), FALSE);
+	AdjustWindowRect(&rect, GetWindowLongPtrW(dialog, GWL_STYLE), FALSE);
 
 	pData->MinTrackSize.cx = rect.right-rect.left;
 	pData->MinTrackSize.cy = rect.bottom-rect.top;

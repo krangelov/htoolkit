@@ -73,23 +73,23 @@ void osSetEditReadOnly(WindowHandle editbox, BOOL readOnly)
 
 BOOL osGetEditReadOnly(WindowHandle editbox)
 {
-	return (GetWindowLong(editbox, GWL_STYLE) & ES_READONLY) != 0;
+	return (GetWindowLongPtrW(editbox, GWL_STYLE) & ES_READONLY) != 0;
 }
 
 void osSetEditPassword(WindowHandle editbox, BOOL password)
 {
 	LONG lStyle;
 
-	lStyle = GetWindowLong(editbox, GWL_STYLE);
+	lStyle = GetWindowLongPtrW(editbox, GWL_STYLE);
 
 	if (!password)
 	{
-		SetWindowLong(editbox, GWL_STYLE,  lStyle & ~ES_PASSWORD);
+		SetWindowLongPtrW(editbox, GWL_STYLE,  lStyle & ~ES_PASSWORD);
 		SendMessage(editbox, EM_SETPASSWORDCHAR, 0, 0);
 	}
 	else
 	{
-		SetWindowLong(editbox, GWL_STYLE,  lStyle | ES_PASSWORD);
+		SetWindowLongPtrW(editbox, GWL_STYLE,  lStyle | ES_PASSWORD);
 		SendMessage(editbox, EM_SETPASSWORDCHAR, (WPARAM) '*', 0);
 	}
 
@@ -98,7 +98,7 @@ void osSetEditPassword(WindowHandle editbox, BOOL password)
 
 BOOL osGetEditPassword(WindowHandle editbox)
 {
-	return (GetWindowLong(editbox, GWL_STYLE) & ES_PASSWORD) != 0;
+	return (GetWindowLongPtrW(editbox, GWL_STYLE) & ES_PASSWORD) != 0;
 }
 
 void osChangeEditBoxFont(WindowHandle editbox, FontHandle font)

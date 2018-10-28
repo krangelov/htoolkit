@@ -107,16 +107,16 @@ __wine_spec_file_name:
 	.long 0
 	.long .L__wine_spec_import_name_user32_dll-.L__wine_spec_rva_base
 	.long .L__wine_spec_import_data_ptrs+736-.L__wine_spec_rva_base
-	.long .L__wine_spec_import_data_names+1720-.L__wine_spec_rva_base
+	.long .L__wine_spec_import_data_names+1704-.L__wine_spec_rva_base
 	.long 0
 	.long 0
 	.long .L__wine_spec_import_name_kernel32_dll-.L__wine_spec_rva_base
-	.long .L__wine_spec_import_data_ptrs+1720-.L__wine_spec_rva_base
-	.long .L__wine_spec_import_data_names+1912-.L__wine_spec_rva_base
+	.long .L__wine_spec_import_data_ptrs+1704-.L__wine_spec_rva_base
+	.long .L__wine_spec_import_data_names+1896-.L__wine_spec_rva_base
 	.long 0
 	.long 0
 	.long .L__wine_spec_import_name_ole32_dll-.L__wine_spec_rva_base
-	.long .L__wine_spec_import_data_ptrs+1912-.L__wine_spec_rva_base
+	.long .L__wine_spec_import_data_ptrs+1896-.L__wine_spec_rva_base
 	.long 0
 	.long 0
 	.long 0
@@ -275,8 +275,7 @@ __wine_spec_file_name:
 	.quad .L__wine_spec_import_data_user32_dll_GetTopWindow-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_GetWindow-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_GetWindowDC-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_user32_dll_GetWindowLongA-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_user32_dll_GetWindowLongPtrA-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_user32_dll_GetWindowLongPtrW-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_GetWindowPlacement-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_GetWindowRect-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_GetWindowTextA-.L__wine_spec_rva_base
@@ -325,8 +324,7 @@ __wine_spec_file_name:
 	.quad .L__wine_spec_import_data_user32_dll_SetScrollInfo-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_SetScrollPos-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_SetTimer-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_user32_dll_SetWindowLongA-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_user32_dll_SetWindowLongPtrA-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_user32_dll_SetWindowLongPtrW-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_SetWindowPos-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_SetWindowTextA-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_user32_dll_SetWindowTextW-.L__wine_spec_rva_base
@@ -369,8 +367,6 @@ __wine_spec_file_name:
 	.quad .L__wine_spec_import_data_ole32_dll_CoUninitialize-.L__wine_spec_rva_base
 	.quad 0
 .L__wine_spec_import_data_ptrs:
-	.quad 0
-	.quad 0
 	.quad 0
 	.quad 0
 	.quad 0
@@ -1194,13 +1190,9 @@ __wine_spec_file_name:
 	.short 365
 	.string "GetWindowDC"
 	.align 2
-.L__wine_spec_import_data_user32_dll_GetWindowLongA:
-	.short 367
-	.string "GetWindowLongA"
-	.align 2
-.L__wine_spec_import_data_user32_dll_GetWindowLongPtrA:
-	.short 368
-	.string "GetWindowLongPtrA"
+.L__wine_spec_import_data_user32_dll_GetWindowLongPtrW:
+	.short 369
+	.string "GetWindowLongPtrW"
 	.align 2
 .L__wine_spec_import_data_user32_dll_GetWindowPlacement:
 	.short 374
@@ -1394,13 +1386,9 @@ __wine_spec_file_name:
 	.short 621
 	.string "SetTimer"
 	.align 2
-.L__wine_spec_import_data_user32_dll_SetWindowLongA:
-	.short 628
-	.string "SetWindowLongA"
-	.align 2
-.L__wine_spec_import_data_user32_dll_SetWindowLongPtrA:
-	.short 629
-	.string "SetWindowLongPtrA"
+.L__wine_spec_import_data_user32_dll_SetWindowLongPtrW:
+	.short 630
+	.string "SetWindowLongPtrW"
 	.align 2
 .L__wine_spec_import_data_user32_dll_SetWindowPos:
 	.short 633
@@ -2737,27 +2725,19 @@ GetWindowDC:
 	.size GetWindowDC, .-GetWindowDC
 
 	.align 4
-	.type GetWindowLongA,@function
-	.globl GetWindowLongA
-	.hidden GetWindowLongA
-GetWindowLongA:
+	.type GetWindowLongPtrW,@function
+	.globl GetWindowLongPtrW
+	.hidden GetWindowLongPtrW
+GetWindowLongPtrW:
 	jmpq *.L__wine_spec_import_data_ptrs+1200(%rip)
-	.size GetWindowLongA, .-GetWindowLongA
-
-	.align 4
-	.type GetWindowLongPtrA,@function
-	.globl GetWindowLongPtrA
-	.hidden GetWindowLongPtrA
-GetWindowLongPtrA:
-	jmpq *.L__wine_spec_import_data_ptrs+1208(%rip)
-	.size GetWindowLongPtrA, .-GetWindowLongPtrA
+	.size GetWindowLongPtrW, .-GetWindowLongPtrW
 
 	.align 4
 	.type GetWindowPlacement,@function
 	.globl GetWindowPlacement
 	.hidden GetWindowPlacement
 GetWindowPlacement:
-	jmpq *.L__wine_spec_import_data_ptrs+1216(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1208(%rip)
 	.size GetWindowPlacement, .-GetWindowPlacement
 
 	.align 4
@@ -2765,7 +2745,7 @@ GetWindowPlacement:
 	.globl GetWindowRect
 	.hidden GetWindowRect
 GetWindowRect:
-	jmpq *.L__wine_spec_import_data_ptrs+1224(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1216(%rip)
 	.size GetWindowRect, .-GetWindowRect
 
 	.align 4
@@ -2773,7 +2753,7 @@ GetWindowRect:
 	.globl GetWindowTextA
 	.hidden GetWindowTextA
 GetWindowTextA:
-	jmpq *.L__wine_spec_import_data_ptrs+1232(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1224(%rip)
 	.size GetWindowTextA, .-GetWindowTextA
 
 	.align 4
@@ -2781,7 +2761,7 @@ GetWindowTextA:
 	.globl GetWindowTextLengthA
 	.hidden GetWindowTextLengthA
 GetWindowTextLengthA:
-	jmpq *.L__wine_spec_import_data_ptrs+1240(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1232(%rip)
 	.size GetWindowTextLengthA, .-GetWindowTextLengthA
 
 	.align 4
@@ -2789,7 +2769,7 @@ GetWindowTextLengthA:
 	.globl GetWindowTextLengthW
 	.hidden GetWindowTextLengthW
 GetWindowTextLengthW:
-	jmpq *.L__wine_spec_import_data_ptrs+1248(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1240(%rip)
 	.size GetWindowTextLengthW, .-GetWindowTextLengthW
 
 	.align 4
@@ -2797,7 +2777,7 @@ GetWindowTextLengthW:
 	.globl GetWindowTextW
 	.hidden GetWindowTextW
 GetWindowTextW:
-	jmpq *.L__wine_spec_import_data_ptrs+1256(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1248(%rip)
 	.size GetWindowTextW, .-GetWindowTextW
 
 	.align 4
@@ -2805,7 +2785,7 @@ GetWindowTextW:
 	.globl InflateRect
 	.hidden InflateRect
 InflateRect:
-	jmpq *.L__wine_spec_import_data_ptrs+1264(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1256(%rip)
 	.size InflateRect, .-InflateRect
 
 	.align 4
@@ -2813,7 +2793,7 @@ InflateRect:
 	.globl InsertMenuA
 	.hidden InsertMenuA
 InsertMenuA:
-	jmpq *.L__wine_spec_import_data_ptrs+1272(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1264(%rip)
 	.size InsertMenuA, .-InsertMenuA
 
 	.align 4
@@ -2821,7 +2801,7 @@ InsertMenuA:
 	.globl InsertMenuItemA
 	.hidden InsertMenuItemA
 InsertMenuItemA:
-	jmpq *.L__wine_spec_import_data_ptrs+1280(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1272(%rip)
 	.size InsertMenuItemA, .-InsertMenuItemA
 
 	.align 4
@@ -2829,7 +2809,7 @@ InsertMenuItemA:
 	.globl IntersectRect
 	.hidden IntersectRect
 IntersectRect:
-	jmpq *.L__wine_spec_import_data_ptrs+1288(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1280(%rip)
 	.size IntersectRect, .-IntersectRect
 
 	.align 4
@@ -2837,7 +2817,7 @@ IntersectRect:
 	.globl InvalidateRect
 	.hidden InvalidateRect
 InvalidateRect:
-	jmpq *.L__wine_spec_import_data_ptrs+1296(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1288(%rip)
 	.size InvalidateRect, .-InvalidateRect
 
 	.align 4
@@ -2845,7 +2825,7 @@ InvalidateRect:
 	.globl IsDialogMessageA
 	.hidden IsDialogMessageA
 IsDialogMessageA:
-	jmpq *.L__wine_spec_import_data_ptrs+1304(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1296(%rip)
 	.size IsDialogMessageA, .-IsDialogMessageA
 
 	.align 4
@@ -2853,7 +2833,7 @@ IsDialogMessageA:
 	.globl IsIconic
 	.hidden IsIconic
 IsIconic:
-	jmpq *.L__wine_spec_import_data_ptrs+1312(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1304(%rip)
 	.size IsIconic, .-IsIconic
 
 	.align 4
@@ -2861,7 +2841,7 @@ IsIconic:
 	.globl IsWindow
 	.hidden IsWindow
 IsWindow:
-	jmpq *.L__wine_spec_import_data_ptrs+1320(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1312(%rip)
 	.size IsWindow, .-IsWindow
 
 	.align 4
@@ -2869,7 +2849,7 @@ IsWindow:
 	.globl IsWindowEnabled
 	.hidden IsWindowEnabled
 IsWindowEnabled:
-	jmpq *.L__wine_spec_import_data_ptrs+1328(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1320(%rip)
 	.size IsWindowEnabled, .-IsWindowEnabled
 
 	.align 4
@@ -2877,7 +2857,7 @@ IsWindowEnabled:
 	.globl IsWindowVisible
 	.hidden IsWindowVisible
 IsWindowVisible:
-	jmpq *.L__wine_spec_import_data_ptrs+1336(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1328(%rip)
 	.size IsWindowVisible, .-IsWindowVisible
 
 	.align 4
@@ -2885,7 +2865,7 @@ IsWindowVisible:
 	.globl KillTimer
 	.hidden KillTimer
 KillTimer:
-	jmpq *.L__wine_spec_import_data_ptrs+1344(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1336(%rip)
 	.size KillTimer, .-KillTimer
 
 	.align 4
@@ -2893,7 +2873,7 @@ KillTimer:
 	.globl LoadCursorA
 	.hidden LoadCursorA
 LoadCursorA:
-	jmpq *.L__wine_spec_import_data_ptrs+1352(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1344(%rip)
 	.size LoadCursorA, .-LoadCursorA
 
 	.align 4
@@ -2901,7 +2881,7 @@ LoadCursorA:
 	.globl LoadIconA
 	.hidden LoadIconA
 LoadIconA:
-	jmpq *.L__wine_spec_import_data_ptrs+1360(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1352(%rip)
 	.size LoadIconA, .-LoadIconA
 
 	.align 4
@@ -2909,7 +2889,7 @@ LoadIconA:
 	.globl LoadImageA
 	.hidden LoadImageA
 LoadImageA:
-	jmpq *.L__wine_spec_import_data_ptrs+1368(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1360(%rip)
 	.size LoadImageA, .-LoadImageA
 
 	.align 4
@@ -2917,7 +2897,7 @@ LoadImageA:
 	.globl LockWindowUpdate
 	.hidden LockWindowUpdate
 LockWindowUpdate:
-	jmpq *.L__wine_spec_import_data_ptrs+1376(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1368(%rip)
 	.size LockWindowUpdate, .-LockWindowUpdate
 
 	.align 4
@@ -2925,7 +2905,7 @@ LockWindowUpdate:
 	.globl MapWindowPoints
 	.hidden MapWindowPoints
 MapWindowPoints:
-	jmpq *.L__wine_spec_import_data_ptrs+1384(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1376(%rip)
 	.size MapWindowPoints, .-MapWindowPoints
 
 	.align 4
@@ -2933,7 +2913,7 @@ MapWindowPoints:
 	.globl MessageBoxW
 	.hidden MessageBoxW
 MessageBoxW:
-	jmpq *.L__wine_spec_import_data_ptrs+1392(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1384(%rip)
 	.size MessageBoxW, .-MessageBoxW
 
 	.align 4
@@ -2941,7 +2921,7 @@ MessageBoxW:
 	.globl MoveWindow
 	.hidden MoveWindow
 MoveWindow:
-	jmpq *.L__wine_spec_import_data_ptrs+1400(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1392(%rip)
 	.size MoveWindow, .-MoveWindow
 
 	.align 4
@@ -2949,7 +2929,7 @@ MoveWindow:
 	.globl OffsetRect
 	.hidden OffsetRect
 OffsetRect:
-	jmpq *.L__wine_spec_import_data_ptrs+1408(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1400(%rip)
 	.size OffsetRect, .-OffsetRect
 
 	.align 4
@@ -2957,7 +2937,7 @@ OffsetRect:
 	.globl PeekMessageA
 	.hidden PeekMessageA
 PeekMessageA:
-	jmpq *.L__wine_spec_import_data_ptrs+1416(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1408(%rip)
 	.size PeekMessageA, .-PeekMessageA
 
 	.align 4
@@ -2965,7 +2945,7 @@ PeekMessageA:
 	.globl PostQuitMessage
 	.hidden PostQuitMessage
 PostQuitMessage:
-	jmpq *.L__wine_spec_import_data_ptrs+1424(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1416(%rip)
 	.size PostQuitMessage, .-PostQuitMessage
 
 	.align 4
@@ -2973,7 +2953,7 @@ PostQuitMessage:
 	.globl PtInRect
 	.hidden PtInRect
 PtInRect:
-	jmpq *.L__wine_spec_import_data_ptrs+1432(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1424(%rip)
 	.size PtInRect, .-PtInRect
 
 	.align 4
@@ -2981,7 +2961,7 @@ PtInRect:
 	.globl RegisterClassA
 	.hidden RegisterClassA
 RegisterClassA:
-	jmpq *.L__wine_spec_import_data_ptrs+1440(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1432(%rip)
 	.size RegisterClassA, .-RegisterClassA
 
 	.align 4
@@ -2989,7 +2969,7 @@ RegisterClassA:
 	.globl RegisterClassW
 	.hidden RegisterClassW
 RegisterClassW:
-	jmpq *.L__wine_spec_import_data_ptrs+1448(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1440(%rip)
 	.size RegisterClassW, .-RegisterClassW
 
 	.align 4
@@ -2997,7 +2977,7 @@ RegisterClassW:
 	.globl ReleaseCapture
 	.hidden ReleaseCapture
 ReleaseCapture:
-	jmpq *.L__wine_spec_import_data_ptrs+1456(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1448(%rip)
 	.size ReleaseCapture, .-ReleaseCapture
 
 	.align 4
@@ -3005,7 +2985,7 @@ ReleaseCapture:
 	.globl ReleaseDC
 	.hidden ReleaseDC
 ReleaseDC:
-	jmpq *.L__wine_spec_import_data_ptrs+1464(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1456(%rip)
 	.size ReleaseDC, .-ReleaseDC
 
 	.align 4
@@ -3013,7 +2993,7 @@ ReleaseDC:
 	.globl ScreenToClient
 	.hidden ScreenToClient
 ScreenToClient:
-	jmpq *.L__wine_spec_import_data_ptrs+1472(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1464(%rip)
 	.size ScreenToClient, .-ScreenToClient
 
 	.align 4
@@ -3021,7 +3001,7 @@ ScreenToClient:
 	.globl SendDlgItemMessageA
 	.hidden SendDlgItemMessageA
 SendDlgItemMessageA:
-	jmpq *.L__wine_spec_import_data_ptrs+1480(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1472(%rip)
 	.size SendDlgItemMessageA, .-SendDlgItemMessageA
 
 	.align 4
@@ -3029,7 +3009,7 @@ SendDlgItemMessageA:
 	.globl SendMessageA
 	.hidden SendMessageA
 SendMessageA:
-	jmpq *.L__wine_spec_import_data_ptrs+1488(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1480(%rip)
 	.size SendMessageA, .-SendMessageA
 
 	.align 4
@@ -3037,7 +3017,7 @@ SendMessageA:
 	.globl SendMessageW
 	.hidden SendMessageW
 SendMessageW:
-	jmpq *.L__wine_spec_import_data_ptrs+1496(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1488(%rip)
 	.size SendMessageW, .-SendMessageW
 
 	.align 4
@@ -3045,7 +3025,7 @@ SendMessageW:
 	.globl PostMessageW
 	.hidden PostMessageW
 PostMessageW:
-	jmpq *.L__wine_spec_import_data_ptrs+1504(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1496(%rip)
 	.size PostMessageW, .-PostMessageW
 
 	.align 4
@@ -3053,7 +3033,7 @@ PostMessageW:
 	.globl SetActiveWindow
 	.hidden SetActiveWindow
 SetActiveWindow:
-	jmpq *.L__wine_spec_import_data_ptrs+1512(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1504(%rip)
 	.size SetActiveWindow, .-SetActiveWindow
 
 	.align 4
@@ -3061,7 +3041,7 @@ SetActiveWindow:
 	.globl SetCapture
 	.hidden SetCapture
 SetCapture:
-	jmpq *.L__wine_spec_import_data_ptrs+1520(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1512(%rip)
 	.size SetCapture, .-SetCapture
 
 	.align 4
@@ -3069,7 +3049,7 @@ SetCapture:
 	.globl SetCursor
 	.hidden SetCursor
 SetCursor:
-	jmpq *.L__wine_spec_import_data_ptrs+1528(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1520(%rip)
 	.size SetCursor, .-SetCursor
 
 	.align 4
@@ -3077,7 +3057,7 @@ SetCursor:
 	.globl SetFocus
 	.hidden SetFocus
 SetFocus:
-	jmpq *.L__wine_spec_import_data_ptrs+1536(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1528(%rip)
 	.size SetFocus, .-SetFocus
 
 	.align 4
@@ -3085,7 +3065,7 @@ SetFocus:
 	.globl SetMenu
 	.hidden SetMenu
 SetMenu:
-	jmpq *.L__wine_spec_import_data_ptrs+1544(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1536(%rip)
 	.size SetMenu, .-SetMenu
 
 	.align 4
@@ -3093,7 +3073,7 @@ SetMenu:
 	.globl SetMenuItemInfoA
 	.hidden SetMenuItemInfoA
 SetMenuItemInfoA:
-	jmpq *.L__wine_spec_import_data_ptrs+1552(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1544(%rip)
 	.size SetMenuItemInfoA, .-SetMenuItemInfoA
 
 	.align 4
@@ -3101,7 +3081,7 @@ SetMenuItemInfoA:
 	.globl SetParent
 	.hidden SetParent
 SetParent:
-	jmpq *.L__wine_spec_import_data_ptrs+1560(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1552(%rip)
 	.size SetParent, .-SetParent
 
 	.align 4
@@ -3109,7 +3089,7 @@ SetParent:
 	.globl SetRectEmpty
 	.hidden SetRectEmpty
 SetRectEmpty:
-	jmpq *.L__wine_spec_import_data_ptrs+1568(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1560(%rip)
 	.size SetRectEmpty, .-SetRectEmpty
 
 	.align 4
@@ -3117,7 +3097,7 @@ SetRectEmpty:
 	.globl SetScrollInfo
 	.hidden SetScrollInfo
 SetScrollInfo:
-	jmpq *.L__wine_spec_import_data_ptrs+1576(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1568(%rip)
 	.size SetScrollInfo, .-SetScrollInfo
 
 	.align 4
@@ -3125,7 +3105,7 @@ SetScrollInfo:
 	.globl SetScrollPos
 	.hidden SetScrollPos
 SetScrollPos:
-	jmpq *.L__wine_spec_import_data_ptrs+1584(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1576(%rip)
 	.size SetScrollPos, .-SetScrollPos
 
 	.align 4
@@ -3133,31 +3113,23 @@ SetScrollPos:
 	.globl SetTimer
 	.hidden SetTimer
 SetTimer:
-	jmpq *.L__wine_spec_import_data_ptrs+1592(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1584(%rip)
 	.size SetTimer, .-SetTimer
 
 	.align 4
-	.type SetWindowLongA,@function
-	.globl SetWindowLongA
-	.hidden SetWindowLongA
-SetWindowLongA:
-	jmpq *.L__wine_spec_import_data_ptrs+1600(%rip)
-	.size SetWindowLongA, .-SetWindowLongA
-
-	.align 4
-	.type SetWindowLongPtrA,@function
-	.globl SetWindowLongPtrA
-	.hidden SetWindowLongPtrA
-SetWindowLongPtrA:
-	jmpq *.L__wine_spec_import_data_ptrs+1608(%rip)
-	.size SetWindowLongPtrA, .-SetWindowLongPtrA
+	.type SetWindowLongPtrW,@function
+	.globl SetWindowLongPtrW
+	.hidden SetWindowLongPtrW
+SetWindowLongPtrW:
+	jmpq *.L__wine_spec_import_data_ptrs+1592(%rip)
+	.size SetWindowLongPtrW, .-SetWindowLongPtrW
 
 	.align 4
 	.type SetWindowPos,@function
 	.globl SetWindowPos
 	.hidden SetWindowPos
 SetWindowPos:
-	jmpq *.L__wine_spec_import_data_ptrs+1616(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1600(%rip)
 	.size SetWindowPos, .-SetWindowPos
 
 	.align 4
@@ -3165,7 +3137,7 @@ SetWindowPos:
 	.globl SetWindowTextA
 	.hidden SetWindowTextA
 SetWindowTextA:
-	jmpq *.L__wine_spec_import_data_ptrs+1624(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1608(%rip)
 	.size SetWindowTextA, .-SetWindowTextA
 
 	.align 4
@@ -3173,7 +3145,7 @@ SetWindowTextA:
 	.globl SetWindowTextW
 	.hidden SetWindowTextW
 SetWindowTextW:
-	jmpq *.L__wine_spec_import_data_ptrs+1632(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1616(%rip)
 	.size SetWindowTextW, .-SetWindowTextW
 
 	.align 4
@@ -3181,7 +3153,7 @@ SetWindowTextW:
 	.globl ShowWindow
 	.hidden ShowWindow
 ShowWindow:
-	jmpq *.L__wine_spec_import_data_ptrs+1640(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1624(%rip)
 	.size ShowWindow, .-ShowWindow
 
 	.align 4
@@ -3189,7 +3161,7 @@ ShowWindow:
 	.globl SystemParametersInfoA
 	.hidden SystemParametersInfoA
 SystemParametersInfoA:
-	jmpq *.L__wine_spec_import_data_ptrs+1648(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1632(%rip)
 	.size SystemParametersInfoA, .-SystemParametersInfoA
 
 	.align 4
@@ -3197,7 +3169,7 @@ SystemParametersInfoA:
 	.globl TrackPopupMenu
 	.hidden TrackPopupMenu
 TrackPopupMenu:
-	jmpq *.L__wine_spec_import_data_ptrs+1656(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1640(%rip)
 	.size TrackPopupMenu, .-TrackPopupMenu
 
 	.align 4
@@ -3205,7 +3177,7 @@ TrackPopupMenu:
 	.globl TranslateAcceleratorA
 	.hidden TranslateAcceleratorA
 TranslateAcceleratorA:
-	jmpq *.L__wine_spec_import_data_ptrs+1664(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1648(%rip)
 	.size TranslateAcceleratorA, .-TranslateAcceleratorA
 
 	.align 4
@@ -3213,7 +3185,7 @@ TranslateAcceleratorA:
 	.globl TranslateMDISysAccel
 	.hidden TranslateMDISysAccel
 TranslateMDISysAccel:
-	jmpq *.L__wine_spec_import_data_ptrs+1672(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1656(%rip)
 	.size TranslateMDISysAccel, .-TranslateMDISysAccel
 
 	.align 4
@@ -3221,7 +3193,7 @@ TranslateMDISysAccel:
 	.globl TranslateMessage
 	.hidden TranslateMessage
 TranslateMessage:
-	jmpq *.L__wine_spec_import_data_ptrs+1680(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1664(%rip)
 	.size TranslateMessage, .-TranslateMessage
 
 	.align 4
@@ -3229,7 +3201,7 @@ TranslateMessage:
 	.globl UpdateWindow
 	.hidden UpdateWindow
 UpdateWindow:
-	jmpq *.L__wine_spec_import_data_ptrs+1688(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1672(%rip)
 	.size UpdateWindow, .-UpdateWindow
 
 	.align 4
@@ -3237,7 +3209,7 @@ UpdateWindow:
 	.globl RedrawWindow
 	.hidden RedrawWindow
 RedrawWindow:
-	jmpq *.L__wine_spec_import_data_ptrs+1696(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1680(%rip)
 	.size RedrawWindow, .-RedrawWindow
 
 	.align 4
@@ -3245,7 +3217,7 @@ RedrawWindow:
 	.globl IsWindowUnicode
 	.hidden IsWindowUnicode
 IsWindowUnicode:
-	jmpq *.L__wine_spec_import_data_ptrs+1704(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1688(%rip)
 	.size IsWindowUnicode, .-IsWindowUnicode
 
 	.align 4
@@ -3253,7 +3225,7 @@ IsWindowUnicode:
 	.globl CloseHandle
 	.hidden CloseHandle
 CloseHandle:
-	jmpq *.L__wine_spec_import_data_ptrs+1720(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1704(%rip)
 	.size CloseHandle, .-CloseHandle
 
 	.align 4
@@ -3261,7 +3233,7 @@ CloseHandle:
 	.globl CreateFileA
 	.hidden CreateFileA
 CreateFileA:
-	jmpq *.L__wine_spec_import_data_ptrs+1728(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1712(%rip)
 	.size CreateFileA, .-CreateFileA
 
 	.align 4
@@ -3269,7 +3241,7 @@ CreateFileA:
 	.globl ExitProcess
 	.hidden ExitProcess
 ExitProcess:
-	jmpq *.L__wine_spec_import_data_ptrs+1736(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1720(%rip)
 	.size ExitProcess, .-ExitProcess
 
 	.align 4
@@ -3277,7 +3249,7 @@ ExitProcess:
 	.globl FreeLibrary
 	.hidden FreeLibrary
 FreeLibrary:
-	jmpq *.L__wine_spec_import_data_ptrs+1744(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1728(%rip)
 	.size FreeLibrary, .-FreeLibrary
 
 	.align 4
@@ -3285,7 +3257,7 @@ FreeLibrary:
 	.globl GetCommandLineA
 	.hidden GetCommandLineA
 GetCommandLineA:
-	jmpq *.L__wine_spec_import_data_ptrs+1752(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1736(%rip)
 	.size GetCommandLineA, .-GetCommandLineA
 
 	.align 4
@@ -3293,7 +3265,7 @@ GetCommandLineA:
 	.globl GetLocaleInfoA
 	.hidden GetLocaleInfoA
 GetLocaleInfoA:
-	jmpq *.L__wine_spec_import_data_ptrs+1760(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1744(%rip)
 	.size GetLocaleInfoA, .-GetLocaleInfoA
 
 	.align 4
@@ -3301,7 +3273,7 @@ GetLocaleInfoA:
 	.globl GetModuleHandleA
 	.hidden GetModuleHandleA
 GetModuleHandleA:
-	jmpq *.L__wine_spec_import_data_ptrs+1768(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1752(%rip)
 	.size GetModuleHandleA, .-GetModuleHandleA
 
 	.align 4
@@ -3309,7 +3281,7 @@ GetModuleHandleA:
 	.globl GetProcAddress
 	.hidden GetProcAddress
 GetProcAddress:
-	jmpq *.L__wine_spec_import_data_ptrs+1776(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1760(%rip)
 	.size GetProcAddress, .-GetProcAddress
 
 	.align 4
@@ -3317,7 +3289,7 @@ GetProcAddress:
 	.globl GetStartupInfoA
 	.hidden GetStartupInfoA
 GetStartupInfoA:
-	jmpq *.L__wine_spec_import_data_ptrs+1784(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1768(%rip)
 	.size GetStartupInfoA, .-GetStartupInfoA
 
 	.align 4
@@ -3325,7 +3297,7 @@ GetStartupInfoA:
 	.globl LoadLibraryA
 	.hidden LoadLibraryA
 LoadLibraryA:
-	jmpq *.L__wine_spec_import_data_ptrs+1792(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1776(%rip)
 	.size LoadLibraryA, .-LoadLibraryA
 
 	.align 4
@@ -3333,7 +3305,7 @@ LoadLibraryA:
 	.globl MulDiv
 	.hidden MulDiv
 MulDiv:
-	jmpq *.L__wine_spec_import_data_ptrs+1800(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1784(%rip)
 	.size MulDiv, .-MulDiv
 
 	.align 4
@@ -3341,7 +3313,7 @@ MulDiv:
 	.globl MultiByteToWideChar
 	.hidden MultiByteToWideChar
 MultiByteToWideChar:
-	jmpq *.L__wine_spec_import_data_ptrs+1808(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1792(%rip)
 	.size MultiByteToWideChar, .-MultiByteToWideChar
 
 	.align 4
@@ -3349,7 +3321,7 @@ MultiByteToWideChar:
 	.globl WideCharToMultiByte
 	.hidden WideCharToMultiByte
 WideCharToMultiByte:
-	jmpq *.L__wine_spec_import_data_ptrs+1816(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1800(%rip)
 	.size WideCharToMultiByte, .-WideCharToMultiByte
 
 	.align 4
@@ -3357,7 +3329,7 @@ WideCharToMultiByte:
 	.globl WriteFile
 	.hidden WriteFile
 WriteFile:
-	jmpq *.L__wine_spec_import_data_ptrs+1824(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1808(%rip)
 	.size WriteFile, .-WriteFile
 
 	.align 4
@@ -3365,7 +3337,7 @@ WriteFile:
 	.globl CreateSemaphoreA
 	.hidden CreateSemaphoreA
 CreateSemaphoreA:
-	jmpq *.L__wine_spec_import_data_ptrs+1832(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1816(%rip)
 	.size CreateSemaphoreA, .-CreateSemaphoreA
 
 	.align 4
@@ -3373,7 +3345,7 @@ CreateSemaphoreA:
 	.globl ReleaseSemaphore
 	.hidden ReleaseSemaphore
 ReleaseSemaphore:
-	jmpq *.L__wine_spec_import_data_ptrs+1840(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1824(%rip)
 	.size ReleaseSemaphore, .-ReleaseSemaphore
 
 	.align 4
@@ -3381,7 +3353,7 @@ ReleaseSemaphore:
 	.globl WaitForSingleObject
 	.hidden WaitForSingleObject
 WaitForSingleObject:
-	jmpq *.L__wine_spec_import_data_ptrs+1848(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1832(%rip)
 	.size WaitForSingleObject, .-WaitForSingleObject
 
 	.align 4
@@ -3389,7 +3361,7 @@ WaitForSingleObject:
 	.globl GlobalAlloc
 	.hidden GlobalAlloc
 GlobalAlloc:
-	jmpq *.L__wine_spec_import_data_ptrs+1856(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1840(%rip)
 	.size GlobalAlloc, .-GlobalAlloc
 
 	.align 4
@@ -3397,7 +3369,7 @@ GlobalAlloc:
 	.globl GlobalFree
 	.hidden GlobalFree
 GlobalFree:
-	jmpq *.L__wine_spec_import_data_ptrs+1864(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1848(%rip)
 	.size GlobalFree, .-GlobalFree
 
 	.align 4
@@ -3405,7 +3377,7 @@ GlobalFree:
 	.globl GetTickCount
 	.hidden GetTickCount
 GetTickCount:
-	jmpq *.L__wine_spec_import_data_ptrs+1872(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1856(%rip)
 	.size GetTickCount, .-GetTickCount
 
 	.align 4
@@ -3413,7 +3385,7 @@ GetTickCount:
 	.globl Sleep
 	.hidden Sleep
 Sleep:
-	jmpq *.L__wine_spec_import_data_ptrs+1880(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1864(%rip)
 	.size Sleep, .-Sleep
 
 	.align 4
@@ -3421,7 +3393,7 @@ Sleep:
 	.globl DisableThreadLibraryCalls
 	.hidden DisableThreadLibraryCalls
 DisableThreadLibraryCalls:
-	jmpq *.L__wine_spec_import_data_ptrs+1888(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1872(%rip)
 	.size DisableThreadLibraryCalls, .-DisableThreadLibraryCalls
 
 	.align 4
@@ -3429,7 +3401,7 @@ DisableThreadLibraryCalls:
 	.globl lstrcmpW
 	.hidden lstrcmpW
 lstrcmpW:
-	jmpq *.L__wine_spec_import_data_ptrs+1896(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1880(%rip)
 	.size lstrcmpW, .-lstrcmpW
 
 	.align 4
@@ -3437,7 +3409,7 @@ lstrcmpW:
 	.globl CoTaskMemFree
 	.hidden CoTaskMemFree
 CoTaskMemFree:
-	jmpq *.L__wine_spec_import_data_ptrs+1912(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1896(%rip)
 	.size CoTaskMemFree, .-CoTaskMemFree
 
 	.align 4
@@ -3445,7 +3417,7 @@ CoTaskMemFree:
 	.globl CoInitialize
 	.hidden CoInitialize
 CoInitialize:
-	jmpq *.L__wine_spec_import_data_ptrs+1920(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1904(%rip)
 	.size CoInitialize, .-CoInitialize
 
 	.align 4
@@ -3453,7 +3425,7 @@ CoInitialize:
 	.globl CoUninitialize
 	.hidden CoUninitialize
 CoUninitialize:
-	jmpq *.L__wine_spec_import_data_ptrs+1928(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1912(%rip)
 	.size CoUninitialize, .-CoUninitialize
 
 

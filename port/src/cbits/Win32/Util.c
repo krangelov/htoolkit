@@ -51,7 +51,7 @@ extern WNDPROC DefEditCtrlProc;
 
 static void parseAppNameVersion(PortString appTitle,PortString appVersion)
 {
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 	int appNameLen;
 	LPWSTR s;
 
@@ -332,7 +332,7 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 	}
 
 	MSG msg;
-	FrameData *pFrameData = (FrameData *) GetWindowLongPtr(ghWndFrame,GWLP_USERDATA);
+	FrameData *pFrameData = (FrameData *) GetWindowLongPtrW(ghWndFrame,GWLP_USERDATA);
 
 	while (GetMessage(&msg, NULL, 0, 0) != 0)
 	{
