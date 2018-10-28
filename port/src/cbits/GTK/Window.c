@@ -176,7 +176,7 @@ WindowHandle create_generic_window()
 	gtk_signal_connect (GTK_OBJECT(sw), "destroy",
 		GTK_SIGNAL_FUNC(handleWindowDestroy),
 		NULL);
-	gtk_signal_connect (GTK_OBJECT (sw), "delete-event",
+	gtk_signal_connect (GTK_OBJECT(sw), "delete-event",
 		GTK_SIGNAL_FUNC(window_delete_handler),
 		NULL);
 
@@ -790,8 +790,8 @@ void osGetControlRect(WindowHandle ctrl, int *res)
 {
 	res[0] = ctrl->allocation.x;
 	res[1] = ctrl->allocation.y;
-	res[2] = ctrl->allocation.width;
-	res[3] = ctrl->allocation.height;
+	res[2] = ctrl->allocation.x+ctrl->allocation.width;
+	res[3] = ctrl->allocation.y+ctrl->allocation.height;
 }
 
 void osSetControlEnabled(WindowHandle ctrl, BOOL enabled)
