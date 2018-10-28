@@ -117,6 +117,11 @@ __wine_spec_file_name:
 	.long 0
 	.long .L__wine_spec_import_name_ole32_dll-.L__wine_spec_rva_base
 	.long .L__wine_spec_import_data_ptrs+1896-.L__wine_spec_rva_base
+	.long .L__wine_spec_import_data_names+1944-.L__wine_spec_rva_base
+	.long 0
+	.long 0
+	.long .L__wine_spec_import_name_oleaut32_dll-.L__wine_spec_rva_base
+	.long .L__wine_spec_import_data_ptrs+1944-.L__wine_spec_rva_base
 	.long 0
 	.long 0
 	.long 0
@@ -362,11 +367,31 @@ __wine_spec_file_name:
 	.quad .L__wine_spec_import_data_kernel32_dll_DisableThreadLibraryCalls-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_kernel32_dll_lstrcmpW-.L__wine_spec_rva_base
 	.quad 0
+	.quad .L__wine_spec_import_data_ole32_dll_OleInitialize-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_ole32_dll_OleUninitialize-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_ole32_dll_CoTaskMemAlloc-.L__wine_spec_rva_base
 	.quad .L__wine_spec_import_data_ole32_dll_CoTaskMemFree-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_ole32_dll_CoInitialize-.L__wine_spec_rva_base
-	.quad .L__wine_spec_import_data_ole32_dll_CoUninitialize-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_ole32_dll_CoCreateInstance-.L__wine_spec_rva_base
+	.quad 0
+	.quad .L__wine_spec_import_data_oleaut32_dll_VariantInit-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_oleaut32_dll_VariantClear-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_oleaut32_dll_SysAllocString-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_oleaut32_dll_SysFreeString-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_oleaut32_dll_SafeArrayCreate-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_oleaut32_dll_SafeArrayDestroy-.L__wine_spec_rva_base
+	.quad .L__wine_spec_import_data_oleaut32_dll_SafeArrayAccessData-.L__wine_spec_rva_base
 	.quad 0
 .L__wine_spec_import_data_ptrs:
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
 	.quad 0
 	.quad 0
 	.quad 0
@@ -1530,17 +1555,53 @@ __wine_spec_file_name:
 	.short 1058
 	.string "lstrcmpW"
 	.align 2
+.L__wine_spec_import_data_ole32_dll_OleInitialize:
+	.short 208
+	.string "OleInitialize"
+	.align 2
+.L__wine_spec_import_data_ole32_dll_OleUninitialize:
+	.short 231
+	.string "OleUninitialize"
+	.align 2
+.L__wine_spec_import_data_ole32_dll_CoTaskMemAlloc:
+	.short 79
+	.string "CoTaskMemAlloc"
+	.align 2
 .L__wine_spec_import_data_ole32_dll_CoTaskMemFree:
 	.short 80
 	.string "CoTaskMemFree"
 	.align 2
-.L__wine_spec_import_data_ole32_dll_CoInitialize:
-	.short 45
-	.string "CoInitialize"
+.L__wine_spec_import_data_ole32_dll_CoCreateInstance:
+	.short 15
+	.string "CoCreateInstance"
 	.align 2
-.L__wine_spec_import_data_ole32_dll_CoUninitialize:
-	.short 83
-	.string "CoUninitialize"
+.L__wine_spec_import_data_oleaut32_dll_VariantInit:
+	.short 8
+	.string "VariantInit"
+	.align 2
+.L__wine_spec_import_data_oleaut32_dll_VariantClear:
+	.short 9
+	.string "VariantClear"
+	.align 2
+.L__wine_spec_import_data_oleaut32_dll_SysAllocString:
+	.short 2
+	.string "SysAllocString"
+	.align 2
+.L__wine_spec_import_data_oleaut32_dll_SysFreeString:
+	.short 6
+	.string "SysFreeString"
+	.align 2
+.L__wine_spec_import_data_oleaut32_dll_SafeArrayCreate:
+	.short 15
+	.string "SafeArrayCreate"
+	.align 2
+.L__wine_spec_import_data_oleaut32_dll_SafeArrayDestroy:
+	.short 16
+	.string "SafeArrayDestroy"
+	.align 2
+.L__wine_spec_import_data_oleaut32_dll_SafeArrayAccessData:
+	.short 23
+	.string "SafeArrayAccessData"
 .L__wine_spec_import_name_comctl32_dll:
 	.string "comctl32.dll"
 .L__wine_spec_import_name_shell32_dll:
@@ -1557,6 +1618,8 @@ __wine_spec_file_name:
 	.string "kernel32.dll"
 .L__wine_spec_import_name_ole32_dll:
 	.string "ole32.dll"
+.L__wine_spec_import_name_oleaut32_dll:
+	.string "oleaut32.dll"
 
 /* immediate import thunks */
 
@@ -3405,28 +3468,100 @@ lstrcmpW:
 	.size lstrcmpW, .-lstrcmpW
 
 	.align 4
+	.type OleInitialize,@function
+	.globl OleInitialize
+	.hidden OleInitialize
+OleInitialize:
+	jmpq *.L__wine_spec_import_data_ptrs+1896(%rip)
+	.size OleInitialize, .-OleInitialize
+
+	.align 4
+	.type OleUninitialize,@function
+	.globl OleUninitialize
+	.hidden OleUninitialize
+OleUninitialize:
+	jmpq *.L__wine_spec_import_data_ptrs+1904(%rip)
+	.size OleUninitialize, .-OleUninitialize
+
+	.align 4
+	.type CoTaskMemAlloc,@function
+	.globl CoTaskMemAlloc
+	.hidden CoTaskMemAlloc
+CoTaskMemAlloc:
+	jmpq *.L__wine_spec_import_data_ptrs+1912(%rip)
+	.size CoTaskMemAlloc, .-CoTaskMemAlloc
+
+	.align 4
 	.type CoTaskMemFree,@function
 	.globl CoTaskMemFree
 	.hidden CoTaskMemFree
 CoTaskMemFree:
-	jmpq *.L__wine_spec_import_data_ptrs+1896(%rip)
+	jmpq *.L__wine_spec_import_data_ptrs+1920(%rip)
 	.size CoTaskMemFree, .-CoTaskMemFree
 
 	.align 4
-	.type CoInitialize,@function
-	.globl CoInitialize
-	.hidden CoInitialize
-CoInitialize:
-	jmpq *.L__wine_spec_import_data_ptrs+1904(%rip)
-	.size CoInitialize, .-CoInitialize
+	.type CoCreateInstance,@function
+	.globl CoCreateInstance
+	.hidden CoCreateInstance
+CoCreateInstance:
+	jmpq *.L__wine_spec_import_data_ptrs+1928(%rip)
+	.size CoCreateInstance, .-CoCreateInstance
 
 	.align 4
-	.type CoUninitialize,@function
-	.globl CoUninitialize
-	.hidden CoUninitialize
-CoUninitialize:
-	jmpq *.L__wine_spec_import_data_ptrs+1912(%rip)
-	.size CoUninitialize, .-CoUninitialize
+	.type VariantInit,@function
+	.globl VariantInit
+	.hidden VariantInit
+VariantInit:
+	jmpq *.L__wine_spec_import_data_ptrs+1944(%rip)
+	.size VariantInit, .-VariantInit
+
+	.align 4
+	.type VariantClear,@function
+	.globl VariantClear
+	.hidden VariantClear
+VariantClear:
+	jmpq *.L__wine_spec_import_data_ptrs+1952(%rip)
+	.size VariantClear, .-VariantClear
+
+	.align 4
+	.type SysAllocString,@function
+	.globl SysAllocString
+	.hidden SysAllocString
+SysAllocString:
+	jmpq *.L__wine_spec_import_data_ptrs+1960(%rip)
+	.size SysAllocString, .-SysAllocString
+
+	.align 4
+	.type SysFreeString,@function
+	.globl SysFreeString
+	.hidden SysFreeString
+SysFreeString:
+	jmpq *.L__wine_spec_import_data_ptrs+1968(%rip)
+	.size SysFreeString, .-SysFreeString
+
+	.align 4
+	.type SafeArrayCreate,@function
+	.globl SafeArrayCreate
+	.hidden SafeArrayCreate
+SafeArrayCreate:
+	jmpq *.L__wine_spec_import_data_ptrs+1976(%rip)
+	.size SafeArrayCreate, .-SafeArrayCreate
+
+	.align 4
+	.type SafeArrayDestroy,@function
+	.globl SafeArrayDestroy
+	.hidden SafeArrayDestroy
+SafeArrayDestroy:
+	jmpq *.L__wine_spec_import_data_ptrs+1984(%rip)
+	.size SafeArrayDestroy, .-SafeArrayDestroy
+
+	.align 4
+	.type SafeArrayAccessData,@function
+	.globl SafeArrayAccessData
+	.hidden SafeArrayAccessData
+SafeArrayAccessData:
+	jmpq *.L__wine_spec_import_data_ptrs+1992(%rip)
+	.size SafeArrayAccessData, .-SafeArrayAccessData
 
 
 

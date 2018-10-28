@@ -32,8 +32,6 @@ char *osSelectDirectory(char *title, WindowHandle owner)
 	bi.lpfn           = NULL;
 	bi.lParam         = 0;
 
-	CoInitialize(NULL);		// Initialise the COM library; must be balanced by CoUninitialize()
-
 	pidlReturn = SHBrowseForFolder (&bi);
 	if (pidlReturn)
 	{
@@ -42,7 +40,6 @@ char *osSelectDirectory(char *title, WindowHandle owner)
 		CoTaskMemFree (pidlReturn);
 	}
 
-	CoUninitialize ();		// Uninitialise the COM library
 	return s;
 }
 

@@ -414,9 +414,19 @@ importedFunctions =
                 ,"DisableThreadLibraryCalls"
                 ,"lstrcmpW"
                 ])
-  ,("ole32",    ["CoTaskMemFree"
-                ,"CoInitialize"
-                ,"CoUninitialize"
+  ,("ole32",    ["OleInitialize"
+                ,"OleUninitialize"
+                ,"CoTaskMemAlloc"
+                ,"CoTaskMemFree"
+                ,"CoCreateInstance"
+                ])
+  ,("oleaut32", ["VariantInit"
+                ,"VariantClear"
+                ,"SysAllocString"
+                ,"SysFreeString"
+                ,"SafeArrayCreate"
+                ,"SafeArrayDestroy"
+                ,"SafeArrayAccessData"
                 ])
   ]
 

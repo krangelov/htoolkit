@@ -42,6 +42,7 @@ extern LRESULT CALLBACK HCheckListBoxFunction(HWND hWnd, UINT uMsg, WPARAM wPara
 extern LRESULT CALLBACK HSplitterFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern LRESULT CALLBACK HEditFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern LRESULT CALLBACK HTreeListFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+extern LRESULT CALLBACK HWebViewFunction(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern WNDPROC DefToolBarProc;
 extern WNDPROC DefTabCtrlProc;
@@ -277,7 +278,7 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 		wc.lpfnWndProc	= HTreeListFunction;
 		wc.cbClsExtra	= 0;
 		wc.cbWndExtra	= sizeof(void*);
-		wc.hInstance	= NULL;
+		wc.hInstance	= ghModule;
 		wc.hIcon		= NULL;
 		wc.hCursor		= LoadCursor(NULL,IDC_ARROW);
 		wc.hbrBackground= NULL;
@@ -285,9 +286,24 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 		wc.lpszClassName= L"HTreeList";
 		RegisterClassW(&wc);
 
+		// CompoundControl class
+		wc.style         = CS_DBLCLKS;
+		wc.lpfnWndProc   = HWebViewFunction;
+		wc.cbClsExtra    = 0;
+		wc.cbWndExtra    = 0;
+		wc.hInstance     = ghModule;
+		wc.hIcon         = NULL;
+		wc.hCursor       = LoadCursor (NULL, IDC_ARROW);
+		wc.hbrBackground = NULL;
+		wc.lpszMenuName  = NULL;
+		wc.lpszClassName = L"HWebView";
+		RegisterClassW(&wc);
+
 		icc.dwSize = sizeof(icc);
 		icc.dwICC = ICC_WIN95_CLASSES | ICC_DATE_CLASSES;
 		InitCommonControlsEx(&icc);
+		
+		OleInitialize(NULL);
 	}
 
 	if (ghWndFrame == NULL)
@@ -349,6 +365,7 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 
 void osQuit()
 {
+	OleUninitialize();
 	DestroyWindow(ghWndFrame);
 	ghWndFrame = NULL;
 }

@@ -32,16 +32,8 @@ typedef struct {
     void            *userdata;      // An extra pointer.
 } _IDispatchEx;
 
-static long WINAPI EmbedBrowserObject(HWND);
-static void WINAPI UnEmbedBrowserObject(HWND);
-static long WINAPI DisplayHTMLPage(HWND, const WCHAR *);
-
-static long WINAPI DisplayHTMLStr(HWND, const WCHAR *);
-
 static IHTMLElement * WINAPI GetWebElement(HWND, IHTMLDocument2 *, const WCHAR *, INT);
 static IHTMLElement * WINAPI GetWebSrcElement(IHTMLEventObj *);
-
-static void WINAPI ResizeBrowser(HWND, DWORD, DWORD);
 
 
 #define WEBPAGE_GOBACK      0
@@ -69,9 +61,6 @@ static IDispatch * WINAPI CreateWebEvtHandler(HWND, IHTMLDocument2 *, DWORD, lon
 
 // Used by UI_TranslateUrl().  These can be global because we never change them.
 static const wchar_t Blank[] = {L"about:blank"};
-
-// This is used by displayHTMLStr(). It can be global because we never change it.
-static const SAFEARRAYBOUND ArrayBound = {1, 0};
 
 #define XV2(x) (x).__VARIANT_NAME_1.__VARIANT_NAME_2
 #define XV3(x) (x).__VARIANT_NAME_1.__VARIANT_NAME_2.__VARIANT_NAME_3
@@ -325,16 +314,8 @@ typedef struct {
     _IOleInPlaceSiteEx      inplace;    // My IOleInPlaceSite object. A convenient place to put it.
     _IDocHostUIHandlerEx    ui;         // My IDocHostUIHandler object. Must be first within my _IDocHostUIHandlerEx.
 
-    ///////////////////////////////////////////////////
-    // Here you add any extra variables that you need
-    // to access in your IOleClientSite functions.
-    ///////////////////////////////////////////////////
+	IOleObject *browserObject;
 } _IOleClientSiteEx;
-
-
-unsigned char COM_init;
-
-
 
 
 
@@ -630,7 +611,7 @@ static HRESULT STDMETHODCALLTYPE UI_TranslateUrl(IDocHostUIHandler *This, DWORD 
     // When the user clicks on it, we will substitute a blank page, and then send the
     // application a WM_APP message with wParam as the number after the app:. The
     // application can then do anything it wants as a result of this, for example,
-    // call DisplayHTMLStr to load some other string in memory, or whatever.
+    // call osWebViewLoadHTML to load some other string in memory, or whatever.
     if (len >= 4 && pchURLIn[0]==L'a' && pchURLIn[1]==L'p' && pchURLIn[2]==L'p' && pchURLIn[3]==L':')
     {
         // Allocate a new buffer to return an "about:blank" URL
@@ -701,7 +682,7 @@ static HRESULT STDMETHODCALLTYPE UI_FilterDataObject(IDocHostUIHandler * This, I
  * The browser object calls this when it wants a pointer to one of our
  * IOleClientSite, IDocHostUIHandler, or IOleInPlaceSite structures. They
  * are all accessible via the _IOleClientSiteEx struct we allocated in
- * EmbedBrowserObject() and passed to DoVerb() and OleCreate().
+ * WM_CREATE and passed to DoVerb() and OleCreate().
  *
  * This =       A pointer to whatever _IOleClientSiteEx struct we passed to
  *              OleCreate() or DoVerb().
@@ -719,12 +700,8 @@ static HRESULT STDMETHODCALLTYPE Site_QueryInterface(IOleClientSite *This, REFII
 {
     // It just so happens that the first arg passed to us is our _IOleClientSiteEx struct we allocated
     // and passed to DoVerb() and OleCreate(). Nevermind that 'This' is declared is an IOleClientSite *.
-    // Remember that in EmbedBrowserObject(), we allocated our own _IOleClientSiteEx struct, and lied
-    // to OleCreate() and DoVerb() -- passing our _IOleClientSiteEx struct and saying it was an
-    // IOleClientSite struct. It's ok. An _IOleClientSiteEx starts with an embedded IOleClientSite, so
-    // the browser didn't mind. So that's what the browser object is passing us now. The browser doesn't
-    // know that it's really an _IOleClientSiteEx struct. But we do. So we can recast it and use it as
-    // so here.
+    // Remember that in WM_CREATE, we allocated our own _IOleClientSiteEx struct and its first member is
+    // IOleClientSite.
 
     // If the browser is asking us to match IID_IOleClientSite, then it wants us to return a pointer to
     // our IOleClientSite struct. Then the browser will use the VTable in that struct to call our
@@ -863,7 +840,7 @@ static HRESULT STDMETHODCALLTYPE InPlace_GetWindow(IOleInPlaceSite *This, HWND *
     // Return the HWND of the window that contains this browser object. We stored that
     // HWND in our _IOleInPlaceSiteEx struct. Nevermind that the function declaration for
     // Site_GetWindow says that 'This' is an IOleInPlaceSite *. Remember that in
-    // EmbedBrowserObject(), we allocated our own _IOleInPlaceSiteEx struct which
+    // WM_CREATE, we allocated our own _IOleInPlaceSiteEx struct which
     // contained an embedded IOleInPlaceSite struct within it. And when the browser
     // called Site_QueryInterface() to get a pointer to our IOleInPlaceSite object, we
     // returned a pointer to our _IOleClientSiteEx. The browser doesn't know this. But
@@ -901,7 +878,7 @@ static HRESULT STDMETHODCALLTYPE InPlace_GetWindowContext(IOleInPlaceSite *This,
     // Give the browser the pointer to our IOleInPlaceFrame struct. We stored that pointer
     // in our _IOleInPlaceSiteEx struct. Nevermind that the function declaration for
     // Site_GetWindowContext says that 'This' is an IOleInPlaceSite *. Remember that in
-    // EmbedBrowserObject(), we allocated our own _IOleInPlaceSiteEx struct which
+    // WM_CREATE, we allocated our own _IOleInPlaceSiteEx struct which
     // contained an embedded IOleInPlaceSite struct within it. And when the browser
     // called Site_QueryInterface() to get a pointer to our IOleInPlaceSite object, we
     // returned a pointer to our _IOleClientSiteEx. The browser doesn't know this. But
@@ -962,19 +939,16 @@ static HRESULT STDMETHODCALLTYPE InPlace_DeactivateAndUndo(IOleInPlaceSite *This
 // put_Height(), put_Left(), or put_Right().
 static HRESULT STDMETHODCALLTYPE InPlace_OnPosRectChange(IOleInPlaceSite *This, LPCRECT lprcPosRect)
 {
-    IOleObject          *browserObject;
     IOleInPlaceObject   *inplace;
+    _IOleClientSiteEx *_iOleClientSiteEx = (_IOleClientSiteEx*) ((char *)This - sizeof(IOleClientSite));
 
-    // We need to get the browser's IOleInPlaceObject object so we can call its SetObjectRects
-    // function.
-    browserObject = *((IOleObject **)((char *)This - sizeof(IOleObject *) - sizeof(IOleClientSite)));
-    if (!browserObject->lpVtbl->QueryInterface(browserObject, &IID_IOleInPlaceObject, (void **)&inplace))
+    if (!_iOleClientSiteEx->browserObject->lpVtbl->QueryInterface(_iOleClientSiteEx->browserObject, &IID_IOleInPlaceObject, (void **)&inplace))
     {
         // Give the browser the dimensions of where it can draw.
         inplace->lpVtbl->SetObjectRects(inplace, lprcPosRect, lprcPosRect);
     }
 
-    return(S_OK);
+    return S_OK;
 }
 
 
@@ -1000,7 +974,7 @@ static HRESULT STDMETHODCALLTYPE Frame_GetWindow(IOleInPlaceFrame *This, HWND *l
     // Give the browser the HWND to our window that contains the browser object. We
     // stored that HWND in our IOleInPlaceFrame struct. Nevermind that the function
     // declaration for Frame_GetWindow says that 'This' is an IOleInPlaceFrame *. Remember
-    // that in EmbedBrowserObject(), we allocated our own IOleInPlaceFrameEx struct which
+    // that in WM_CREATE, we allocated our own IOleInPlaceFrameEx struct which
     // contained an embedded IOleInPlaceFrame struct within it. And then we lied when
     // Site_GetWindowContext() returned that IOleInPlaceFrameEx. So that's what the
     // browser is passing us. It doesn't know that. But we do. So we can recast it and
@@ -1458,10 +1432,8 @@ static HRESULT WINAPI GetWebPtrs(HWND hwnd, IWebBrowser2 **webBrowser2Result, IH
     if (webBrowser2Result || htmlDoc2Result)
     {
         // Make sure he supplied a window
-        if (!IsWindow(hwnd) ||
-
-            // Get the browser object stored in the window's USERDATA member
-            !(browserObject = *((IOleObject **)GetWindowLongPtrW(hwnd, GWLP_USERDATA))) ||
+        if (// Get the browser object stored in the window's USERDATA member
+            !(browserObject = ((_IOleClientSiteEx *)GetWindowLongPtrW(hwnd, GWLP_USERDATA))->browserObject) ||
 
             // Get the IWebBrowser2 object embedded within the browser object
             browserObject->lpVtbl->QueryInterface(browserObject, &IID_IWebBrowser2, (void **)&webBrowser2))
@@ -1497,7 +1469,7 @@ static HRESULT WINAPI GetWebPtrs(HWND hwnd, IWebBrowser2 **webBrowser2Result, IH
             if (!(*htmlDoc2Result))
             {
                 webBrowser2->lpVtbl->Release(webBrowser2);
-fail:           return(E_FAIL);
+fail:           return E_FAIL;
             }
         }
 
@@ -1511,7 +1483,7 @@ fail:           return(E_FAIL);
             webBrowser2->lpVtbl->Release(webBrowser2);
     }
 
-    return(S_OK);
+    return S_OK;
 }
 
 
@@ -1549,7 +1521,7 @@ static IHTMLElement * WINAPI GetWebElement(HWND hwnd, IHTMLDocument2 *htmlDoc2, 
     htmlElem = NULL;
 
     // Get the browser's IHTMLDocument2 object if it wasn't passed
-    if (htmlDoc2 || !GetWebPtrs(hwnd, 0, &htmlDoc2))
+    if (htmlDoc2 || !GetWebPtrs(hwnd, NULL, &htmlDoc2))
     {
         // Get the IHTMLElementCollection object. We need this to get the IDispatch
         // object for the element the caller wants on the web page. And from that
@@ -1657,7 +1629,7 @@ static HRESULT WINAPI WaitOnReadyState(HWND hwnd, READYSTATE rs, DWORD timeout, 
     releaseOnComplete = 0;
     if (!webBrowser2)
     {
-        if (GetWebPtrs(hwnd, &webBrowser2, 0)) goto destroyed;
+        if (GetWebPtrs(hwnd, &webBrowser2, NULL)) goto destroyed;
         releaseOnComplete = 1;
     }
 
@@ -1712,234 +1684,6 @@ destroyed:  rs = WORS_DESTROYED;
     goto out;
 }
 
-
-
-
-
-
-/*************************** UnEmbedBrowserObject() ************************
- * Called to detach the browser object from our host window, and free its
- * resources, right before we destroy our window.
- *
- * hwnd =       Handle to the window hosting the browser object.
- *
- * NOTE: The pointer to the browser object must have been stored in the
- * window's USERDATA member. In other words, don't call UnEmbedBrowserObject().
- * with a HWND that wasn't successfully passed to EmbedBrowserObject().
- */
-
-static void WINAPI UnEmbedBrowserObject(HWND hwnd)
-{
-    IOleObject  **browserHandle;
-    IOleObject  *browserObject;
-
-    // Retrieve the browser object's pointer we stored in our window's GWL_USERDATA when we
-    // initially attached the browser object to this window. If 0, you may have called this
-    // for a window that wasn't successfully passed to EmbedBrowserObject(). Bad boy! Or, we
-    // may have failed the EmbedBrowserObject() call in WM_CREATE, in which case, our window
-    // may get a WM_DESTROY which could call this a second time (ie, since we may call
-    // UnEmbedBrowserObject in EmbedBrowserObject).
-    if ((browserHandle = (IOleObject **)GetWindowLongPtrW(hwnd, GWLP_USERDATA)))
-    {
-        // Unembed the browser object, and release its resources.
-        browserObject = *browserHandle;
-        browserObject->lpVtbl->Close(browserObject, OLECLOSE_NOSAVE);
-        browserObject->lpVtbl->Release(browserObject);
-
-        // Zero out the pointer just in case UnEmbedBrowserObject is called again for this window.
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
-    }
-}
-
-
-
-
-
-/******************************* DisplayHTMLStr() ****************************
- * Takes a string containing some HTML BODY, and displays it in the specified
- * window. For example, perhaps you want to display the HTML text of...
- *
- * <P>This is a picture.<P><IMG src="mypic.jpg">
- *
- * hwnd =       Handle to the window hosting the browser object.
- * string =     Pointer to nul-terminated string containing the HTML BODY.
- *              (NOTE: No <BODY></BODY> tags are required in the string).
- * flag =       1 if "string" is ANSI, or 0 if UNICODE.
- *
- * RETURNS: 0 if success, or non-zero if an error.
- *
- * NOTE: EmbedBrowserObject() must have been successfully called once with the
- * specified window, prior to calling this function. You need call
- * EmbedBrowserObject() once only, and then you can make multiple calls to
- * this function to display numerous pages in the specified window.
- */
-
-static long WINAPI DisplayHTMLStr(HWND hwnd, const WCHAR *string)
-{   
-    IHTMLDocument2  *htmlDoc2;
-    IWebBrowser2    *webBrowser2;
-    SAFEARRAY       *sfArray;
-    VARIANT         myURL;
-    VARIANT         *pVar;
-
-    VariantInit(&myURL);
-    XV2(myURL).vt = VT_BSTR;
-
-    // Get the browser's IWebBrowser2 object.
-    if (!GetWebPtrs(hwnd, &webBrowser2, 0))
-    {
-        // Ok, now the pointer to our IWebBrowser2 object is in 'webBrowser2', and so its VTable is
-        // webBrowser2->lpVtbl.
-
-        // Before we can get the IHTMLDocument2, we actually need to have some HTML page loaded in
-        // the browser. So, let's load an empty HTML page. Then, once we have that empty page, we
-        // can get that IHTMLDocument2 and call its write() to stuff our HTML string into it.
-
-        // Call the IWebBrowser2 object's get_Document so we can get its DISPATCH object. I don't know why you
-        // don't get the DISPATCH object via the browser object's QueryInterface(), but you don't.
-
-        // Give a URL that causes the browser to display an empty page.
-        XV3(myURL).bstrVal = SysAllocString(&Blank[0]);
-
-        // Call the Navigate2() function to actually display the page.
-        webBrowser2->lpVtbl->Navigate2(webBrowser2, &myURL, 0, 0, 0, 0);
-
-        // Wait for blank page to finish loading
-        if (WaitOnReadyState(hwnd, READYSTATE_COMPLETE, 1000, webBrowser2) != WORS_DESTROYED)
-        {
-            SysFreeString(XV3(myURL).bstrVal);
-
-            // Get the browser's IHTMLDocument2 object.
-            if (!GetWebPtrs(hwnd, 0, &htmlDoc2))
-            {
-                // Ok, now the pointer to our IHTMLDocument2 object is in 'htmlDoc2', and so its VTable is
-                // htmlDoc2->lpVtbl.
-
-                // Our HTML must be in the form of a BSTR. And it must be passed to write() in an
-                // array of "VARIENT" structs. So let's create all that.
-                if ((sfArray = SafeArrayCreate(VT_VARIANT, 1, (SAFEARRAYBOUND *)&ArrayBound)))
-                {
-                    if (!SafeArrayAccessData(sfArray, (void **)&pVar))
-                    {
-                        XV2(*pVar).vt = VT_BSTR;
-
-                        // Store our BSTR pointer in the VARIENT.
-                        if ((XV3(*pVar).bstrVal = SysAllocString(string)))
-                        {
-                            // Pass the VARIENT with its BSTR to write() in order to shove our desired HTML string
-                            // into the body of that empty page we created above.
-                            htmlDoc2->lpVtbl->write(htmlDoc2, sfArray);
-
-                            // Close the document. If we don't do this, subsequent calls to DisplayHTMLStr
-                            // would append to the current contents of the page
-                            htmlDoc2->lpVtbl->close(htmlDoc2);
-
-                            // Success. Just set this to something other than VT_BSTR to flag success
-                            ++XV2(myURL).vt;
-
-                            // Normally, we'd need to free our BSTR, but SafeArrayDestroy() does it for us
-    //                      SysFreeString(pVar->bstrVal);
-                        }
-
-                        // Free the array. This also frees the VARIENT that SafeArrayAccessData created for us,
-                        // and even frees the BSTR we allocated with SysAllocString
-                        SafeArrayDestroy(sfArray);
-                    }
-                }
-
-                // Release the IHTMLDocument2 object.
-                htmlDoc2->lpVtbl->Release(htmlDoc2);
-            }
-        }
-        else
-            SysFreeString(XV3(myURL).bstrVal);
-
-        // Release the IWebBrowser2 object.
-        webBrowser2->lpVtbl->Release(webBrowser2);
-    }
-
-    // No error?
-    if (XV2(myURL).vt != VT_BSTR) return(0);
-
-    // An error
-    return(-1);
-}
-
-
-
-
-
-/***************************** DisplayHTMLPage() **************************
- * Displays a URL, or HTML file on disk.
- *
- * hwnd =           Handle to the window hosting the browser object.
- * webPageName =    Pointer to nul-terminated name of the URL/file.
- *
- * RETURNS: 0 if success, or non-zero if an error.
- *
- * NOTE: EmbedBrowserObject() must have been successfully called once with the
- * specified window, prior to calling this function. You need call
- * EmbedBrowserObject() once only, and then you can make multiple calls to
- * this function to display numerous pages in the specified window.
- */
-
-static long WINAPI DisplayHTMLPage(HWND hwnd, const WCHAR *webPageName)
-{
-    IWebBrowser2    *webBrowser2;
-    VARIANT         myURL;
-
-    // Get the browser's IWebBrowser2 object.
-    if (!GetWebPtrs(hwnd, &webBrowser2, 0))
-    {
-        // Ok, now the pointer to our IWebBrowser2 object is in 'webBrowser2', and so its VTable is
-        // webBrowser2->lpVtbl.
-
-        // Our URL (ie, web address, such as "http://www.microsoft.com" or an HTM filename on disk
-        // such as "c:\myfile.htm") must be passed to the IWebBrowser2's Navigate2() function as a BSTR.
-        // A BSTR is like a pascal version of a double-byte character string. In other words, the
-        // first unsigned short is a count of how many characters are in the string, and then this
-        // is followed by those characters, each expressed as an unsigned short (rather than a
-        // char). The string is not nul-terminated. The OS function SysAllocString can allocate and
-        // copy a UNICODE C string to a BSTR. Of course, we'll need to free that BSTR after we're done
-        // with it. If we're not using UNICODE, we first have to convert to a UNICODE string.
-        //
-        // What's more, our BSTR needs to be stuffed into a VARIENT struct, and that VARIENT struct is
-        // then passed to Navigate2(). Why? The VARIENT struct makes it possible to define generic
-        // 'datatypes' that can be used with all languages. Not all languages support things like
-        // nul-terminated C strings. So, by using a VARIENT, whose first member tells what sort of
-        // data (ie, string, float, etc) is in the VARIENT, COM interfaces can be used by just about
-        // any language.
-        VariantInit(&myURL);
-        XV2(myURL).vt = VT_BSTR;
-
-        if ((XV3(myURL).bstrVal = SysAllocString(webPageName)) == NULL)
-        {
-            webBrowser2->lpVtbl->Release(webBrowser2);
-            return(-6);
-        }
-
-        // Call the Navigate2() function to actually display the page.
-        webBrowser2->lpVtbl->Navigate2(webBrowser2, &myURL, 0, 0, 0, 0);
-
-        // Free any resources (including the BSTR we allocated above).
-        VariantClear(&myURL);
-
-        // We no longer need the IWebBrowser2 object (ie, we don't plan to call any more functions in it,
-        // so we can release our hold on it). Note that we'll still maintain our hold on the browser
-        // object.
-        webBrowser2->lpVtbl->Release(webBrowser2);
-
-        // Success
-        return(0);
-    }
-
-    return(-5);
-}
-
-
-
-
-
 /******************************* DoPageAction() **************************
  * Implements the functionality of a "Back". "Forward", "Home", "Search",
  * "Refresh", or "Stop" button.
@@ -1952,11 +1696,6 @@ static long WINAPI DisplayHTMLPage(HWND hwnd, const WCHAR *webPageName)
  *              3 = Search.
  *              4 = Refresh the page.
  *              5 = Stop the currently loading page.
- *
- * NOTE: EmbedBrowserObject() must have been successfully called once with the
- * specified window, prior to calling this function. You need call
- * EmbedBrowserObject() once only, and then you can make multiple calls to
- * this function to display numerous pages in the specified window.
  */
 
 static void WINAPI DoPageAction(HWND hwnd, DWORD action)
@@ -1964,7 +1703,7 @@ static void WINAPI DoPageAction(HWND hwnd, DWORD action)
     IWebBrowser2    *webBrowser2;
 
     // Get the browser's IWebBrowser2 object.
-    if (!GetWebPtrs(hwnd, &webBrowser2, 0))
+    if (!GetWebPtrs(hwnd, &webBrowser2, NULL))
     {
         // Ok, now the pointer to our IWebBrowser2 object is in 'webBrowser2', and so its VTable is
         // webBrowser2->lpVtbl.
@@ -2019,36 +1758,152 @@ static void WINAPI DoPageAction(HWND hwnd, DWORD action)
 }
 
 
+LRESULT CALLBACK HWebViewFunction(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg) {
+	case WM_SIZE:
+		{
+			IWebBrowser2    *webBrowser2;
 
+			if (!GetWebPtrs(hwnd, &webBrowser2, NULL)) {
+				webBrowser2->lpVtbl->put_Width(webBrowser2, LOWORD(lParam));
+				webBrowser2->lpVtbl->put_Height(webBrowser2, HIWORD(lParam));
+				webBrowser2->lpVtbl->Release(webBrowser2);
+			}
+			return 0;
+        }
 
+	case WM_CREATE:
+		{
+			IWebBrowser2 *webBrowser2;
 
-/******************************* ResizeBrowser() ****************************
- * Resizes the browser object for the specified window to the specified
- * width and height.
- *
- * hwnd =           Handle to the window hosting the browser object.
- * width =          Width.
- * height =         Height.
- *
- * NOTE: EmbedBrowserObject() must have been successfully called once with the
- * specified window, prior to calling this function. You need call
- * EmbedBrowserObject() once only, and then you can make multiple calls to
- * this function to resize the browser object.
- */
+			// Get a pointer to the browser object and lock it down (so it doesn't "disappear" while we're using
+			// it in this program). We do this by calling the OS function CoCreateInstance().
+			if (!CoCreateInstance(&CLSID_WebBrowser, 0, CLSCTX_INPROC, &IID_IWebBrowser2, (void **)&webBrowser2)) {
+				_IOleClientSiteEx  *_iOleClientSiteEx;
 
-static void WINAPI ResizeBrowser(HWND hwnd, DWORD width, DWORD height)
+				if (!(_iOleClientSiteEx = (_IOleClientSiteEx *)GlobalAlloc(GMEM_FIXED, sizeof(_IOleClientSiteEx))))
+					return -1;
+
+				// Initialize our IOleClientSite object with a pointer to our IOleClientSite VTable.
+				_iOleClientSiteEx->client.lpVtbl = &MyIOleClientSiteTable;
+
+				// Initialize our IOleInPlaceSite object with a pointer to our IOleInPlaceSite VTable.
+				_iOleClientSiteEx->inplace.inplace.lpVtbl = &MyIOleInPlaceSiteTable;
+
+				// Initialize our IOleInPlaceFrame object with a pointer to our IOleInPlaceFrame VTable.
+				_iOleClientSiteEx->inplace.frame.frame.lpVtbl = &MyIOleInPlaceFrameTable;
+
+				// Save our HWND (in the IOleInPlaceFrame object) so our IOleInPlaceFrame functions can retrieve it.
+				_iOleClientSiteEx->inplace.frame.window = hwnd;
+
+				// Initialize our IDocHostUIHandler object with a pointer to our IDocHostUIHandler VTable.
+				_iOleClientSiteEx->ui.ui.lpVtbl = &MyIDocHostUIHandlerTable;
+
+				_iOleClientSiteEx->browserObject = NULL;
+
+				// We need to get a pointer to IWebBrowser2's IOleObject child object
+				webBrowser2->lpVtbl->QueryInterface(webBrowser2, &IID_IOleObject, (void**)&_iOleClientSiteEx->browserObject);
+
+				if (_iOleClientSiteEx->browserObject) {
+					SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)_iOleClientSiteEx);
+
+					// Give the browser a pointer to my IOleClientSite object.
+					if (!_iOleClientSiteEx->browserObject->lpVtbl->SetClientSite(_iOleClientSiteEx->browserObject, &_iOleClientSiteEx->client)) {
+						RECT          rect;
+
+						// Set the display area of our browser control the same as our window's size
+						// and actually put the browser object into our window.
+						GetClientRect(hwnd, &rect);
+						if (!_iOleClientSiteEx->browserObject->lpVtbl->DoVerb(_iOleClientSiteEx->browserObject, OLEIVERB_INPLACEACTIVATE, 0, &_iOleClientSiteEx->client, 0, hwnd, &rect)) {
+							// Let's call several functions in the IWebBrowser2 object to position the browser display area in our window.
+							webBrowser2->lpVtbl->put_Left(webBrowser2, 0);
+							webBrowser2->lpVtbl->put_Top(webBrowser2, 0);
+							webBrowser2->lpVtbl->put_Width(webBrowser2, rect.right);
+							webBrowser2->lpVtbl->put_Height(webBrowser2, rect.bottom);
+
+							webBrowser2->lpVtbl->Release(webBrowser2);
+
+							// Success
+							return 0;
+						}
+					}
+
+					_iOleClientSiteEx->browserObject->lpVtbl->Close(_iOleClientSiteEx->browserObject, OLECLOSE_NOSAVE);
+					_iOleClientSiteEx->browserObject->lpVtbl->Release(_iOleClientSiteEx->browserObject);
+				}
+
+				webBrowser2->lpVtbl->Release(webBrowser2);
+
+				GlobalFree(_iOleClientSiteEx);
+			}
+
+			// Can't get the web browser's IWebBrowser2!
+			return -1;
+		}
+
+	case WM_DESTROY:
+        {
+			IOleObject  *browserObject;
+			_IOleClientSiteEx  *_iOleClientSiteEx;
+
+			// Retrieve the browser object's pointer we stored in our window's GWL_USERDATA when we
+			// initially attached the browser object to this window.
+			if ((_iOleClientSiteEx = (_IOleClientSiteEx *)GetWindowLongPtrW(hwnd, GWLP_USERDATA)))
+			{
+				// Unembed the browser object, and release its resources.
+				browserObject = _iOleClientSiteEx->browserObject;
+				browserObject->lpVtbl->Close(browserObject, OLECLOSE_NOSAVE);
+				browserObject->lpVtbl->Release(browserObject);
+				GlobalFree(_iOleClientSiteEx);
+			}
+
+            return TRUE;
+        }
+    }
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+WindowHandle osCreateWebView(WindowHandle window)
+{
+	HWND hWebView;
+
+	hWebView = CreateWindowExW(
+			  WS_EX_CLIENTEDGE,
+			  L"HWebView",
+			  NULL,
+			  WS_CHILD | WS_BORDER | WS_TABSTOP | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT,
+			  0,0,0,0,
+			  window,
+			  NULL,
+			  ghModule,
+			  NULL
+			);
+	return checkWindow(hWebView, "HWebView");
+}
+
+void osWebViewLoadURL(WindowHandle window, PortString url)
 {
     IWebBrowser2    *webBrowser2;
+    VARIANT         myURL;
 
     // Get the browser's IWebBrowser2 object.
-    if (!GetWebPtrs(hwnd, &webBrowser2, 0))
-    {
-        // Ok, now the pointer to our IWebBrowser2 object is in 'webBrowser2', and so its VTable is
-        // webBrowser2->lpVtbl.
+    if (!GetWebPtrs(window, &webBrowser2, NULL)) {
+        VariantInit(&myURL);
+        XV2(myURL).vt = VT_BSTR;
 
-        // Call are put_Width() and put_Height() to set the new width/height.
-        webBrowser2->lpVtbl->put_Width(webBrowser2, width);
-        webBrowser2->lpVtbl->put_Height(webBrowser2, height);
+        if ((XV3(myURL).bstrVal = SysAllocString(url)) == NULL)
+        {
+            webBrowser2->lpVtbl->Release(webBrowser2);
+            return;
+        }
+
+        // Call the Navigate2() function to actually display the page.
+        webBrowser2->lpVtbl->Navigate2(webBrowser2, &myURL, 0, 0, 0, 0);
+
+        // Free any resources (including the BSTR we allocated above).
+        VariantClear(&myURL);
 
         // We no longer need the IWebBrowser2 object (ie, we don't plan to call any more functions in it,
         // so we can release our hold on it). Note that we'll still maintain our hold on the browser
@@ -2057,185 +1912,98 @@ static void WINAPI ResizeBrowser(HWND hwnd, DWORD width, DWORD height)
     }
 }
 
+void osWebViewLoadHTML(WindowHandle window, PortString html)
+{   
+    IHTMLDocument2  *htmlDoc2;
+    IWebBrowser2    *webBrowser2;
+    SAFEARRAY       *sfArray;
+    VARIANT         myURL;
+    VARIANT         *pVar;
 
+    VariantInit(&myURL);
+    XV2(myURL).vt = VT_BSTR;
 
-
-
-/***************************** EmbedBrowserObject() **************************
- * Puts the browser object inside our host window, and save a pointer to this
- * window's browser object in the window's GWL_USERDATA member.
- *
- * hwnd =       Handle of our window into which we embed the browser object.
- *
- * RETURNS: 0 if success, or non-zero if an error.
- *
- * NOTE: We tell the browser object to occupy the entire client area of the
- * window.
- *
- * NOTE: No HTML page will be displayed here. We can do that with a subsequent
- * call to either DisplayHTMLPage() or DisplayHTMLStr(). This is merely once-only
- * initialization for using the browser object. In a nutshell, what we do
- * here is get a pointer to the browser object in our window's GWL_USERDATA
- * so we can access that object's functions whenever we want, and we also pass
- * the browser a pointer to our IOleClientSite struct so that the browser can
- * call our functions in our struct's VTable.
- */
-
-static long WINAPI EmbedBrowserObject(HWND hwnd)
-{
-    IOleObject                  *browserObject;
-    IWebBrowser2                *webBrowser2;
-    RECT                        rect;
-    register char               *ptr;
-    register _IOleClientSiteEx  *_iOleClientSiteEx;
-
-    // Our IOleClientSite, IOleInPlaceSite, and IOleInPlaceFrame functions need to get our window handle. We
-    // could store that in some global. But then, that would mean that our functions would work with only that
-    // one window. If we want to create multiple windows, each hosting its own browser object (to display its
-    // own web page), then we need to create unique IOleClientSite, IOleInPlaceSite, and IOleInPlaceFrame
-    // structs for each window. And we'll put an extra member at the end of those structs to store our extra
-    // data such as a window handle. So, our functions won't have to touch global data, and can therefore be
-    // re-entrant and work with multiple objects/windows.
-    //
-    // Remember that a pointer to our IOleClientSite we create here will be passed as the first arg to every
-    // one of our IOleClientSite functions. Ditto with the IOleInPlaceFrame object we create here, and the
-    // IOleInPlaceFrame functions. So, our functions are able to retrieve the window handle we'll store here,
-    // and then, they'll work with all such windows containing a browser control.
-    //
-    // Furthermore, since the browser will be calling our IOleClientSite's QueryInterface to get a pointer to
-    // our IOleInPlaceSite and IDocHostUIHandler objects, that means that our IOleClientSite QueryInterface
-    // must have an easy way to grab those pointers. Probably the easiest thing to do is just embed our
-    // IOleInPlaceSite and IDocHostUIHandler objects inside of an extended IOleClientSite which we'll call
-    // a _IOleClientSiteEx. As long as they come after the pointer to the IOleClientSite VTable, then we're
-    // ok.
-    //
-    // Of course, we need to GlobalAlloc the above structs now. We'll just get all 3 with a single call to
-    // GlobalAlloc, especially since they're are contained inside of our _IOleClientSiteEx anyway.
-    //
-    // So, we're not actually allocating separate IOleClientSite, IOleInPlaceSite, IOleInPlaceFrame and
-    // IDocHostUIHandler structs.
-    //
-    // One final thing. We're going to allocate extra room to store the pointer to the browser object.
-    if (!(ptr = (char *)GlobalAlloc(GMEM_FIXED, sizeof(_IOleClientSiteEx) + sizeof(IOleObject *))))
-        return(-1);
-
-    // Initialize our IOleClientSite object with a pointer to our IOleClientSite VTable.
-    _iOleClientSiteEx = (_IOleClientSiteEx *)(ptr + sizeof(IOleObject *));
-    _iOleClientSiteEx->client.lpVtbl = &MyIOleClientSiteTable;
-
-    // Initialize our IOleInPlaceSite object with a pointer to our IOleInPlaceSite VTable.
-    _iOleClientSiteEx->inplace.inplace.lpVtbl = &MyIOleInPlaceSiteTable;
-
-    // Initialize our IOleInPlaceFrame object with a pointer to our IOleInPlaceFrame VTable.
-    _iOleClientSiteEx->inplace.frame.frame.lpVtbl = &MyIOleInPlaceFrameTable;
-
-    // Save our HWND (in the IOleInPlaceFrame object) so our IOleInPlaceFrame functions can retrieve it.
-    _iOleClientSiteEx->inplace.frame.window = hwnd;
-
-    // Initialize our IDocHostUIHandler object with a pointer to our IDocHostUIHandler VTable.
-    _iOleClientSiteEx->ui.ui.lpVtbl = &MyIDocHostUIHandlerTable;
-
-    // Get a pointer to the browser object and lock it down (so it doesn't "disappear" while we're using
-    // it in this program). We do this by calling the OS function CoCreateInstance().
-    //
-    // NOTE: We need this pointer to interact with and control the browser. With normal WIN32 controls such as a
-    // Static, Edit, Combobox, etc, you obtain an HWND and send messages to it with SendMessage(). Not so with
-    // the browser object. You need to get a pointer to it. This object contains an array of pointers to functions           // you can call within the browser object. Actually, it contains a 'lpVtbl' member that is a pointer to that
-        // array. We call the array a 'VTable'.
-    //
-    // For example, the browser object happens to have a SetClientSite() function we want to call. So, after we
-    // retrieve the pointer to the browser object (in a local we'll name 'browserObject'), then we can call that
-    // function, and pass it args, as so:
-    //
-    // browserObject->lpVtbl->SetClientSite(browserObject, SomeIOleClientObject);
-    //
-    // There's our pointer to the browser object in 'browserObject'. And there's the pointer to the browser object's
-    // VTable in 'browserObject->lpVtbl'. And the pointer to the SetClientSite function happens to be stored in a
-    // member named 'SetClientSite' within the VTable. So we are actually indirectly calling SetClientSite by using
-    // a pointer to it. That's how you use a VTable.
-
-    // Get Internet Explorer's IWebBrowser2 object (ie, IE's main object)
-    if (!CoCreateInstance(&CLSID_WebBrowser, 0, CLSCTX_INPROC, &IID_IWebBrowser2, (void **)&webBrowser2))
+    // Get the browser's IWebBrowser2 object.
+    if (!GetWebPtrs(window, &webBrowser2, NULL))
     {
-        browserObject = 0;
+        // Ok, now the pointer to our IWebBrowser2 object is in 'webBrowser2', and so its VTable is
+        // webBrowser2->lpVtbl.
 
-        // We need to get a pointer to IWebBrowser2's IOleObject child object
-        webBrowser2->lpVtbl->QueryInterface(webBrowser2, &IID_IOleObject, (void**)&browserObject);
+        // Before we can get the IHTMLDocument2, we actually need to have some HTML page loaded in
+        // the browser. So, let's load an empty HTML page. Then, once we have that empty page, we
+        // can get that IHTMLDocument2 and call its write() to stuff our HTML string into it.
 
-        // Ok, we now have the pointer to the IOleObject child object in 'browserObject'. Let's save this in the
-        // memory block we allocated above, and then save the pointer to that whole thing in our window's
-        // USERDATA member. That way, if we need multiple windows each hosting its own browser object, we can
-        // call EmbedBrowserObject() for each one, and easily associate the appropriate browser object with
-        // its matching window and its own objects containing per-window data.
-        if ((*((IOleObject **)ptr) = browserObject))
+        // Call the IWebBrowser2 object's get_Document so we can get its DISPATCH object. I don't know why you
+        // don't get the DISPATCH object via the browser object's QueryInterface(), but you don't.
+
+        // Give a URL that causes the browser to display an empty page.
+        XV3(myURL).bstrVal = SysAllocString(&Blank[0]);
+
+        // Call the Navigate2() function to actually display the page.
+        webBrowser2->lpVtbl->Navigate2(webBrowser2, &myURL, 0, 0, 0, 0);
+
+        // Wait for blank page to finish loading
+        if (WaitOnReadyState(window, READYSTATE_COMPLETE, 1000, webBrowser2) != WORS_DESTROYED)
         {
-            SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)ptr);
+            SysFreeString(XV3(myURL).bstrVal);
 
-            // Give the browser a pointer to my IOleClientSite object.
-            //
-            // NOTE: We pass our _IOleClientSiteEx struct and lie -- saying that it's a IOleClientSite. It's ok. A
-            // _IOleClientSiteEx struct starts with an embedded IOleClientSite. So the browser won't care, and we want
-            // this extended struct passed to our IOleClientSite functions.
-            if (!browserObject->lpVtbl->SetClientSite(browserObject, (IOleClientSite *)_iOleClientSiteEx))
+            // Get the browser's IHTMLDocument2 object.
+            if (!GetWebPtrs(window, 0, &htmlDoc2))
             {
-                // Set the display area of our browser control the same as our window's size
-                // and actually put the browser object into our window.
-                GetClientRect(hwnd, &rect);
-                if (!browserObject->lpVtbl->DoVerb(browserObject, OLEIVERB_INPLACEACTIVATE, 0, (IOleClientSite *)_iOleClientSiteEx, 0, hwnd, &rect))
+				static const SAFEARRAYBOUND ArrayBound = {1, 0};
+
+                // Ok, now the pointer to our IHTMLDocument2 object is in 'htmlDoc2', and so its VTable is
+                // htmlDoc2->lpVtbl.
+
+                // Our HTML must be in the form of a BSTR. And it must be passed to write() in an
+                // array of "VARIENT" structs. So let's create all that.
+                if ((sfArray = SafeArrayCreate(VT_VARIANT, 1, (SAFEARRAYBOUND *)&ArrayBound)))
                 {
-                    // Let's call several functions in the IWebBrowser2 object to position the browser display area
-                    // in our window. The functions we call are put_Left(), put_Top(), put_Width(), and put_Height().
-                    // Note that we reference the IWebBrowser2 object's VTable to get pointers to those functions. And
-                    // also note that the first arg we pass to each is the pointer to the IWebBrowser2 object.
-                    webBrowser2->lpVtbl->put_Left(webBrowser2, 0);
-                    webBrowser2->lpVtbl->put_Top(webBrowser2, 0);
-                    webBrowser2->lpVtbl->put_Width(webBrowser2, rect.right);
-                    webBrowser2->lpVtbl->put_Height(webBrowser2, rect.bottom);
+                    if (!SafeArrayAccessData(sfArray, (void **)&pVar))
+                    {
+                        XV2(*pVar).vt = VT_BSTR;
 
-                    // We no longer need the IWebBrowser2 object (ie, we don't plan to call any more functions in it
-                    // right now, so we can release our hold on it). Note that we'll still maintain our hold on the
-                    // browser IOleObject until we're done with that object.
-                    webBrowser2->lpVtbl->Release(webBrowser2);
+                        // Store our BSTR pointer in the VARIENT.
+                        if ((XV3(*pVar).bstrVal = SysAllocString(html)))
+                        {
+                            // Pass the VARIENT with its BSTR to write() in order to shove our desired HTML string
+                            // into the body of that empty page we created above.
+                            htmlDoc2->lpVtbl->write(htmlDoc2, sfArray);
 
-                    // Success
-                    return(0);
+                            // Close the document. If we don't do this, subsequent calls to DisplayHTMLStr
+                            // would append to the current contents of the page
+                            htmlDoc2->lpVtbl->close(htmlDoc2);
+
+                            // Success. Just set this to something other than VT_BSTR to flag success
+                            ++XV2(myURL).vt;
+
+                            // Normally, we'd need to free our BSTR, but SafeArrayDestroy() does it for us
+    //                      SysFreeString(pVar->bstrVal);
+                        }
+
+                        // Free the array. This also frees the VARIENT that SafeArrayAccessData created for us,
+                        // and even frees the BSTR we allocated with SysAllocString
+                        SafeArrayDestroy(sfArray);
+                    }
                 }
+
+                // Release the IHTMLDocument2 object.
+                htmlDoc2->lpVtbl->Release(htmlDoc2);
             }
-
-            webBrowser2->lpVtbl->Release(webBrowser2);
-
-            // Something went wrong setting up the browser!
-            UnEmbedBrowserObject(hwnd);
-            return -4;
         }
+        else
+            SysFreeString(XV3(myURL).bstrVal);
 
+        // Release the IWebBrowser2 object.
         webBrowser2->lpVtbl->Release(webBrowser2);
-
-        GlobalFree(ptr);
-
-        // Can't create an instance of the browser!
-        return -3;
     }
-
-    GlobalFree(ptr);
-
-    // Can't get the web browser's IWebBrowser2!
-    return -2;
 }
 
 
-WindowHandle osCreateWebView(WindowHandle window)
-{
-	printf("osCreateWebView is not implemented\n");
-	return NULL;
-}
-
-void osWebViewLoadURL(WindowHandle window, PortString url)
-{
-	printf("osWebViewLoadURL is not implemented\n");
-}
+static long WINAPI DisplayHTMLStr(HWND, const WCHAR *);
 
 void osGetWebViewReqSize(WindowHandle webview, int *res)
 {
-	printf("osGetWebViewReqSize is not implemented\n");
+	res[0] = 100;
+	res[1] = 100;
 }
