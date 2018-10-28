@@ -105,4 +105,14 @@ ftops(double f, WCHAR *szOutput);
 #define ftops(f,szOutput) wsprintfW(szOutput, L"%f", f);
 #endif
 
+#ifndef GWL_WNDPROC
+#define GWL_WNDPROC -4
+#endif
+#ifndef GWL_ID
+#define GWL_ID -12
+#endif
+#ifndef GWL_USERDATA
+#define GWL_USERDATA -21
+#endif
+
 #endif

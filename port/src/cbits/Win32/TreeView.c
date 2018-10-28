@@ -5,17 +5,6 @@
 #include <limits.h>
 
 
-#ifndef GWL_WNDPROC
-#define GWL_WNDPROC -4
-#endif
-#ifndef GWL_ID
-#define GWL_ID -12
-#endif
-#ifndef GWL_USERDATA
-#define GWL_USERDATA -21
-#endif
-
-
 #define 	TVCOLUMNW				LVCOLUMNW
 #define 	TV_NOIMAGE				(-2)
 #define 	TV_NOCOLOR				0xFFFFFFFF

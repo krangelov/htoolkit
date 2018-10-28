@@ -365,6 +365,7 @@ importedFunctions =
                 ,"SendDlgItemMessageA"
                 ,"SendMessageA"
                 ,"SendMessageW"
+                ,"PostMessageW"
                 ,"SetActiveWindow"
                 ,"SetCapture"
                 ,"SetCursor"
@@ -389,6 +390,7 @@ importedFunctions =
                 ,"TranslateMessage"
                 ,"UpdateWindow"
                 ,"RedrawWindow"
+                ,"IsWindowUnicode"
                 ])
   ,("kernel32", ["CloseHandle"
                 ,"CreateFileA"
@@ -407,6 +409,12 @@ importedFunctions =
                 ,"CreateSemaphoreA"
                 ,"ReleaseSemaphore"
                 ,"WaitForSingleObject"
+                ,"GlobalAlloc"
+                ,"GlobalFree"
+                ,"GetTickCount"
+                ,"Sleep"
+                ,"DisableThreadLibraryCalls"
+                ,"lstrcmpW"
                 ])
   ,("ole32",    ["CoTaskMemFree"
                 ,"CoInitialize"
