@@ -17,6 +17,15 @@ typedef enum {PosLeft=0, PosTop=1, PosRight=2, PosBottom=3} PositionType;
 #include <windows.h>
 #include <mmsystem.h>
 #include <shlobj.h>
+#include <guiddef.h>
+
+#include <d2d1.h>
+#include <dwrite.h>
+#include <wincodec.h>
+
+#include <exdisp.h>       /* Defines of stuff like IWebBrowser2. This is an include file with Visual C 6 and above */
+#include <mshtml.h>       /* Defines of stuff like IHTMLDocument2. This is an include file with Visual C 6 and above */
+#include <mshtmhst.h> /* Defines of stuff like IDocHostUIHandler. This is an include file with Visual C 6 and above */
 
 #ifndef TB_GETBUTTONINFO
 #define TB_GETBUTTONINFO (WM_USER + 65)

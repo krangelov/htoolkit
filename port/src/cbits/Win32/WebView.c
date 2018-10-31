@@ -1,12 +1,6 @@
-#define INITGUID
-#include <guiddef.h>
-
 #include "WebView.h"
 #include "Internals.h"
 #include "Handlers_stub.h"
-#include <exdisp.h>       /* Defines of stuff like IWebBrowser2. This is an include file with Visual C 6 and above */
-#include <mshtml.h>       /* Defines of stuff like IHTMLDocument2. This is an include file with Visual C 6 and above */
-#include <mshtmhst.h> /* Defines of stuff like IDocHostUIHandler. This is an include file with Visual C 6 and above */
 
 // Passed to an app's window procedure (as a WM_NOTIFY message) whenever an
 // action has occurred on the web page (and the app has asked to be informed

@@ -7,6 +7,7 @@ extern BOOL gInKey;
 extern int gCurChar;
 extern HMODULE ghModule;
 extern HWND ghWndFrame;
+extern ID2D1Factory *gpDirect2dFactory;
 
 extern unsigned int GetModifiers();
 
@@ -57,6 +58,8 @@ typedef struct
 
 	int windowPos;
 	RECT windowPosRect;
+
+	ID2D1HwndRenderTarget *pRenderTarget;
 } WindowData;
 
 extern void rfree(void *ptr);

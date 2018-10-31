@@ -60,9 +60,9 @@ Library
       cpp-options: -DWINE_TARGET=1
       c-sources: src/cbits/Win32/portwine.s
                  src/cbits/Win32/WineUtils.c
-      include-dirs: /usr/include/wine/windows
-      extra-lib-dirs: /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/wine
-      extra-libraries: wine winecrt0
+      include-dirs: /usr/include/wine/windows /opt/wine-stable/include /opt/wine-stable/include/wine/windows
+      extra-lib-dirs: /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/wine /opt/wine-stable/lib64 /opt/wine-stable/lib64/wine
+      extra-libraries: wine winecrt0 :d2d1.dll.so
     else
       extra-libraries: user32, comctl32, comdlg32, ole32
   else
@@ -101,6 +101,7 @@ Library
       cc-options: -DCOCOA_TARGET=1
       if flag(use-gnustep)
         include-dirs: /usr/include/GNUstep
+        cc-options: -DGNUSTEP
       else
         frameworks: cocoa
     else

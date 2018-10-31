@@ -210,6 +210,32 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
 			pData->MinTrackSize.cx = 0;
             pData->MinTrackSize.cy = 0;
             pData->windowPos = -1;
+
+            {
+				// Setup Direct2D target
+
+				D2D1_RENDER_TARGET_PROPERTIES prop;
+				prop.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
+				prop.pixelFormat.format    = DXGI_FORMAT_UNKNOWN;
+				prop.pixelFormat.alphaMode = D2D1_ALPHA_MODE_UNKNOWN;
+				prop.dpiX = 0;
+				prop.dpiY = 0;
+				prop.usage = D2D1_RENDER_TARGET_USAGE_NONE;
+				prop.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
+
+				D2D1_HWND_RENDER_TARGET_PROPERTIES hprop;
+				hprop.hwnd = hWnd;
+				hprop.pixelSize.width = 1;
+				hprop.pixelSize.height = 1;
+				hprop.presentOptions = D2D1_PRESENT_OPTIONS_NONE;
+
+				if (FAILED(gpDirect2dFactory->lpVtbl->CreateHwndRenderTarget(
+				                   gpDirect2dFactory,
+				                   &prop, &hprop,
+				                   &pData->pRenderTarget)))
+					return -1;
+			}
+
 			SetWindowLongPtrW(hWnd,GWLP_USERDATA,(LONG_PTR) pData);
 
 			SetFocus(hWnd);
@@ -219,12 +245,16 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
         handleWindowDismiss(hWnd);
         return 0;
     case WM_DESTROY:
-    	handleWindowDestroy(hWnd);
-        if (pData->hBackBrush)
-        {
-            DeleteObject(pData->hBackBrush);
-            pData->hBackBrush = NULL;
-        }
+		handleWindowDestroy(hWnd);
+		if (pData->hBackBrush)
+		{
+			DeleteObject(pData->hBackBrush);
+			pData->hBackBrush = NULL;
+		}
+
+		if (pData->pRenderTarget) {
+			pData->pRenderTarget->lpVtbl->Release(pData->pRenderTarget);
+		}
 
         free(pData);
         break;
@@ -307,6 +337,8 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
             CanvasHandle canvas;
 
             BeginPaint(hWnd, &ps);
+            /*if (pData->pRenderTarget)
+				pData->pRenderTarget->lpVtbl->BeginDraw(pData->pRenderTarget);*/
 
             SetViewportExtEx(ps.hdc,pData->DomainSize.cx,pData->DomainSize.cy,NULL);
             SetWindowExtEx(ps.hdc,pData->DomainSize.cx,pData->DomainSize.cy,NULL);
@@ -332,6 +364,11 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
 			if (GetParent(hWnd) == NULL && (GetWindowLongPtrW(hWnd, GWL_STYLE) & WS_THICKFRAME))
 				DrawSizeGrip(hWnd, ps.hdc);
 
+			/*if (pData->pRenderTarget) {
+				D2D1_TAG tag1, tag2;
+				pData->pRenderTarget->lpVtbl->EndDraw(pData->pRenderTarget, &tag1, &tag2);
+				ValidateRect(hwnd, NULL);
+			}*/
             EndPaint(hWnd, &ps);
         }
         break;
@@ -372,7 +409,18 @@ LRESULT CALLBACK HWindowSharedFunction(WNDPROC pDefWindowProc, HWND hWnd, UINT u
             if (nLimitY > 0 && pData->Origin.y > nLimitY) pData->Origin.y = nLimitY;
 
             GetClientRect(hWnd,&rect);
-            handleWindowResize(hWnd,rect.right-rect.left,rect.bottom-rect.top);
+
+			D2D1_SIZE_U size;
+			size.width  = rect.right-rect.left;
+			size.height = rect.bottom-rect.top;
+			if (size.width  <= 0) size.width = 1;
+			if (size.height <= 0) size.height = 1;
+
+			if (pData->pRenderTarget) {
+				pData->pRenderTarget->lpVtbl->Resize(pData->pRenderTarget, &size);
+			}
+
+            handleWindowResize(hWnd,size.width,size.height);
             handleContainerReLayout(hWnd);
         }
         break;

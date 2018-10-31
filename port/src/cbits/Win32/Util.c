@@ -1,3 +1,5 @@
+#define INITGUID
+
 #include "Types.h"
 #include "Window.h"
 #include "Internals.h"
@@ -8,6 +10,7 @@
 
 HMODULE ghModule = NULL;
 HWND ghWndFrame = NULL;
+ID2D1Factory *gpDirect2dFactory = NULL;
 
 void *rmalloc (DWORD bytes)
 {
@@ -302,9 +305,13 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 		icc.dwSize = sizeof(icc);
 		icc.dwICC = ICC_WIN95_CLASSES | ICC_DATE_CLASSES;
 		InitCommonControlsEx(&icc);
-		
-		OleInitialize(NULL);
 	}
+
+	OleInitialize(NULL);
+
+    D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
+                      &IID_ID2D1Factory, NULL, 
+                      (void**) &gpDirect2dFactory);
 
 	if (ghWndFrame == NULL)
 	{
@@ -361,11 +368,13 @@ void osStart(PortString appTitle, PortString appVersion, int DocumentInterface, 
 	}
 
 	doneGdiPlus();
+	if (gpDirect2dFactory)
+		gpDirect2dFactory->lpVtbl->Release(gpDirect2dFactory);
+	OleUninitialize();
 };
 
 void osQuit()
 {
-	OleUninitialize();
 	DestroyWindow(ghWndFrame);
 	ghWndFrame = NULL;
 }

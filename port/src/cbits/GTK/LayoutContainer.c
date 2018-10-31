@@ -675,7 +675,7 @@ static void port_layout_remove (GtkContainer *container, GtkWidget    *widget)
 {
   PortLayout *layout;
 
-  g_return_val_if_fail (PORT_IS_LAYOUT (container), FALSE);
+  g_return_if_fail (PORT_IS_LAYOUT (container));
 
   layout = PORT_LAYOUT (container);
 
